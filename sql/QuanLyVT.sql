@@ -13,7 +13,10 @@ GO
 -- =========================
 CREATE TABLE TaiKhoan (
     username VARCHAR(50) NOT NULL PRIMARY KEY,
-    password VARCHAR(255)
+    password VARCHAR(255) NOT NULL,
+    email VARCHAR(100),
+    hoTen NVARCHAR(100),
+    vaiTro VARCHAR(50) NOT NULL
 );
 GO
 
@@ -23,14 +26,15 @@ GO
 -- =========================
 CREATE TABLE NhanVien (
     maNV VARCHAR(20) NOT NULL PRIMARY KEY,
-    tenNV NVARCHAR(100),
+    tenNV NVARCHAR(100) NOT NULL,
     sdt VARCHAR(15),
-    gioiTinh BIT,
+    gioiTinh BIT NOT NULL,
     ngaySinh DATE,
     ngayVaoLam DATE,
     chucVu NVARCHAR(50),
-	trangThai BIT,
-    username VARCHAR(50),
+	trangThai BIT NOT NULL,
+    username VARCHAR(50) UNIQUE,
+    hinhAnh NVARCHAR(255),
 
     CONSTRAINT FK_NhanVien_TaiKhoan
     FOREIGN KEY (username)
@@ -54,15 +58,15 @@ GO
 -- KHACH HANG
 -- =========================
 CREATE TABLE KhachHang (
-    maKH VARCHAR(20) PRIMARY KEY,
-    tenKH NVARCHAR(100),
+    maKH VARCHAR(20) NOT NULL PRIMARY KEY,
+    tenKH NVARCHAR(100) NOT NULL,
     sdt VARCHAR(15),
     cccd VARCHAR(20),
-	diaChi VARCHAR(100),
+	diaChi NVARCHAR(100),
     email VARCHAR(100),
-    gioiTinh BIT,
+    gioiTinh BIT NOT NULL,
     ngaySinh DATE,
-    loaiKH BIT
+    loaiKH BIT NOT NULL
 );
 GO
 
@@ -71,11 +75,17 @@ GO
 -- KHUYEN MAI
 -- =========================
 CREATE TABLE KhuyenMai (
-    maKM VARCHAR(20) PRIMARY KEY,
-    tenKM NVARCHAR(100),
-    tyLeKM DECIMAL(5,2),
-    ngayBD DATE,
-    ngayKT DATE
+    maKM VARCHAR(20) NOT NULL PRIMARY KEY,
+    tenKM NVARCHAR(100) NOT NULL,
+    tyLeKM DECIMAL(5,2) NOT NULL,
+    ngayBD DATE NOT NULL,
+    ngayKT DATE NOT NULL,
+
+    CONSTRAINT CK_KhuyenMai_TyLeKM
+    CHECK (tyLeKM >= 0 AND tyLeKM <= 100),
+
+    CONSTRAINT CK_KhuyenMai_Ngay
+    CHECK (ngayKT >= ngayBD)
 );
 GO
 
@@ -84,10 +94,13 @@ GO
 -- DICH VU
 -- =========================
 CREATE TABLE DichVu (
-    maDV VARCHAR(20) PRIMARY KEY,
-    tenDV NVARCHAR(100),
-    trangThai BIT,
-    giaDV DECIMAL(10,2)
+    maDV VARCHAR(20) NOT NULL PRIMARY KEY,
+    tenDV NVARCHAR(100) NOT NULL,
+    trangThai BIT NOT NULL,
+    giaDV DECIMAL(10,2) NOT NULL,
+
+    CONSTRAINT CK_DichVu_GiaDV
+    CHECK (giaDV >= 0)
 );
 GO
 
@@ -96,10 +109,13 @@ GO
 -- TUYEN TAU
 -- =========================
 CREATE TABLE TuyenTau (
-    maTT VARCHAR(20) PRIMARY KEY,
-    maGaDi NVARCHAR(100),
-    maGaDen NVARCHAR(100),
-    khoangCach FLOAT
+    maTT VARCHAR(20) NOT NULL PRIMARY KEY,
+    maGaDi NVARCHAR(100) NOT NULL,
+    maGaDen NVARCHAR(100) NOT NULL,
+    khoangCach DECIMAL(10,2) NOT NULL,
+
+    CONSTRAINT CK_TuyenTau_KhoangCach
+    CHECK (khoangCach > 0)
 );
 GO
 
@@ -108,9 +124,12 @@ GO
 -- TAU
 -- =========================
 CREATE TABLE Tau (
-    maTau VARCHAR(20) PRIMARY KEY,
-    tenTau NVARCHAR(100),
-    soLuongToa INT
+    maTau VARCHAR(20) NOT NULL PRIMARY KEY,
+    tenTau NVARCHAR(100) NOT NULL,
+    soLuongToa INT NOT NULL,
+
+    CONSTRAINT CK_Tau_SoLuongToa
+    CHECK (soLuongToa >= 0)
 );
 GO
 
@@ -119,12 +138,15 @@ GO
 -- TOA
 -- =========================
 CREATE TABLE Toa (
-    maToa VARCHAR(20) PRIMARY KEY,
-    loaiToa NVARCHAR(50),
-    soGhe INT,
+    maToa VARCHAR(20) NOT NULL PRIMARY KEY,
+    loaiToa NVARCHAR(50) NOT NULL,
+    soGhe INT NOT NULL,
     viTriToa NVARCHAR(50),
-    trangThai BIT,
-    maTau VARCHAR(20),
+    trangThai BIT NOT NULL,
+    maTau VARCHAR(20) NOT NULL,
+
+    CONSTRAINT CK_Toa_SoGhe
+    CHECK (soGhe > 0),
 
     CONSTRAINT FK_Toa_Tau
     FOREIGN KEY (maTau)
@@ -137,12 +159,12 @@ GO
 -- CHUYEN TAU
 -- =========================
 CREATE TABLE ChuyenTau (
-    maCT VARCHAR(20) PRIMARY KEY,
-	ngayKhoiHanh DATETIME,
-    gioKhoiHanh DATETIME,
-    trangThai BIT,
-    maTau VARCHAR(20),
-    maTuyenTau VARCHAR(20),
+    maCT VARCHAR(20) NOT NULL PRIMARY KEY,
+	ngayKhoiHanh DATETIME NOT NULL,
+    gioKhoiHanh DATETIME NOT NULL,
+    trangThai BIT NOT NULL,
+    maTau VARCHAR(20) NOT NULL,
+    maTuyenTau VARCHAR(20) NOT NULL,
 
     CONSTRAINT FK_ChuyenTau_Tau
     FOREIGN KEY (maTau)
@@ -159,14 +181,20 @@ GO
 -- VE TAU
 -- =========================
 CREATE TABLE VeTau (
-    maVeTau VARCHAR(20) PRIMARY KEY,
-    maKH VARCHAR(20),
-    maChuyenTau VARCHAR(20),
-    maToa VARCHAR(20),
-    viTriGhe VARCHAR(10),
-	soLuongVe INT,
-    maNhanVien VARCHAR(20),
-    giaVe DECIMAL(10,2),
+    maVeTau VARCHAR(20) NOT NULL PRIMARY KEY,
+    maKH VARCHAR(20) NOT NULL,
+    maChuyenTau VARCHAR(20) NOT NULL,
+    maToa VARCHAR(20) NOT NULL,
+    viTriGhe VARCHAR(10) NOT NULL,
+	soLuongVe INT NOT NULL,
+    maNhanVien VARCHAR(20) NOT NULL,
+    giaVe DECIMAL(10,2) NOT NULL,
+
+    CONSTRAINT CK_VeTau_SoLuongVe
+    CHECK (soLuongVe > 0),
+
+    CONSTRAINT CK_VeTau_GiaVe
+    CHECK (giaVe >= 0),
 
     CONSTRAINT FK_VeTau_KhachHang
     FOREIGN KEY (maKH)
@@ -191,13 +219,19 @@ GO
 -- HOA DON
 -- =========================
 CREATE TABLE HoaDon (
-    maHD VARCHAR(20) PRIMARY KEY,
-	maNV VARCHAR(20),
-    maKH VARCHAR(20),
-    thoiGian DATETIME,
-    vat DECIMAL(5,2),
-    tongTien DECIMAL(12,2),
+    maHD VARCHAR(20) NOT NULL PRIMARY KEY,
+	maNV VARCHAR(20) NOT NULL,
+    maKH VARCHAR(20) NOT NULL,
+    thoiGian DATETIME NOT NULL,
+    vat DECIMAL(5,2) NOT NULL,
+    tongTien DECIMAL(12,2) NOT NULL,
     maKM VARCHAR(20),
+
+    CONSTRAINT CK_HoaDon_VAT
+    CHECK (vat >= 0 AND vat <= 100),
+
+    CONSTRAINT CK_HoaDon_TongTien
+    CHECK (tongTien >= 0),
 
 	CONSTRAINT FK_HoaDon_NhanVien
     FOREIGN KEY (maNV)
@@ -218,8 +252,8 @@ GO
 -- CHI TIET HOA DON
 -- =========================
 CREATE TABLE ChiTietHoaDon (
-    maHD VARCHAR(20),
-    maVeTau VARCHAR(20),
+    maHD VARCHAR(20) NOT NULL,
+    maVeTau VARCHAR(20) NOT NULL,
 
     PRIMARY KEY (maHD, maVeTau),
 
@@ -230,5 +264,33 @@ CREATE TABLE ChiTietHoaDon (
     CONSTRAINT FK_CTHD_VeTau
     FOREIGN KEY (maVeTau)
     REFERENCES VeTau(maVeTau)
+);
+GO
+
+
+-- =========================
+-- CHI TIET HOA DON - DICH VU
+-- =========================
+CREATE TABLE ChiTietDichVu (
+    maHD VARCHAR(20) NOT NULL,
+    maDV VARCHAR(20) NOT NULL,
+    soLuong INT NOT NULL,
+    donGia DECIMAL(10,2) NOT NULL,
+
+    PRIMARY KEY (maHD, maDV),
+
+    CONSTRAINT CK_CTDV_SoLuong
+    CHECK (soLuong > 0),
+
+    CONSTRAINT CK_CTDV_DonGia
+    CHECK (donGia >= 0),
+
+    CONSTRAINT FK_CTDV_HoaDon
+    FOREIGN KEY (maHD)
+    REFERENCES HoaDon(maHD),
+
+    CONSTRAINT FK_CTDV_DichVu
+    FOREIGN KEY (maDV)
+    REFERENCES DichVu(maDV)
 );
 GO
