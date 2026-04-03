@@ -21,9 +21,8 @@ import javax.swing.border.EmptyBorder;
 
 public class KiemTraChoTrongPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#2563EB");
-	private static final Color MAU_NEN = Color.decode("#F3F6FB");
-	private static final Color MAU_TEXT = Color.decode("#35506B");
+	private static final Color MAU_CHINH = AppTheme.PRIMARY;
+	private static final Color MAU_TEXT = AppTheme.TEXT_PRIMARY;
 	private static final Color MAU_XANH = Color.decode("#22C55E");
 	private static final Color MAU_DO = Color.decode("#EF4444");
 	private static final Color MAU_DANG_CHON = Color.decode("#3B82F6");
@@ -40,26 +39,26 @@ public class KiemTraChoTrongPage extends JPanel {
 
 	public KiemTraChoTrongPage() {
 		setLayout(new BorderLayout());
-		setBackground(MAU_NEN);
+		setBackground(AppTheme.PAGE_BG);
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoContent(), BorderLayout.CENTER);
 	}
 
 	private JPanel taoHeader() {
 		JPanel header = new JPanel(new BorderLayout());
-		header.setBackground(Color.WHITE);
-		header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.decode("#DDE5F2")));
+		header.setBackground(AppTheme.CARD_BG);
+		header.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, AppTheme.BORDER));
 		header.setPreferredSize(new Dimension(0, 62));
 
 		JLabel title = new JLabel("Kiểm tra chỗ trống");
-		title.setFont(new Font("Segoe UI", Font.BOLD, 20));
-		title.setForeground(MAU_TEXT);
+		title.setFont(AppTheme.font(Font.BOLD, 20));
+		title.setForeground(AppTheme.TEXT_PRIMARY);
 		title.setBorder(new EmptyBorder(0, 16, 0, 0));
 		header.add(title, BorderLayout.WEST);
 
 		JLabel subtitle = new JLabel("Xem sơ đồ ghế còn trống theo chuyến tàu và toa");
-		subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		subtitle.setForeground(new Color(108, 122, 138));
+		subtitle.setFont(AppTheme.font(Font.PLAIN, 12));
+		subtitle.setForeground(AppTheme.TEXT_MUTED);
 		subtitle.setBorder(new EmptyBorder(0, 0, 0, 16));
 		header.add(subtitle, BorderLayout.EAST);
 		return header;
@@ -84,11 +83,8 @@ public class KiemTraChoTrongPage extends JPanel {
 
 	private JPanel createFilterCard() {
 		JPanel card = new JPanel(new GridBagLayout());
-		card.setBackground(Color.WHITE);
-		card.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DDE5F2")),
-			new EmptyBorder(14, 14, 14, 14)
-		));
+		card.setBackground(AppTheme.CARD_BG);
+		card.setBorder(AppTheme.cardBorder());
 
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(8, 8, 8, 8);
@@ -113,20 +109,10 @@ public class KiemTraChoTrongPage extends JPanel {
 		JPanel actionWrap = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
 		actionWrap.setOpaque(false);
 		JButton btnTim = new JButton("Kiểm tra");
-		btnTim.setBackground(MAU_CHINH);
-		btnTim.setForeground(Color.WHITE);
-		btnTim.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnTim.setFocusPainted(false);
-		btnTim.setBorder(new EmptyBorder(6, 16, 6, 16));
-		btnTim.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		AppTheme.stylePrimaryButton(btnTim);
 		btnTim.addActionListener(e -> capNhatTrangThai());
 		JButton btnMoi = new JButton("Làm mới");
-		btnMoi.setBackground(Color.WHITE);
-		btnMoi.setForeground(MAU_TEXT);
-		btnMoi.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		btnMoi.setFocusPainted(false);
-		btnMoi.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
-		btnMoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		AppTheme.styleSecondaryButton(btnMoi);
 		btnMoi.addActionListener(e -> resetSeats());
 		actionWrap.add(btnTim);
 		actionWrap.add(btnMoi);
@@ -144,28 +130,25 @@ public class KiemTraChoTrongPage extends JPanel {
 		gbc.gridwidth = 1;
 		gbc.weightx = 0.2;
 		JLabel lbl = new JLabel(label);
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
-		lbl.setForeground(MAU_TEXT);
+		lbl.setFont(AppTheme.font(Font.BOLD, 13));
+		lbl.setForeground(AppTheme.TEXT_PRIMARY);
 		parent.add(lbl, gbc);
 
 		gbc.gridx = base + 1;
 		gbc.weightx = 0.3;
-		field.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		field.setFont(AppTheme.font(Font.PLAIN, 13));
 		field.setPreferredSize(new Dimension(220, 30));
 		parent.add(field, gbc);
 	}
 
 	private JPanel createSummaryCard() {
 		JPanel card = new JPanel(new BorderLayout());
-		card.setBackground(Color.WHITE);
-		card.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DDE5F2")),
-			new EmptyBorder(14, 14, 14, 14)
-		));
+		card.setBackground(AppTheme.CARD_BG);
+		card.setBorder(AppTheme.cardBorder());
 
 		JLabel title = new JLabel("Tổng hợp chỗ trống");
-		title.setFont(new Font("Segoe UI", Font.BOLD, 15));
-		title.setForeground(MAU_TEXT);
+		title.setFont(AppTheme.font(Font.BOLD, 15));
+		title.setForeground(AppTheme.TEXT_PRIMARY);
 		card.add(title, BorderLayout.NORTH);
 
 		JPanel statGrid = new JPanel(new GridLayout(1, 3, 8, 8));
@@ -196,11 +179,11 @@ public class KiemTraChoTrongPage extends JPanel {
 			new EmptyBorder(10, 10, 10, 10)
 		));
 		JLabel title = new JLabel(label, SwingConstants.CENTER);
-		title.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		title.setForeground(MAU_TEXT);
+		title.setFont(AppTheme.font(Font.PLAIN, 12));
+		title.setForeground(AppTheme.TEXT_PRIMARY);
 		JLabel val = value;
 		val.setHorizontalAlignment(SwingConstants.CENTER);
-		val.setFont(new Font("Segoe UI", Font.BOLD, 20));
+		val.setFont(AppTheme.font(Font.BOLD, 20));
 		val.setForeground(color);
 		panel.add(title, BorderLayout.NORTH);
 		panel.add(val, BorderLayout.CENTER);
@@ -211,12 +194,12 @@ public class KiemTraChoTrongPage extends JPanel {
 		gbc.gridx = 0;
 		gbc.gridy = row;
 		JLabel lbl = new JLabel(label);
-		lbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		lbl.setForeground(MAU_TEXT);
+		lbl.setFont(AppTheme.font(Font.PLAIN, 12));
+		lbl.setForeground(AppTheme.TEXT_PRIMARY);
 		parent.add(lbl, gbc);
 		gbc.gridx = 1;
-		value.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		value.setForeground(MAU_TEXT);
+		value.setFont(AppTheme.font(Font.BOLD, 12));
+		value.setForeground(AppTheme.TEXT_PRIMARY);
 		value.setHorizontalAlignment(SwingConstants.RIGHT);
 		parent.add(value, gbc);
 	}
@@ -231,15 +214,12 @@ public class KiemTraChoTrongPage extends JPanel {
 
 	private JPanel createSeatCard() {
 		JPanel card = new JPanel(new BorderLayout(0, 12));
-		card.setBackground(Color.WHITE);
-		card.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DDE5F2")),
-			new EmptyBorder(14, 14, 14, 14)
-		));
+		card.setBackground(AppTheme.CARD_BG);
+		card.setBorder(AppTheme.cardBorder());
 
 		JLabel title = new JLabel("Sơ đồ ghế - Toa 2 (Ghế mềm)");
-		title.setFont(new Font("Segoe UI", Font.BOLD, 15));
-		title.setForeground(MAU_TEXT);
+		title.setFont(AppTheme.font(Font.BOLD, 15));
+		title.setForeground(AppTheme.TEXT_PRIMARY);
 		card.add(title, BorderLayout.NORTH);
 
 		JPanel legend = new JPanel(new FlowLayout(FlowLayout.CENTER, 14, 0));
@@ -253,8 +233,8 @@ public class KiemTraChoTrongPage extends JPanel {
 		grid.setOpaque(false);
 		grid.add(createSeatGrid(), BorderLayout.CENTER);
 		JLabel hint = new JLabel("Chọn ghế trống để xem vị trí còn khả dụng");
-		hint.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-		hint.setForeground(new Color(108, 122, 138));
+		hint.setFont(AppTheme.font(Font.ITALIC, 12));
+		hint.setForeground(AppTheme.TEXT_MUTED);
 		hint.setHorizontalAlignment(SwingConstants.CENTER);
 		grid.add(hint, BorderLayout.SOUTH);
 		card.add(new JScrollPane(grid), BorderLayout.CENTER);
@@ -337,15 +317,12 @@ public class KiemTraChoTrongPage extends JPanel {
 
 	private JPanel createDetailCard() {
 		JPanel card = new JPanel(new BorderLayout(0, 12));
-		card.setBackground(Color.WHITE);
-		card.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DDE5F2")),
-			new EmptyBorder(14, 14, 14, 14)
-		));
+		card.setBackground(AppTheme.CARD_BG);
+		card.setBorder(AppTheme.cardBorder());
 
 		JLabel title = new JLabel("Chi tiết ghế trống");
-		title.setFont(new Font("Segoe UI", Font.BOLD, 15));
-		title.setForeground(MAU_TEXT);
+		title.setFont(AppTheme.font(Font.BOLD, 15));
+		title.setForeground(AppTheme.TEXT_PRIMARY);
 		card.add(title, BorderLayout.NORTH);
 
 		JPanel detail = new JPanel(new GridBagLayout());
@@ -364,13 +341,6 @@ public class KiemTraChoTrongPage extends JPanel {
 
 		JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
 		actions.setOpaque(false);
-		JButton btnDat = new JButton("Đặt vé");
-		btnDat.setBackground(MAU_CHINH);
-		btnDat.setForeground(Color.WHITE);
-		btnDat.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnDat.setFocusPainted(false);
-		btnDat.setBorder(new EmptyBorder(8, 16, 8, 16));
-		btnDat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 		JButton btnGoiY = new JButton("Gợi ý ghế khác");
 		btnGoiY.setBackground(Color.WHITE);
 		btnGoiY.setForeground(MAU_TEXT);
@@ -379,7 +349,6 @@ public class KiemTraChoTrongPage extends JPanel {
 		btnGoiY.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnGoiY.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 		btnGoiY.addActionListener(e -> lblTrangThai.setText("Gợi ý ghế trống đang được hiển thị"));
-		actions.add(btnDat);
 		actions.add(btnGoiY);
 		card.add(actions, BorderLayout.SOUTH);
 		return card;
