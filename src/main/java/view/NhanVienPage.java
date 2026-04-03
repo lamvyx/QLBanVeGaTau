@@ -16,13 +16,11 @@ import javax.swing.table.DefaultTableModel;
 
 public class NhanVienPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color NAV_BG = Color.decode("#173A72");
-	private static final Color TEXT_LIGHT = Color.decode("#EAF2FF");
-	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final Color MAU_CHINH = AppTheme.PRIMARY;
 
 	public NhanVienPage() {
 		setLayout(new BorderLayout());
-		setBackground(Color.decode("#F0F5F9"));
+		setBackground(AppTheme.PAGE_BG);
 
 		// Header
 		JPanel header = taoHeaderPanel();
@@ -35,14 +33,11 @@ public class NhanVienPage extends JPanel {
 
 	private JPanel taoHeaderPanel() {
 		JPanel header = new JPanel(new BorderLayout());
-		header.setBackground(Color.WHITE);
-		header.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createMatteBorder(0, 0, 1, 0, Color.decode("#E0E0E0")),
-			new EmptyBorder(12, 16, 12, 16)
-		));
+		header.setBackground(AppTheme.CARD_BG);
+		header.setBorder(AppTheme.cardBorder());
 
 		JLabel title = new JLabel("Quản lý Nhân viên");
-		title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+		title.setFont(AppTheme.font(Font.BOLD, 24));
 		title.setForeground(MAU_CHINH);
 		header.add(title, BorderLayout.WEST);
 
@@ -50,12 +45,7 @@ public class NhanVienPage extends JPanel {
 		actions.setOpaque(false);
 
 		JButton btnThem = new JButton("+ Thêm nhân viên");
-		btnThem.setBackground(MAU_CHINH);
-		btnThem.setForeground(Color.WHITE);
-		btnThem.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnThem.setFocusPainted(false);
-		btnThem.setBorder(new EmptyBorder(6, 12, 6, 12));
-		btnThem.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		AppTheme.stylePrimaryButton(btnThem);
 		actions.add(btnThem);
 
 		header.add(actions, BorderLayout.EAST);
@@ -64,7 +54,7 @@ public class NhanVienPage extends JPanel {
 
 	private JPanel taoContentPanel() {
 		JPanel content = new JPanel(new BorderLayout());
-		content.setBackground(Color.decode("#F0F5F9"));
+		content.setBackground(AppTheme.PAGE_BG);
 		content.setBorder(new EmptyBorder(12, 16, 12, 16));
 
 		// Tạo bảng nhân viên
@@ -77,13 +67,10 @@ public class NhanVienPage extends JPanel {
 		model.addRow(new Object[] { 3, "Phạm Văn C", "c@email.com", "0934567890", "Nhân viên", "2023-06-10" });
 
 		JTable table = new JTable(model);
-		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		table.setRowHeight(28);
-		table.setShowGrid(true);
-		table.setGridColor(new Color(220, 220, 220));
-		table.setSelectionBackground(Color.decode("#E8F0F9"));
+		AppTheme.styleTable(table);
 
 		JScrollPane scrollPane = new JScrollPane(table);
+		scrollPane.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 		scrollPane.setPreferredSize(new Dimension(800, 400));
 		content.add(scrollPane, BorderLayout.CENTER);
 

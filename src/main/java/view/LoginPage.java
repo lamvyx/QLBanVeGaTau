@@ -4,7 +4,6 @@ import dao.TaiKhoan_DAO;
 import entity.TaiKhoan;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -27,11 +26,11 @@ import javax.swing.SwingUtilities;
 
 public class LoginPage extends JFrame {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final Color MAU_CHINH = AppTheme.PRIMARY;
 	private static final Color MAU_NEN_TRANG = Color.decode("#FFFFFF");
-	private static final Color MAU_NEN = Color.decode("#F0F5F9");
-	private static final Color MAU_LABEL = Color.decode("#555555");
-	private static final Color MAU_BORDER = Color.decode("#E0E0E0");
+	private static final Color MAU_NEN = AppTheme.PAGE_BG;
+	private static final Color MAU_LABEL = AppTheme.TEXT_MUTED;
+	private static final Color MAU_BORDER = AppTheme.BORDER;
 	private final TaiKhoan_DAO taiKhoanDAO = new TaiKhoan_DAO();
 	private final JTextField txtTenDangNhap = new JTextField(20);
 	private final JPasswordField txtMatKhau = new JPasswordField(20);
@@ -106,7 +105,7 @@ public class LoginPage extends JFrame {
 		// Tiêu đề
 		JLabel lblTieuDe = new JLabel("ĐĂNG NHẬP");
 		lblTieuDe.setForeground(MAU_CHINH);
-		lblTieuDe.setFont(new Font("Segoe UI", Font.BOLD, 28));
+		lblTieuDe.setFont(AppTheme.font(java.awt.Font.BOLD, 28));
 		gbc.gridy = 0;
 		cardPanel.add(lblTieuDe, gbc);
 
@@ -121,7 +120,7 @@ public class LoginPage extends JFrame {
 		gbc.gridwidth = 1;
 		JLabel lblTenDangNhap = new JLabel("Tên đăng nhập");
 		lblTenDangNhap.setForeground(MAU_LABEL);
-		lblTenDangNhap.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		lblTenDangNhap.setFont(AppTheme.font(java.awt.Font.PLAIN, 12));
 		gbc.gridx = 0;
 		gbc.gridy = 2;
 		cardPanel.add(lblTenDangNhap, gbc);
@@ -130,7 +129,7 @@ public class LoginPage extends JFrame {
 		gbc.gridy = 3;
 		gbc.gridwidth = 2;
 		txtTenDangNhap.setPreferredSize(new Dimension(300, 40));
-		txtTenDangNhap.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		txtTenDangNhap.setFont(AppTheme.font(java.awt.Font.PLAIN, 13));
 		txtTenDangNhap.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(MAU_BORDER, 1),
 			BorderFactory.createEmptyBorder(5, 8, 5, 8)
@@ -143,7 +142,7 @@ public class LoginPage extends JFrame {
 		gbc.gridwidth = 1;
 		JLabel lblMatKhau = new JLabel("Mật khẩu");
 		lblMatKhau.setForeground(MAU_LABEL);
-		lblMatKhau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		lblMatKhau.setFont(AppTheme.font(java.awt.Font.PLAIN, 12));
 		cardPanel.add(lblMatKhau, gbc);
 
 		gbc.gridx = 0;
@@ -160,7 +159,7 @@ public class LoginPage extends JFrame {
 		gbcMK.weightx = 1;
 		gbcMK.insets = new Insets(5, 8, 5, 5);
 		txtMatKhau.setPreferredSize(new Dimension(260, 30));
-		txtMatKhau.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		txtMatKhau.setFont(AppTheme.font(java.awt.Font.PLAIN, 13));
 		txtMatKhau.setBorder(BorderFactory.createEmptyBorder());
 		panelMatKhau.add(txtMatKhau, gbcMK);
 
@@ -222,7 +221,7 @@ public class LoginPage extends JFrame {
 			Image scaled = eyeIcon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH);
 			btn.setIcon(new ImageIcon(scaled));
 		}
-		btn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		btn.setFont(AppTheme.font(java.awt.Font.PLAIN, 14));
 		btn.setPreferredSize(new Dimension(32, 28));
 		btn.setBackground(new Color(235, 235, 235));
 		btn.setBorder(BorderFactory.createLineBorder(MAU_BORDER, 1));
@@ -248,14 +247,10 @@ public class LoginPage extends JFrame {
 
 	private JButton taoNutQuenMatKhau() {
 		JButton btn = new JButton("Quên mật khẩu");
-		btn.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-		btn.setForeground(MAU_CHINH);
-		btn.setBackground(Color.WHITE);
-		btn.setBorder(BorderFactory.createLineBorder(MAU_CHINH, 1));
-		btn.setFocusPainted(false);
+		AppTheme.styleSecondaryButton(btn);
+		btn.setFont(AppTheme.font(java.awt.Font.PLAIN, 11));
 		btn.setPreferredSize(new Dimension(125, 38));
 		btn.setMargin(new Insets(0, 5, 0, 5));
-		btn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 		btn.addActionListener(e -> xuLyQuenMatKhau());
 		return btn;
 	}
@@ -279,7 +274,7 @@ public class LoginPage extends JFrame {
 				super.paintComponent(g);
 			}
 		};
-		btn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		btn.setFont(AppTheme.font(java.awt.Font.BOLD, 12));
 		btn.setForeground(Color.WHITE);
 		btn.setBackground(MAU_CHINH);
 		btn.setBorder(BorderFactory.createEmptyBorder());
@@ -353,6 +348,7 @@ public class LoginPage extends JFrame {
 	}
 
 	public static void main(String[] args) {
+		AppTheme.installGlobalStyles();
 		SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
 	}
 }

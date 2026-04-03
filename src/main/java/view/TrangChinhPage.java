@@ -29,9 +29,9 @@ import javax.swing.border.EmptyBorder;
 
 public class TrangChinhPage extends JFrame {
 	private static final long serialVersionUID = 1L;
-	private static final Color NAV_BG = Color.decode("#173A72");
-	private static final Color NAV_BG_ACTIVE = Color.decode("#204C91");
-	private static final Color TEXT_LIGHT = Color.decode("#EAF2FF");
+	private static final Color NAV_BG = Color.decode("#123562");
+	private static final Color NAV_BG_ACTIVE = Color.decode("#1B4A87");
+	private static final Color TEXT_LIGHT = Color.decode("#EDF4FF");
 	private static final ImageIcon ARROW_DOWN_ICON = taiAnhIcon("/Image/arrow-down.png",
 			Path.of("src", "main", "resources", "Image", "arrow-down.png"), 12, 12);
 
@@ -57,37 +57,37 @@ public class TrangChinhPage extends JFrame {
 	private JPanel taoThanhDieuHuong() {
 		JPanel nav = new JPanel(new BorderLayout());
 		nav.setBackground(NAV_BG);
-		nav.setBorder(new EmptyBorder(3, 6, 3, 6));
+		nav.setBorder(new EmptyBorder(6, 10, 6, 10));
 
-		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
 		left.setOpaque(false);
 
 		JLabel logo = new JLabel("Ga Tàu Sài Gòn");
 		logo.setForeground(Color.WHITE);
-		logo.setFont(new Font("Segoe UI", Font.BOLD, 16));
-		logo.setBorder(new EmptyBorder(0, 1, 0, 6));
+		logo.setFont(AppTheme.font(Font.BOLD, 17));
+		logo.setBorder(new EmptyBorder(0, 2, 0, 8));
 		left.add(logo);
 
 		for (String item : layMenuTheoVaiTro()) {
 			left.add(taoMenuButton(item, "Trang chủ".equals(item)));
 		}
 
-		JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
+		JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 		right.setOpaque(false);
 
 		JLabel lblAvatar = new JLabel(taiKhoan.getHoTen().substring(0, 1), SwingConstants.CENTER);
 		lblAvatar.setOpaque(true);
 		lblAvatar.setBackground(Color.decode("#4B9BFF"));
 		lblAvatar.setForeground(Color.WHITE);
-		lblAvatar.setPreferredSize(new Dimension(32, 32));
-		lblAvatar.setFont(new Font("Segoe UI", Font.BOLD, 16));
+		lblAvatar.setPreferredSize(new Dimension(34, 34));
+		lblAvatar.setFont(AppTheme.font(Font.BOLD, 16));
 
 		JButton btnUser = new JButton(taiKhoan.getHoTen() + "  •  " + hienThiVaiTro());
 		btnUser.setForeground(TEXT_LIGHT);
 		btnUser.setBackground(NAV_BG);
-		btnUser.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		btnUser.setFont(AppTheme.font(Font.BOLD, 12));
 		btnUser.setFocusPainted(false);
-		btnUser.setBorder(new EmptyBorder(5, 8, 5, 8));
+		btnUser.setBorder(new EmptyBorder(6, 10, 6, 10));
 		btnUser.setOpaque(true);
 		btnUser.addActionListener(this::hienThiMenuNguoiDung);
 
@@ -110,15 +110,15 @@ public class TrangChinhPage extends JFrame {
 
 		JLabel hello = new JLabel("Chào mừng trở lại,");
 		hello.setForeground(TEXT_LIGHT);
-		hello.setFont(new Font("Segoe UI", Font.PLAIN, 30));
+		hello.setFont(AppTheme.font(Font.PLAIN, 30));
 
 		JLabel name = new JLabel(taiKhoan.getHoTen());
 		name.setForeground(Color.WHITE);
-		name.setFont(new Font("Segoe UI", Font.BOLD, 52));
+		name.setFont(AppTheme.font(Font.BOLD, 52));
 
 		JLabel date = new JLabel(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
 		date.setForeground(Color.decode("#9DD2FF"));
-		date.setFont(new Font("Segoe UI", Font.PLAIN, 24));
+		date.setFont(AppTheme.font(Font.PLAIN, 24));
 
 		textWrap.add(hello);
 		textWrap.add(name);
@@ -135,8 +135,8 @@ public class TrangChinhPage extends JFrame {
 		JButton button = new JButton(text);
 		button.setFocusPainted(false);
 		button.setForeground(TEXT_LIGHT);
-		button.setFont(new Font("Segoe UI", Font.BOLD, 11));
-		button.setBorder(new EmptyBorder(4, 7, 4, 7));
+		button.setFont(AppTheme.font(Font.BOLD, 12));
+		button.setBorder(new EmptyBorder(6, 10, 6, 10));
 		button.setBackground(active ? NAV_BG_ACTIVE : NAV_BG);
 		button.setOpaque(true);
 		button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
@@ -164,11 +164,11 @@ public class TrangChinhPage extends JFrame {
 
 	private JPopupMenu taoMenuDropdown(String menuName) {
 		JPopupMenu popupMenu = new JPopupMenu();
-		popupMenu.setBorder(BorderFactory.createLineBorder(new Color(220, 227, 236)));
+		popupMenu.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 
 		for (String item : layMenuCon(menuName)) {
 			JMenuItem menuItem = new JMenuItem(item);
-			menuItem.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+			menuItem.setFont(AppTheme.font(Font.PLAIN, 13));
 			menuItem.addActionListener(e -> {
 				JPanel page = taoPageTheoMenu(menuName, item);
 				contentPanel.removeAll();
@@ -189,7 +189,7 @@ public class TrangChinhPage extends JFrame {
 		case "Khách hàng":
 			return new String[] { "Thêm khách hàng", "Tra cứu khách hàng", "Cập nhật thông tin", "Lịch sử vé" };
 		case "Vé":
-			return new String[] { "Bán vé", "Đổi vé", "Trả vé", "Tra cứu vé", "Kiểm tra chỗ trống", "In vé" };
+			return new String[] { "Bán vé", "Đổi vé", "Trả vé", "Kiểm tra chỗ trống", "In vé" };
 		case "Chuyến tàu":
 			return new String[] { "Thêm chuyến", "Tra cứu chuyến", "Cập nhật" };
 		case "Tàu":
@@ -242,12 +242,14 @@ public class TrangChinhPage extends JFrame {
 			switch (menuCon) {
 			case "Bán vé":
 				return new BanVePage();
+			case "Đổi vé":
+				return new DoiVePage();
+			case "Trả vé":
+				return new TraVePage();
 			case "Kiểm tra chỗ trống":
 				return new KiemTraChoTrongPage();
 			case "In vé":
 				return new InVePage();
-			case "Tra cứu vé":
-				return new LichSuVePage();
 			default:
 				return new VeTauPage();
 			}
@@ -377,8 +379,9 @@ public class TrangChinhPage extends JFrame {
 	private void hienThiMenuNguoiDung(ActionEvent event) {
 		JButton source = (JButton) event.getSource();
 		JPopupMenu popupMenu = new JPopupMenu();
-		popupMenu.setBorder(BorderFactory.createLineBorder(new Color(220, 227, 236)));
+		popupMenu.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 		JMenuItem dangXuat = new JMenuItem("Đăng xuất");
+		dangXuat.setFont(AppTheme.font(Font.PLAIN, 13));
 		dangXuat.addActionListener(e -> {
 			dispose();
 			new LoginPage().setVisible(true);

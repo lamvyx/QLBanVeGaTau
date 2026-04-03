@@ -53,18 +53,40 @@ public class VeTauPage extends JPanel {
 		btnBan.setFocusPainted(false);
 		btnBan.setBorder(new EmptyBorder(6, 12, 6, 12));
 		btnBan.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnBan.addActionListener(e -> {
-			JFrame frame = new JFrame("Bán vé");
-			frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-			frame.setContentPane(new BanVePage());
-			frame.setSize(1400, 900);
-			frame.setLocationRelativeTo(this);
-			frame.setVisible(true);
-		});
+		btnBan.addActionListener(e -> moManNghiepVu("Bán vé", new BanVePage()));
 		actions.add(btnBan);
+
+		JButton btnDoi = new JButton("+ Đổi vé");
+		btnDoi.setBackground(Color.WHITE);
+		btnDoi.setForeground(MAU_CHINH);
+		btnDoi.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		btnDoi.setFocusPainted(false);
+		btnDoi.setBorder(BorderFactory.createLineBorder(MAU_CHINH));
+		btnDoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnDoi.addActionListener(e -> moManNghiepVu("Đổi vé", new DoiVePage()));
+		actions.add(btnDoi);
+
+		JButton btnTra = new JButton("+ Trả vé");
+		btnTra.setBackground(Color.WHITE);
+		btnTra.setForeground(MAU_CHINH);
+		btnTra.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		btnTra.setFocusPainted(false);
+		btnTra.setBorder(BorderFactory.createLineBorder(MAU_CHINH));
+		btnTra.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnTra.addActionListener(e -> moManNghiepVu("Trả vé", new TraVePage()));
+		actions.add(btnTra);
 
 		header.add(actions, BorderLayout.EAST);
 		return header;
+	}
+
+	private void moManNghiepVu(String title, JPanel page) {
+		JFrame frame = new JFrame(title);
+		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		frame.setContentPane(page);
+		frame.setSize(1200, 760);
+		frame.setLocationRelativeTo(this);
+		frame.setVisible(true);
 	}
 
 	private JPanel taoContentPanel() {

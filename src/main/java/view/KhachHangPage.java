@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -12,12 +11,12 @@ import javax.swing.border.EmptyBorder;
 
 public class KhachHangPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private static final Color MAU_CHINH = AppTheme.PRIMARY;
 
 	public KhachHangPage() {
 		setLayout(new BorderLayout());
-		setBackground(Color.decode("#F0F5F9"));
-		setBorder(new EmptyBorder(14, 14, 14, 14));
+		setBackground(AppTheme.PAGE_BG);
+		setBorder(AppTheme.pagePadding());
 
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoHub(), BorderLayout.CENTER);
@@ -25,20 +24,17 @@ public class KhachHangPage extends JPanel {
 
 	private JPanel taoHeader() {
 		JPanel header = new JPanel(new BorderLayout());
-		header.setBackground(Color.WHITE);
-		header.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(12, 14, 12, 14)
-		));
+		header.setBackground(AppTheme.CARD_BG);
+		header.setBorder(AppTheme.cardBorder());
 
 		JLabel title = new JLabel("Khách hàng");
-		title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+		title.setFont(AppTheme.font(Font.BOLD, 24));
 		title.setForeground(MAU_CHINH);
 		header.add(title, BorderLayout.WEST);
 
 		JLabel subtitle = new JLabel("Chọn chức năng để quản lý khách hàng");
-		subtitle.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-		subtitle.setForeground(Color.decode("#6B7A90"));
+		subtitle.setFont(AppTheme.font(Font.PLAIN, 13));
+		subtitle.setForeground(AppTheme.TEXT_MUTED);
 		header.add(subtitle, BorderLayout.SOUTH);
 
 		return header;
@@ -46,7 +42,7 @@ public class KhachHangPage extends JPanel {
 
 	private JPanel taoHub() {
 		JPanel hub = new JPanel(new GridLayout(2, 2, 16, 16));
-		hub.setBackground(Color.decode("#F0F5F9"));
+		hub.setBackground(AppTheme.PAGE_BG);
 		hub.setBorder(new EmptyBorder(18, 0, 0, 0));
 
 		hub.add(taoNutChucNang("Thêm khách hàng", "Mở form nhập thông tin khách hàng mới", new KhachHangThemPage()));
@@ -59,26 +55,19 @@ public class KhachHangPage extends JPanel {
 
 	private JPanel taoNutChucNang(String title, String description, JPanel targetPage) {
 		JPanel card = new JPanel(new BorderLayout(0, 10));
-		card.setBackground(Color.WHITE);
-		card.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(18, 18, 18, 18)
-		));
+		card.setBackground(AppTheme.CARD_BG);
+		card.setBorder(AppTheme.cardBorder());
 
 		JLabel lblTitle = new JLabel(title);
-		lblTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+		lblTitle.setFont(AppTheme.font(Font.BOLD, 20));
 		lblTitle.setForeground(MAU_CHINH);
 
 		JLabel lblDesc = new JLabel("<html><body style='width:220px'>" + description + "</body></html>");
-		lblDesc.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		lblDesc.setForeground(Color.decode("#5C6F87"));
+		lblDesc.setFont(AppTheme.font(Font.PLAIN, 14));
+		lblDesc.setForeground(AppTheme.TEXT_MUTED);
 
 		JButton btn = new JButton("Mở trang");
-		btn.setFont(new Font("Segoe UI", Font.BOLD, 13));
-		btn.setBackground(MAU_CHINH);
-		btn.setForeground(Color.WHITE);
-		btn.setFocusPainted(false);
-		btn.setBorder(new EmptyBorder(8, 16, 8, 16));
+		AppTheme.stylePrimaryButton(btn);
 		btn.addActionListener(e -> moTrangMoi(targetPage));
 
 		JPanel center = new JPanel(new BorderLayout(0, 8));
@@ -94,8 +83,8 @@ public class KhachHangPage extends JPanel {
 	private void moTrangMoi(JPanel page) {
 		removeAll();
 		setLayout(new BorderLayout());
-		setBackground(Color.decode("#F0F5F9"));
-		setBorder(new EmptyBorder(14, 14, 14, 14));
+		setBackground(AppTheme.PAGE_BG);
+		setBorder(AppTheme.pagePadding());
 		add(taoHeader(), BorderLayout.NORTH);
 		add(page, BorderLayout.CENTER);
 		revalidate();
