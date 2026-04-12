@@ -95,7 +95,7 @@ public class TaiKhoan_DAO {
 			ADMIN_MAC_DINH_PASSWORD,
 			ADMIN_MAC_DINH_EMAIL,
 			ADMIN_MAC_DINH_HOTEN,
-			"ADMIN"
+			"QUAN_LY"
 		);
 	}
 }

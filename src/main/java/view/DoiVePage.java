@@ -3,9 +3,12 @@ package view;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -45,12 +48,12 @@ public class DoiVePage extends JPanel {
 	}
 
 	private JPanel taoCardTimVe() {
-		JPanel card = new JPanel(new BorderLayout(0, 12));
+		JPanel card = new JPanel(new BorderLayout(0, 10));
 		card.setBackground(AppTheme.CARD_BG);
 		card.setBorder(AppTheme.cardBorder());
 
 		JLabel title = new JLabel("1. Tìm vé cần đổi");
-		title.setFont(AppTheme.font(Font.BOLD, 29));
+		title.setFont(AppTheme.font(Font.BOLD, 40 / 2));
 		title.setForeground(AppTheme.TEXT_PRIMARY);
 		title.setBorder(new EmptyBorder(4, 2, 2, 2));
 		card.add(title, BorderLayout.NORTH);
@@ -59,7 +62,7 @@ public class DoiVePage extends JPanel {
 		searchPanel.setOpaque(false);
 
 		txtMaVe.setFont(AppTheme.font(Font.PLAIN, 13));
-		txtMaVe.setPreferredSize(new Dimension(0, 42));
+		txtMaVe.setPreferredSize(new Dimension(0, 34));
 		txtMaVe.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(AppTheme.BORDER),
 				new EmptyBorder(8, 12, 8, 12)));
@@ -67,7 +70,7 @@ public class DoiVePage extends JPanel {
 
 		JButton btnTim = new JButton("Tìm");
 		AppTheme.stylePrimaryButton(btnTim);
-		btnTim.setPreferredSize(new Dimension(96, 42));
+		btnTim.setPreferredSize(new Dimension(82, 34));
 		btnTim.addActionListener(e -> xuLyTimVe());
 
 		searchPanel.add(txtMaVe, BorderLayout.CENTER);
@@ -81,85 +84,104 @@ public class DoiVePage extends JPanel {
 	}
 
 	private JPanel taoCardSoSanh() {
-		JPanel card = new JPanel(new BorderLayout(0, 14));
+		JPanel card = new JPanel(new BorderLayout(0, 10));
 		card.setBackground(AppTheme.CARD_BG);
 		card.setBorder(AppTheme.cardBorder());
 
 		JLabel title = new JLabel("So sánh & Xác nhận");
-		title.setFont(AppTheme.font(Font.BOLD, 30));
+		title.setFont(AppTheme.font(Font.BOLD, 22));
 		title.setForeground(AppTheme.TEXT_PRIMARY);
 		title.setBorder(new EmptyBorder(4, 2, 2, 2));
 		card.add(title, BorderLayout.NORTH);
 
 		JPanel compareWrap = new JPanel(new GridLayout(1, 2, 14, 0));
 		compareWrap.setOpaque(false);
+		compareWrap.setPreferredSize(new Dimension(10, 240));
 		compareWrap.add(taoKhungThongTinHienTai());
 		compareWrap.add(taoKhungThongTinMoi());
-		card.add(compareWrap, BorderLayout.CENTER);
 
 		AppTheme.stylePrimaryButton(btnXacNhan);
-		btnXacNhan.setPreferredSize(new Dimension(0, 42));
+		btnXacNhan.setPreferredSize(new Dimension(180, 34));
 		btnXacNhan.setEnabled(false);
 		btnXacNhan.addActionListener(e -> xuLyXacNhan());
 
-		JPanel bottom = new JPanel(new BorderLayout());
+		JPanel bottom = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
 		bottom.setOpaque(false);
-		bottom.add(btnXacNhan, BorderLayout.CENTER);
-		card.add(bottom, BorderLayout.SOUTH);
+		bottom.add(btnXacNhan);
+
+		JPanel content = new JPanel();
+		content.setOpaque(false);
+		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+		content.add(compareWrap);
+		content.add(Box.createVerticalStrut(10));
+		content.add(bottom);
+
+		card.add(content, BorderLayout.CENTER);
 		return card;
 	}
 
 	private JPanel taoKhungThongTinHienTai() {
-		JPanel panel = new JPanel(new BorderLayout(0, 10));
+		JPanel panel = new JPanel(new BorderLayout(0, 8));
 		panel.setBackground(Color.decode("#F8FAFD"));
 		panel.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(AppTheme.BORDER),
-				new EmptyBorder(14, 14, 14, 14)));
+				new EmptyBorder(12, 12, 12, 12)));
 
 		JLabel lblTitle = new JLabel("Vé hiện tại");
-		lblTitle.setFont(AppTheme.font(Font.BOLD, 17));
+		lblTitle.setFont(AppTheme.font(Font.BOLD, 14));
 		lblTitle.setForeground(AppTheme.TEXT_PRIMARY);
 
-		JPanel lines = new JPanel(new GridLayout(3, 1, 0, 8));
+		JPanel lines = new JPanel();
+		lines.setLayout(new BoxLayout(lines, BoxLayout.Y_AXIS));
 		lines.setOpaque(false);
 		lines.add(lblCurrentMa);
+		lines.add(Box.createVerticalStrut(6));
 		lines.add(lblCurrentKhach);
+		lines.add(Box.createVerticalStrut(6));
 		lines.add(lblCurrentTuyen);
 
+		JPanel body = new JPanel(new BorderLayout());
+		body.setOpaque(false);
+		body.add(lines, BorderLayout.NORTH);
+
 		panel.add(lblTitle, BorderLayout.NORTH);
-		panel.add(lines, BorderLayout.CENTER);
+		panel.add(body, BorderLayout.CENTER);
 		return panel;
 	}
 
 	private JPanel taoKhungThongTinMoi() {
-		JPanel panel = new JPanel(new BorderLayout(0, 10));
+		JPanel panel = new JPanel(new BorderLayout(0, 8));
 		panel.setBackground(Color.decode("#F4F8FF"));
 		panel.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(Color.decode("#BBD4FF")),
-				new EmptyBorder(14, 14, 14, 14)));
+				new EmptyBorder(12, 12, 12, 12)));
 
 		JLabel lblTitle = new JLabel("Vé mới");
-		lblTitle.setFont(AppTheme.font(Font.BOLD, 17));
+		lblTitle.setFont(AppTheme.font(Font.BOLD, 14));
 		lblTitle.setForeground(AppTheme.PRIMARY);
 
 		JPanel top = new JPanel(new BorderLayout(8, 0));
 		top.setOpaque(false);
 		JLabel lblLuaChon = new JLabel("Phương án đổi:");
-		lblLuaChon.setFont(AppTheme.font(Font.PLAIN, 13));
+		lblLuaChon.setFont(AppTheme.font(Font.PLAIN, 12));
 		lblLuaChon.setForeground(AppTheme.TEXT_MUTED);
 		top.add(lblLuaChon, BorderLayout.WEST);
 
 		cboVeMoi.setModel(new DefaultComboBoxModel<>(new String[] { "Chọn vé mới..." }));
 		cboVeMoi.setEnabled(false);
-		cboVeMoi.setFont(AppTheme.font(Font.PLAIN, 13));
+		cboVeMoi.setFont(AppTheme.font(Font.PLAIN, 12));
 		cboVeMoi.addActionListener(e -> xuLyChonVeMoi());
 		top.add(cboVeMoi, BorderLayout.CENTER);
 
-		JPanel lines = new JPanel(new GridLayout(4, 1, 0, 8));
+		JPanel lines = new JPanel();
+		lines.setLayout(new BoxLayout(lines, BoxLayout.Y_AXIS));
 		lines.setOpaque(false);
 		lines.add(lblNewMa);
+		lines.add(Box.createVerticalStrut(6));
 		lines.add(lblNewKhach);
+		lines.add(Box.createVerticalStrut(6));
 		lines.add(lblNewTuyen);
+		lines.add(Box.createVerticalStrut(8));
 		lblChenhLech.setFont(AppTheme.font(Font.BOLD, 14));
 		lblChenhLech.setForeground(AppTheme.TEXT_MUTED);
 		lines.add(lblChenhLech);
@@ -176,7 +198,7 @@ public class DoiVePage extends JPanel {
 
 	private JLabel taoDongGiaTri(String value) {
 		JLabel label = new JLabel(value);
-		label.setFont(AppTheme.font(Font.BOLD, 18));
+		label.setFont(AppTheme.font(Font.BOLD, 14));
 		label.setForeground(AppTheme.PRIMARY);
 		return label;
 	}

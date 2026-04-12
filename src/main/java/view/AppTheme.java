@@ -1,10 +1,17 @@
 package view;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -80,5 +87,43 @@ public final class AppTheme {
 		tableHeader.setBackground(Color.decode("#EEF3FB"));
 		tableHeader.setForeground(TEXT_PRIMARY);
 		tableHeader.setBorder(BorderFactory.createLineBorder(BORDER));
+	}
+
+	public static JScrollPane centeredFormPage(Component content, int preferredWidth) {
+		Dimension current = content.getPreferredSize();
+		int height = current != null && current.height > 0 ? current.height : 420;
+		content.setPreferredSize(new Dimension(preferredWidth, height));
+
+		JPanel holder = new JPanel(new GridBagLayout());
+		holder.setOpaque(false);
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.weightx = 1;
+		gbc.weighty = 1;
+		gbc.anchor = GridBagConstraints.CENTER;
+		gbc.fill = GridBagConstraints.NONE;
+		holder.add(content, gbc);
+
+		JScrollPane scrollPane = new JScrollPane(holder);
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		scrollPane.getViewport().setOpaque(false);
+		scrollPane.setOpaque(false);
+		scrollPane.getVerticalScrollBar().setUnitIncrement(18);
+		return scrollPane;
+	}
+
+	public static JScrollPane topAlignedFormPage(Component content) {
+		JPanel wrapper = new JPanel(new BorderLayout());
+		wrapper.setOpaque(false);
+		wrapper.add(content, BorderLayout.NORTH);
+
+		JScrollPane scrollPane = new JScrollPane(wrapper);
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		scrollPane.getViewport().setOpaque(false);
+		scrollPane.setOpaque(false);
+		scrollPane.getVerticalScrollBar().setUnitIncrement(18);
+		return scrollPane;
 	}
 }

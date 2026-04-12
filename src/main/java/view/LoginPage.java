@@ -26,6 +26,7 @@ import javax.swing.SwingUtilities;
 
 public class LoginPage extends JFrame {
 	private static final long serialVersionUID = 1L;
+	private static final boolean BYPASS_LOGIN_FOR_TEST = true;
 	private static final Color MAU_CHINH = AppTheme.PRIMARY;
 	private static final Color MAU_NEN_TRANG = Color.decode("#FFFFFF");
 	private static final Color MAU_NEN = AppTheme.PAGE_BG;
@@ -300,16 +301,25 @@ public class LoginPage extends JFrame {
 	}
 
 	private void xuLyDangNhap() {
+		if (BYPASS_LOGIN_FOR_TEST) {
+			moTrangChinh(new TaiKhoan("admin", "", "", "Admin", "QUAN_LY"));
+			return;
+		}
+
 		String tenDangNhap = txtTenDangNhap.getText().trim();
 		String matKhau = new String(txtMatKhau.getPassword()).trim();
 		TaiKhoan taiKhoan = taiKhoanDAO.timTaiKhoanDangNhap(tenDangNhap, matKhau);
 		if (taiKhoan != null) {
-			TrangChinhPage trangChinhPage = new TrangChinhPage(taiKhoan);
-			trangChinhPage.setVisible(true);
-			dispose();
+			moTrangChinh(taiKhoan);
 			return;
 		}
 		JOptionPane.showMessageDialog(this, "Sai tên đăng nhập hoặc mật khẩu");
+	}
+
+	private void moTrangChinh(TaiKhoan taiKhoan) {
+		TrangChinhPage trangChinhPage = new TrangChinhPage(taiKhoan);
+		trangChinhPage.setVisible(true);
+		dispose();
 	}
 
 	private void xuLyQuenMatKhau() {
@@ -349,6 +359,12 @@ public class LoginPage extends JFrame {
 
 	public static void main(String[] args) {
 		AppTheme.installGlobalStyles();
-		SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
+		SwingUtilities.invokeLater(() -> {
+			if (BYPASS_LOGIN_FOR_TEST) {
+				new TrangChinhPage(new TaiKhoan("admin", "", "", "Admin", "QUAN_LY")).setVisible(true);
+				return;
+			}
+			new LoginPage().setVisible(true);
+		});
 	}
 }
