@@ -28,7 +28,7 @@ public class ToaThemPage extends JPanel {
 		setBorder(new EmptyBorder(14, 14, 14, 14));
 
 		add(taoHeader(), BorderLayout.NORTH);
-		add(taoForm(), BorderLayout.CENTER);
+		add(AppTheme.topAlignedFormPage(taoForm()), BorderLayout.CENTER);
 	}
 
 	private JPanel taoHeader() {

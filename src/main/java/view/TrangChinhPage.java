@@ -21,6 +21,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -166,26 +167,59 @@ public class TrangChinhPage extends JFrame {
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 
+		if ("Tàu".equals(menuName)) {
+			themMenuItem(popupMenu, "Thêm tàu", () -> moPage("Tàu", "Thêm tàu"));
+			themMenuItem(popupMenu, "Tra cứu tàu", () -> moPage("Tàu", "Tra cứu tàu"));
+			themMenuItem(popupMenu, "Cập nhật tàu", () -> moPage("Tàu", "Cập nhật"));
+			popupMenu.addSeparator();
+
+			popupMenu.add(taoMenuConNhieuCap("Toa", new String[] { "Thêm toa", "Tra cứu toa", "Cập nhật" }));
+			popupMenu.add(taoMenuConNhieuCap("Tuyến tàu", new String[] { "Thêm tuyến", "Tra cứu tuyến", "Cập nhật" }));
+			popupMenu.add(taoMenuConNhieuCap("Chuyến tàu", new String[] { "Thêm chuyến", "Tra cứu chuyến", "Cập nhật" }));
+			return popupMenu;
+		}
+
 		for (String item : layMenuCon(menuName)) {
 			JMenuItem menuItem = new JMenuItem(item);
 			menuItem.setFont(AppTheme.font(Font.PLAIN, 13));
-			menuItem.addActionListener(e -> {
-				JPanel page = taoPageTheoMenu(menuName, item);
-				contentPanel.removeAll();
-				contentPanel.add(page, BorderLayout.CENTER);
-				contentPanel.revalidate();
-				contentPanel.repaint();
-			});
+			menuItem.addActionListener(e -> moPage(menuName, item));
 			popupMenu.add(menuItem);
 		}
 
 		return popupMenu;
 	}
 
+	private void themMenuItem(JPopupMenu popupMenu, String text, Runnable action) {
+		JMenuItem menuItem = new JMenuItem(text);
+		menuItem.setFont(AppTheme.font(Font.PLAIN, 13));
+		menuItem.addActionListener(e -> action.run());
+		popupMenu.add(menuItem);
+	}
+
+	private JMenu taoMenuConNhieuCap(String menuCha, String[] items) {
+		JMenu menu = new JMenu(menuCha);
+		menu.setFont(AppTheme.font(Font.PLAIN, 13));
+		for (String item : items) {
+			JMenuItem menuItem = new JMenuItem(item);
+			menuItem.setFont(AppTheme.font(Font.PLAIN, 13));
+			menuItem.addActionListener(e -> moPage(menuCha, item));
+			menu.add(menuItem);
+		}
+		return menu;
+	}
+
+	private void moPage(String menuName, String menuCon) {
+		JPanel page = taoPageTheoMenu(menuName, menuCon);
+		contentPanel.removeAll();
+		contentPanel.add(page, BorderLayout.CENTER);
+		contentPanel.revalidate();
+		contentPanel.repaint();
+	}
+
 	private String[] layMenuCon(String menuName) {
 		switch (menuName) {
 		case "Nhân viên":
-			return new String[] { "Thêm nhân viên", "Tra cứu nhân viên", "Cập nhật thông tin" };
+			return new String[] { "Thêm nhân viên", "Tra cứu nhân viên", "Cập nhật thông tin", "Lập hóa đơn" };
 		case "Khách hàng":
 			return new String[] { "Thêm khách hàng", "Tra cứu khách hàng", "Cập nhật thông tin", "Lịch sử vé" };
 		case "Vé":
@@ -218,6 +252,8 @@ public class TrangChinhPage extends JFrame {
 				return new NhanVienTraCuuPage();
 			case "Cập nhật thông tin":
 				return new NhanVienCapNhatPage();
+			case "Lập hóa đơn":
+				return new LapHoaDonPage();
 			default:
 				return new NhanVienTraCuuPage();
 			}
@@ -241,15 +277,15 @@ public class TrangChinhPage extends JFrame {
 		if ("Vé".equals(menuName)) {
 			switch (menuCon) {
 			case "Bán vé":
-				return new BanVePage();
+				return new VeTauPage("BAN_VE");
 			case "Đổi vé":
-				return new DoiVePage();
+				return new VeTauPage("DOI_VE");
 			case "Trả vé":
-				return new TraVePage();
+				return new VeTauPage("TRA_VE");
 			case "Kiểm tra chỗ trống":
-				return new KiemTraChoTrongPage();
+				return new VeTauPage("KT_CHO");
 			case "In vé":
-				return new InVePage();
+				return new VeTauPage("IN_VE");
 			default:
 				return new VeTauPage();
 			}
@@ -392,7 +428,7 @@ public class TrangChinhPage extends JFrame {
 
 	private String[] layMenuTheoVaiTro() {
 		if ("QUAN_LY".equalsIgnoreCase(taiKhoan.getVaiTro())) {
-			return new String[] { "Trang chủ", "Nhân viên", "Khách hàng", "Vé", "Chuyến tàu", "Tàu", "Toa", "Tuyến tàu", "Dịch vụ", "Khuyến mãi", "Thống kê" };
+			return new String[] { "Trang chủ", "Nhân viên", "Khách hàng", "Vé", "Tàu", "Dịch vụ", "Khuyến mãi", "Thống kê" };
 		}
 		return new String[] { "Trang chủ", "Khách hàng", "Vé" };
 	}

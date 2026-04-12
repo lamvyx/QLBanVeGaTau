@@ -1,115 +1,147 @@
 package view;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
 
 public class VeTauPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final CardLayout cardLayout = new CardLayout();
+	private final JPanel workspacePanel = new JPanel(cardLayout);
+	private final Map<String, JButton> navButtons = new LinkedHashMap<>();
 
 	public VeTauPage() {
-		setLayout(new BorderLayout());
-		setBackground(Color.decode("#F0F5F9"));
-
-		JPanel header = taoHeaderPanel();
-		add(header, BorderLayout.NORTH);
-
-		JPanel content = taoContentPanel();
-		add(content, BorderLayout.CENTER);
+		this("BAN_VE");
 	}
 
-	private JPanel taoHeaderPanel() {
-		JPanel header = new JPanel(new BorderLayout());
-		header.setBackground(Color.WHITE);
-		header.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createMatteBorder(0, 0, 1, 0, Color.decode("#E0E0E0")),
-			new EmptyBorder(12, 16, 12, 16)
-		));
+	public VeTauPage(String initialModule) {
+		setLayout(new BorderLayout(0, 12));
+		setBackground(AppTheme.PAGE_BG);
+		setBorder(AppTheme.pagePadding());
 
-		JLabel title = new JLabel("Quản lý Vé Tàu");
-		title.setFont(new Font("Segoe UI", Font.BOLD, 24));
-		title.setForeground(MAU_CHINH);
-		header.add(title, BorderLayout.WEST);
+		add(taoHeader(), BorderLayout.NORTH);
+		add(taoBody(), BorderLayout.CENTER);
+		chonModule(initialModule);
+	}
 
-		JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-		actions.setOpaque(false);
+	private JPanel taoHeader() {
+		JPanel header = new JPanel(new BorderLayout(0, 8));
+		header.setOpaque(false);
 
-		JButton btnBan = new JButton("+ Bán vé");
-		btnBan.setBackground(MAU_CHINH);
-		btnBan.setForeground(Color.WHITE);
-		btnBan.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnBan.setFocusPainted(false);
-		btnBan.setBorder(new EmptyBorder(6, 12, 6, 12));
-		btnBan.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnBan.addActionListener(e -> moManNghiepVu("Bán vé", new BanVePage()));
-		actions.add(btnBan);
+		JLabel title = new JLabel("Trung tâm nghiệp vụ Vé");
+		title.setFont(AppTheme.font(Font.BOLD, 30));
+		title.setForeground(AppTheme.PRIMARY);
 
-		JButton btnDoi = new JButton("+ Đổi vé");
-		btnDoi.setBackground(Color.WHITE);
-		btnDoi.setForeground(MAU_CHINH);
-		btnDoi.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnDoi.setFocusPainted(false);
-		btnDoi.setBorder(BorderFactory.createLineBorder(MAU_CHINH));
-		btnDoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnDoi.addActionListener(e -> moManNghiepVu("Đổi vé", new DoiVePage()));
-		actions.add(btnDoi);
+		JLabel subtitle = new JLabel("Bán, đổi, trả, kiểm tra chỗ và in vé trong cùng một không gian làm việc");
+		subtitle.setFont(AppTheme.font(Font.PLAIN, 12));
+		subtitle.setForeground(AppTheme.TEXT_MUTED);
 
-		JButton btnTra = new JButton("+ Trả vé");
-		btnTra.setBackground(Color.WHITE);
-		btnTra.setForeground(MAU_CHINH);
-		btnTra.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnTra.setFocusPainted(false);
-		btnTra.setBorder(BorderFactory.createLineBorder(MAU_CHINH));
-		btnTra.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnTra.addActionListener(e -> moManNghiepVu("Trả vé", new TraVePage()));
-		actions.add(btnTra);
-
-		header.add(actions, BorderLayout.EAST);
+		header.add(title, BorderLayout.NORTH);
+		header.add(subtitle, BorderLayout.CENTER);
+		header.add(taoThanhDieuHuong(), BorderLayout.SOUTH);
 		return header;
 	}
 
-	private void moManNghiepVu(String title, JPanel page) {
-		JFrame frame = new JFrame(title);
-		frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		frame.setContentPane(page);
-		frame.setSize(1200, 760);
-		frame.setLocationRelativeTo(this);
-		frame.setVisible(true);
+	private JPanel taoThanhDieuHuong() {
+		JPanel nav = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+		nav.setOpaque(false);
+		nav.setBorder(new EmptyBorder(4, 0, 0, 0));
+
+		nav.add(taoNutModule("BAN_VE", "Bán vé"));
+		nav.add(taoNutModule("DOI_VE", "Đổi vé"));
+		nav.add(taoNutModule("TRA_VE", "Trả vé"));
+		nav.add(taoNutModule("KT_CHO", "Kiểm tra chỗ"));
+		nav.add(taoNutModule("IN_VE", "In vé"));
+		return nav;
 	}
 
-	private JPanel taoContentPanel() {
-		JPanel content = new JPanel(new BorderLayout());
-		content.setBackground(Color.decode("#F0F5F9"));
-		content.setBorder(new EmptyBorder(12, 16, 12, 16));
+	private JButton taoNutModule(String key, String label) {
+		JButton button = new JButton(label);
+		button.setFont(AppTheme.font(Font.BOLD, 12));
+		button.setFocusPainted(false);
+		button.setBorder(new EmptyBorder(8, 14, 8, 14));
+		button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		button.addActionListener(e -> chonModule(key));
+		navButtons.put(key, button);
+		capNhatMauButton(button, false);
+		return button;
+	}
 
-		String[] columns = { "Mã vé", "Khách hàng", "Chuyến tàu", "Toa", "Ghế", "Giá", "Trạng thái" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0);
+	private JPanel taoBody() {
+		JPanel body = new JPanel(new BorderLayout(0, 10));
+		body.setOpaque(false);
+		body.add(taoThongKeTongQuan(), BorderLayout.NORTH);
 
-		model.addRow(new Object[] { "VE001", "Nguyễn Thị Hoa", "SE01", "A", "01", "150000", "Đã bán" });
-		model.addRow(new Object[] { "VE002", "Trần Văn Đạt", "SE02", "B", "15", "150000", "Còn" });
+		workspacePanel.setOpaque(false);
+		workspacePanel.add(new BanVePage(), "BAN_VE");
+		workspacePanel.add(new DoiVePage(), "DOI_VE");
+		workspacePanel.add(new TraVePage(), "TRA_VE");
+		workspacePanel.add(new KiemTraChoTrongPage(), "KT_CHO");
+		workspacePanel.add(new InVePage(), "IN_VE");
 
-		JTable table = new JTable(model);
-		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		table.setRowHeight(28);
-		table.setShowGrid(true);
-		table.setGridColor(new Color(220, 220, 220));
+		JScrollPane scroll = new JScrollPane(workspacePanel);
+		scroll.setBorder(BorderFactory.createEmptyBorder());
+		scroll.getViewport().setOpaque(false);
+		scroll.setOpaque(false);
+		scroll.getVerticalScrollBar().setUnitIncrement(18);
+		body.add(scroll, BorderLayout.CENTER);
+		return body;
+	}
 
-		JScrollPane scrollPane = new JScrollPane(table);
-		scrollPane.setPreferredSize(new Dimension(800, 400));
-		content.add(scrollPane, BorderLayout.CENTER);
+	private JPanel taoThongKeTongQuan() {
+		JPanel stats = new JPanel(new java.awt.GridLayout(1, 4, 10, 0));
+		stats.setOpaque(false);
+		stats.add(taoCardStat("Vé trong ngày", "124", Color.decode("#0EA5E9")));
+		stats.add(taoCardStat("Đổi vé", "18", Color.decode("#F59E0B")));
+		stats.add(taoCardStat("Trả vé", "9", Color.decode("#EF4444")));
+		stats.add(taoCardStat("Vé chờ in", "26", Color.decode("#22C55E")));
+		return stats;
+	}
 
-		return content;
+	private JPanel taoCardStat(String label, String value, Color accent) {
+		JPanel card = new JPanel(new BorderLayout(0, 6));
+		card.setBackground(AppTheme.CARD_BG);
+		card.setBorder(AppTheme.cardBorder());
+
+		JLabel lblLabel = new JLabel(label);
+		lblLabel.setFont(AppTheme.font(Font.PLAIN, 12));
+		lblLabel.setForeground(AppTheme.TEXT_MUTED);
+
+		JLabel lblValue = new JLabel(value);
+		lblValue.setFont(AppTheme.font(Font.BOLD, 24));
+		lblValue.setForeground(accent);
+
+		card.add(lblLabel, BorderLayout.NORTH);
+		card.add(lblValue, BorderLayout.CENTER);
+		return card;
+	}
+
+	private void chonModule(String key) {
+		cardLayout.show(workspacePanel, key);
+		for (Map.Entry<String, JButton> entry : navButtons.entrySet()) {
+			capNhatMauButton(entry.getValue(), entry.getKey().equals(key));
+		}
+	}
+
+	private void capNhatMauButton(JButton btn, boolean active) {
+		btn.setOpaque(true);
+		btn.setBackground(active ? AppTheme.PRIMARY : AppTheme.CARD_BG);
+		btn.setForeground(active ? Color.WHITE : AppTheme.TEXT_PRIMARY);
+		btn.setBorder(active
+				? new EmptyBorder(8, 14, 8, 14)
+				: BorderFactory.createCompoundBorder(
+						BorderFactory.createLineBorder(AppTheme.BORDER),
+						new EmptyBorder(7, 13, 7, 13)));
 	}
 }
