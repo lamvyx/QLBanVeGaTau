@@ -1,8 +1,8 @@
-package entity;
+package dto;
 
 import java.time.LocalDate;
 
-public class KhachHang {
+public class KhachHang_DTO {
 	private String maKH;
 	private String tenKH;
 	private String sdt;
@@ -13,10 +13,10 @@ public class KhachHang {
 	private LocalDate ngaySinh;
 	private boolean loaiKH;
 
-	public KhachHang() {
+	public KhachHang_DTO() {
 	}
 
-	public KhachHang(String maKH, String tenKH, String sdt, String cccd, String diaChi, String email,
+	public KhachHang_DTO(String maKH, String tenKH, String sdt, String cccd, String diaChi, String email,
 			boolean gioiTinh, LocalDate ngaySinh, boolean loaiKH) {
 		this.maKH = maKH;
 		this.tenKH = tenKH;
@@ -27,6 +27,12 @@ public class KhachHang {
 		this.gioiTinh = gioiTinh;
 		this.ngaySinh = ngaySinh;
 		this.loaiKH = loaiKH;
+	}
+
+	public KhachHang_DTO(String maKH, String tenKH, String sdt) {
+		this.maKH = maKH;
+		this.tenKH = tenKH;
+		this.sdt = sdt;
 	}
 
 	public String getMaKH() { return maKH; }
@@ -48,6 +54,10 @@ public class KhachHang {
 	public boolean isLoaiKH() { return loaiKH; }
 	public void setLoaiKH(boolean loaiKH) { this.loaiKH = loaiKH; }
 
+	@Override
+	public String toString() {
+		return maKH + " - " + tenKH + " - " + sdt;	
+	}
 	
 	
 }

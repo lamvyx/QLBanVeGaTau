@@ -13,6 +13,8 @@ import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.Connection;
+
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -23,6 +25,8 @@ import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+
+import connectDB.Database;
 
 public class LoginPage extends JFrame {
 	private static final long serialVersionUID = 1L;
@@ -350,5 +354,10 @@ public class LoginPage extends JFrame {
 	public static void main(String[] args) {
 		AppTheme.installGlobalStyles();
 		SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
+		try (Connection conn = Database.getConnection()) {
+		    System.out.println("Kết nối DB thành công!");
+		} catch (Exception e) {
+		    e.printStackTrace();
+		}
 	}
 }

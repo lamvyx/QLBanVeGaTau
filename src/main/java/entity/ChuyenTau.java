@@ -9,7 +9,7 @@ public class ChuyenTau {
 	private boolean trangThai;
 	private String maTau;
 	private String maTuyenTau;
-
+	
 	public ChuyenTau() {
 	}
 
@@ -22,6 +22,7 @@ public class ChuyenTau {
 		this.maTau = maTau;
 		this.maTuyenTau = maTuyenTau;
 	}
+	
 
 	public String getMaCT() { return maCT; }
 	public void setMaCT(String maCT) { this.maCT = maCT; }

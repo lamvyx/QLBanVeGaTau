@@ -391,14 +391,14 @@ public class TrangChinhPage extends JFrame {
 	}
 
 	private String[] layMenuTheoVaiTro() {
-		if ("QUAN_LY".equalsIgnoreCase(taiKhoan.getVaiTro())) {
+		if ("ADMIN".equalsIgnoreCase(taiKhoan.getVaiTro())) {
 			return new String[] { "Trang chủ", "Nhân viên", "Khách hàng", "Vé", "Chuyến tàu", "Tàu", "Toa", "Tuyến tàu", "Dịch vụ", "Khuyến mãi", "Thống kê" };
 		}
 		return new String[] { "Trang chủ", "Khách hàng", "Vé" };
 	}
 
 	private String hienThiVaiTro() {
-		return "QUAN_LY".equalsIgnoreCase(taiKhoan.getVaiTro()) ? "Quản trị viên" : "Nhân viên";
+		return "ADMIN".equalsIgnoreCase(taiKhoan.getVaiTro()) ? "Quản trị viên" : "Nhân viên";
 	}
 
 	private Image taiAnhBanner() {

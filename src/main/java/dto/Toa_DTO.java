@@ -1,6 +1,6 @@
-package entity;
+package dto;
 
-public class Toa {
+public class Toa_DTO {
 	private String maToa;
 	private String loaiToa;
 	private int soGhe;
@@ -8,16 +8,22 @@ public class Toa {
 	private boolean trangThai;
 	private String maTau;
 
-	public Toa() {
+	public Toa_DTO() {
 	}
 
-	public Toa(String maToa, String loaiToa, int soGhe, String viTriToa, boolean trangThai, String maTau) {
+	public Toa_DTO(String maToa, String loaiToa, int soGhe, String viTriToa, boolean trangThai, String maTau) {
 		this.maToa = maToa;
 		this.loaiToa = loaiToa;
 		this.soGhe = soGhe;
 		this.viTriToa = viTriToa;
 		this.trangThai = trangThai;
 		this.maTau = maTau;
+	}
+	
+	public Toa_DTO(String viTriToa, String loaiToa, int soGhe) {
+		this.viTriToa = viTriToa;
+		this.loaiToa = loaiToa;
+		this.soGhe = soGhe;
 	}
 	
 	public String getMaToa() { return maToa; }
@@ -33,6 +39,12 @@ public class Toa {
 	public String getMaTau() { return maTau; }
 	public void setMaTau(String maTau) { this.maTau = maTau; }
 
+	@Override
+	public String toString() {
+		return "Toa " + viTriToa + " - " + loaiToa + " - " + soGhe;	
+
+	}
 	
 	
 }
+
