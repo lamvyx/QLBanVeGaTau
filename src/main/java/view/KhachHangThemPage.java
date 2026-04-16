@@ -1,5 +1,6 @@
 package view;
 
+import controller.KhachHangController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -11,6 +12,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -19,6 +21,7 @@ import javax.swing.border.EmptyBorder;
 public class KhachHangThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private final KhachHangController khachHangController = new KhachHangController();
 	
 	private JTextField txtTen, txtSdt, txtCccd, txtEmail, txtDiaChi;
 	private JComboBox<String> cbGioiTinh, cbLoaiKH;
@@ -214,6 +217,7 @@ public class KhachHangThemPage extends JPanel {
 		btnThem.setFocusPainted(false);
 		btnThem.setBorder(new EmptyBorder(8, 20, 8, 20));
 		btnThem.setPreferredSize(new Dimension(150, 40));
+		btnThem.addActionListener(e -> xuLyThemKhachHang());
 
 		JButton btnLamMoi = new JButton("Làm mới");
 		btnLamMoi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
@@ -241,5 +245,34 @@ public class KhachHangThemPage extends JPanel {
 		wrapper.add(scrollWrapper, BorderLayout.CENTER);
 		wrapper.add(actions, BorderLayout.SOUTH);
 		return wrapper;
+	}
+
+	private void xuLyThemKhachHang() {
+		String tenKH = txtTen.getText();
+		String sdt = txtSdt.getText();
+		String cccd = txtCccd.getText();
+		String email = txtEmail.getText();
+		String diaChi = txtDiaChi.getText();
+
+		boolean gioiTinh = "Nam".equals(cbGioiTinh.getSelectedItem());
+		boolean loaiKH = cbLoaiKH.getSelectedIndex() > 0;
+
+		service.KhachHangService.KetQuaXuLy ketQua = khachHangController.themKhachHang(tenKH, sdt, cccd,
+				email, diaChi, gioiTinh, loaiKH);
+
+		if (ketQua.thanhCong) {
+			JOptionPane.showMessageDialog(this,
+					ketQua.thongBao + "\nMã khách hàng: " + ketQua.maThamChieu,
+					"Thành công", JOptionPane.INFORMATION_MESSAGE);
+			txtTen.setText("");
+			txtSdt.setText("");
+			txtCccd.setText("");
+			txtEmail.setText("");
+			txtDiaChi.setText("");
+			cbGioiTinh.setSelectedIndex(0);
+			cbLoaiKH.setSelectedIndex(0);
+		} else {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Lỗi", JOptionPane.ERROR_MESSAGE);
+		}
 	}
 }

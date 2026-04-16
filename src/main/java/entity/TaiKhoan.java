@@ -1,11 +1,11 @@
 package entity;
 
 public class TaiKhoan {
-	private String tenDangNhap;
+	private final String tenDangNhap;
 	private String matKhau;
-	private String email;
-	private String hoTen;
-	private String vaiTro;
+	private final String email;
+	private final String hoTen;
+	private final String vaiTro;
 
 	public TaiKhoan(String tenDangNhap, String matKhau, String email, String hoTen, String vaiTro) {
 		this.tenDangNhap = tenDangNhap;

@@ -1,5 +1,7 @@
 package view;
 
+import controller.ChuyenTauController;
+import entity.ChuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,10 +11,15 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -20,6 +27,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import service.ChuyenTauService.KetQuaXuLy;
 
 public class ChuyenTauCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -27,6 +35,9 @@ public class ChuyenTauCapNhatPage extends JPanel {
 
 	private JTable table;
 	private JPanel formPanel;
+	private DefaultTableModel model;
+	private final ChuyenTauController chuyenTauController = new ChuyenTauController();
+	private static final DateTimeFormatter DATE_TIME_INPUT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 	
 	private JTextField txtMaChuyenTau, txtGioKhoiHanh, txtGiaCoban;
 	private JComboBox<String> cbTau, cbTuyenTau;
@@ -66,17 +77,12 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		));
 
 		String[] columns = { "#", "Mã chuyến", "Tàu", "Tuyến", "Giờ khởi hành", "Giá cơ bản" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { 1, "SE1-020426", "SE1", "Sài Gòn - Hà Nội", "19:00:00", "850.000 đ" });
-		model.addRow(new Object[] { 2, "SE1-030426", "SE1", "Sài Gòn - Hà Nội", "19:00:00", "850.000 đ" });
-		model.addRow(new Object[] { 3, "SE2-020426", "SE2", "Sài Gòn - Đà Nẵng", "07:00:00", "530.000 đ" });
-		model.addRow(new Object[] { 4, "TN1-020426", "TN1", "Sài Gòn - Nha Trang", "06:00:00", "280.000 đ" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -114,6 +120,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		splitPane.setDividerLocation(250);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
+		taiDuLieuBang();
 
 		return content;
 	}
@@ -177,8 +184,8 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		gbc.gridx = 1;
 		cbTau = new JComboBox<>();
 		cbTau.addItem(table.getValueAt(row, 2).toString());
-		cbTau.addItem("T001");
-		cbTau.addItem("T002");
+		cbTau.addItem("TAU001");
+		cbTau.addItem("TAU002");
 		cbTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		cbTau.setPreferredSize(new Dimension(200, 30));
 		formContainer.add(cbTau, gbc);
@@ -194,8 +201,8 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		gbc.gridx = 1;
 		cbTuyenTau = new JComboBox<>();
 		cbTuyenTau.addItem(table.getValueAt(row, 3).toString());
-		cbTuyenTau.addItem("Sài Gòn - Hà Nội");
-		cbTuyenTau.addItem("Sài Gòn - Đà Nẵng");
+		cbTuyenTau.addItem("TT001");
+		cbTuyenTau.addItem("TT002");
 		cbTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		cbTuyenTau.setPreferredSize(new Dimension(200, 30));
 		formContainer.add(cbTuyenTau, gbc);
@@ -252,6 +259,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnCapNhat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatChuyenTau());
 		buttonPanel.add(btnCapNhat);
 
 		btnXoa = new JButton("Xóa");
@@ -270,6 +278,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		btnHuy.setFocusPainted(false);
 		btnHuy.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnHuy.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnHuy.addActionListener(e -> formPanel.removeAll());
 		buttonPanel.add(btnHuy);
 
 		formContainer.add(buttonPanel, gbc);
@@ -280,5 +289,36 @@ public class ChuyenTauCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		List<ChuyenTau> ds = chuyenTauController.timKiemChuyenTau(null);
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+		int stt = 1;
+		for (ChuyenTau ct : ds) {
+			String ngayGio = ct.getNgayKhoiHanh() == null ? "" : ct.getNgayKhoiHanh().format(dtf);
+			model.addRow(new Object[] { stt++, ct.getMaCT(), ct.getMaTau(), ct.getMaTuyenTau(), ngayGio, "-" });
+		}
+	}
+
+	private void xuLyCapNhatChuyenTau() {
+		if (txtMaChuyenTau == null) {
+			return;
+		}
+		try {
+			LocalDateTime ngayGio = LocalDateTime.parse(txtGioKhoiHanh.getText().trim(), DATE_TIME_INPUT);
+			KetQuaXuLy ketQua = chuyenTauController.capNhatChuyenTau(txtMaChuyenTau.getText(),
+					String.valueOf(cbTau.getSelectedItem()), String.valueOf(cbTuyenTau.getSelectedItem()), ngayGio, true);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao);
+			if (ketQua.thanhCong) {
+				taiDuLieuBang();
+			}
+		} catch (DateTimeParseException ex) {
+			JOptionPane.showMessageDialog(this, "Giờ khởi hành không hợp lệ (dd/MM/yyyy HH:mm).");
+		}
 	}
 }

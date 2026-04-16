@@ -1,5 +1,7 @@
 package view;
 
+import controller.KhachHangController;
+import entity.KhachHang;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,12 +9,12 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -24,8 +26,10 @@ import javax.swing.table.DefaultTableModel;
 public class KhachHangCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private final KhachHangController khachHangController = new KhachHangController();
 
 	private JTable table;
+	private DefaultTableModel model;
 	private JPanel formPanel;
 	
 	private JTextField txtTen, txtSdt, txtCccd, txtEmail, txtDiaChi;
@@ -67,18 +71,14 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		// Tạo bảng
 		String[] columns = { "#", "Mã KH", "Tên khách hàng", "Số ĐT", "Email", "CCCD", "Loại KH" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { 1, "KH001", "Trần Văn A", "0901234567", "tryvana@email.com", "012345678901", "Thường" });
-		model.addRow(new Object[] { 2, "KH002", "Nguyễn Thị B", "0912345678", "nguyenb@email.com", "012345678902", "VIP" });
-		model.addRow(new Object[] { 3, "KH003", "Phạm Văn C", "0923456789", "phamvan@email.com", "012345678903", "Thường" });
-		model.addRow(new Object[] { 4, "KH004", "Hoàng Thị D", "0934567890", "hoang.d@email.com", "012345678904", "Doanh nghiệp" });
-		model.addRow(new Object[] { 5, "KH005", "Võ Văn E", "0945678901", "vo.van.e@email.com", "012345678905", "VIP" });
+
+		loadDataFromDatabase();
 
 		table = new JTable(model);
 		table.setRowHeight(50);
@@ -89,23 +89,13 @@ public class KhachHangCapNhatPage extends JPanel {
 		table.setGridColor(Color.decode("#E4EBF3"));
 		table.setSelectionBackground(Color.decode("#B3D9FF"));
 
-		// Xử lý click vào hàng
-		table.addMouseListener(new MouseListener() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
+		table.getSelectionModel().addListSelectionListener(e -> {
+			if (!e.getValueIsAdjusting()) {
 				int row = table.getSelectedRow();
 				if (row >= 0) {
 					displayForm(row);
 				}
 			}
-			@Override
-			public void mouseEntered(MouseEvent e) {}
-			@Override
-			public void mouseExited(MouseEvent e) {}
-			@Override
-			public void mousePressed(MouseEvent e) {}
-			@Override
-			public void mouseReleased(MouseEvent e) {}
 		});
 
 		JScrollPane scrollPane = new JScrollPane(table);
@@ -121,6 +111,16 @@ public class KhachHangCapNhatPage extends JPanel {
 		content.add(splitPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<KhachHang> danhSach = khachHangController.layTatCaKhachHang();
+		for (int i = 0; i < danhSach.size(); i++) {
+			KhachHang kh = danhSach.get(i);
+			model.addRow(new Object[] { i + 1, kh.getMaKH(), kh.getTenKH(), kh.getSdt(), kh.getEmail(),
+					kh.getCccd(), kh.isLoaiKH() ? "VIP" : "Thường" });
+		}
 	}
 
 	private JPanel taoFormPanel() {
@@ -145,6 +145,12 @@ public class KhachHangCapNhatPage extends JPanel {
 		formPanel.setLayout(new BorderLayout());
 		formPanel.setBackground(Color.WHITE);
 
+		String maKH = table.getValueAt(row, 1).toString();
+		KhachHang khachHang = timKhachHangTheoMa(maKH);
+		if (khachHang == null) {
+			return;
+		}
+
 		// Form chính
 		JPanel formContainer = new JPanel(new GridBagLayout());
 		formContainer.setBackground(Color.WHITE);
@@ -163,7 +169,7 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtTen = new JTextField(table.getValueAt(row, 2).toString());
+		txtTen = new JTextField(khachHang.getTenKH());
 		txtTen.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtTen.setPreferredSize(new Dimension(250, 35));
 		txtTen.setBorder(BorderFactory.createCompoundBorder(
@@ -183,7 +189,7 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtSdt = new JTextField(table.getValueAt(row, 3).toString());
+		txtSdt = new JTextField(khachHang.getSdt() != null ? khachHang.getSdt() : "");
 		txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtSdt.setPreferredSize(new Dimension(250, 35));
 		txtSdt.setBorder(BorderFactory.createCompoundBorder(
@@ -203,7 +209,7 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtCccd = new JTextField(table.getValueAt(row, 5).toString());
+		txtCccd = new JTextField(khachHang.getCccd() != null ? khachHang.getCccd() : "");
 		txtCccd.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtCccd.setPreferredSize(new Dimension(250, 35));
 		txtCccd.setBorder(BorderFactory.createCompoundBorder(
@@ -223,7 +229,7 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtEmail = new JTextField(table.getValueAt(row, 4).toString());
+		txtEmail = new JTextField(khachHang.getEmail() != null ? khachHang.getEmail() : "");
 		txtEmail.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtEmail.setPreferredSize(new Dimension(250, 35));
 		txtEmail.setBorder(BorderFactory.createCompoundBorder(
@@ -243,7 +249,7 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtDiaChi = new JTextField();
+		txtDiaChi = new JTextField(khachHang.getDiaChi() != null ? khachHang.getDiaChi() : "");
 		txtDiaChi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtDiaChi.setPreferredSize(new Dimension(250, 35));
 		txtDiaChi.setBorder(BorderFactory.createCompoundBorder(
@@ -266,6 +272,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		cbGioiTinh = new JComboBox<>(new String[]{"Nam", "Nữ", "Khác"});
 		cbGioiTinh.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		cbGioiTinh.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
+		cbGioiTinh.setSelectedIndex(khachHang.isGioiTinh() ? 0 : 1);
 		formContainer.add(cbGioiTinh, gbc);
 
 		// Row 6: Loại khách hàng
@@ -282,6 +289,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		cbLoaiKH = new JComboBox<>(new String[]{"Khách hàng thường", "Khách hàng VIP", "Khách hàng doanh nghiệp"});
 		cbLoaiKH.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		cbLoaiKH.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
+		cbLoaiKH.setSelectedIndex(khachHang.isLoaiKH() ? 1 : 0);
 		formContainer.add(cbLoaiKH, gbc);
 
 		JPanel scrollWrapper = new JPanel(new BorderLayout());
@@ -303,6 +311,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(8, 20, 8, 20));
 		btnCapNhat.setPreferredSize(new Dimension(120, 40));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatKhachHang(maKH));
 
 		btnXoa = new JButton("Xóa");
 		btnXoa.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -311,6 +320,8 @@ public class KhachHangCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(8, 20, 8, 20));
 		btnXoa.setPreferredSize(new Dimension(100, 40));
+		btnXoa.addActionListener(e -> JOptionPane.showMessageDialog(this,
+				"Chức năng xóa chưa được bật trong màn hình này.", "Thông báo", JOptionPane.INFORMATION_MESSAGE));
 
 		btnHuy = new JButton("Hủy");
 		btnHuy.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -341,5 +352,26 @@ public class KhachHangCapNhatPage extends JPanel {
 		formPanel.add(actions, BorderLayout.SOUTH);
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void xuLyCapNhatKhachHang(String maKH) {
+		boolean gioiTinh = "Nam".equals(cbGioiTinh.getSelectedItem());
+		boolean loaiKH = cbLoaiKH.getSelectedIndex() > 0;
+
+		service.KhachHangService.KetQuaXuLy ketQua = khachHangController.capNhatKhachHang(maKH,
+				txtTen.getText(), txtSdt.getText(), txtCccd.getText(), txtEmail.getText(), txtDiaChi.getText(),
+				gioiTinh, loaiKH);
+
+		if (ketQua.thanhCong) {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Thành công", JOptionPane.INFORMATION_MESSAGE);
+			loadDataFromDatabase();
+		} else {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Lỗi", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private KhachHang timKhachHangTheoMa(String maKH) {
+		List<KhachHang> danhSach = khachHangController.timKiemKhachHang(maKH, null);
+		return danhSach.isEmpty() ? null : danhSach.get(0);
 	}
 }

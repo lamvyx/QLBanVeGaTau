@@ -3,5 +3,13 @@
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	
+	<!-- SQL Server JDBC Driver -->
+	<!-- Sử dụng phiên bản 13.4.0 -->
+	<classpathentry kind="lib" path="lib/mssql-jdbc-13.4.0.jre11.jar"/>
+	
+	<!-- Nếu dùng Windows Authentication, bỏ comment dòng dưới -->
+	<!-- <classpathentry kind="lib" path="lib/sqljdbc_auth.dll"/> -->
+	
 	<classpathentry kind="output" path="bin"/>
 </classpath>

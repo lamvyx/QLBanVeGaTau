@@ -1,30 +1,23 @@
 package view;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.io.File;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class NhanVienThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
-	private JLabel lblHinhAnh;
-	private String selectedImagePath = "";
 	private JTextField txtTen, txtUsername, txtSdt, txtEmail, txtPassword;
 	private JComboBox<String> cbChucVu;
 	private JButton btnThem;
@@ -49,7 +42,7 @@ public class NhanVienThemPage extends JPanel {
 		title.setForeground(AppTheme.PRIMARY);
 		header.add(title, BorderLayout.WEST);
 
-		JLabel subtitle = new JLabel("Nhập thông tin, chọn ảnh đại diện và xác nhận tạo mới nhân viên");
+		JLabel subtitle = new JLabel("Nhập thông tin và xác nhận tạo mới nhân viên");
 		subtitle.setFont(AppTheme.font(Font.PLAIN, 12));
 		subtitle.setForeground(AppTheme.TEXT_MUTED);
 		header.add(subtitle, BorderLayout.SOUTH);
@@ -68,10 +61,7 @@ public class NhanVienThemPage extends JPanel {
 		JPanel body = new JPanel(new BorderLayout(16, 0));
 		body.setOpaque(false);
 
-		JPanel leftPanel = taoImagePanel();
 		JPanel formCard = taoFormCard();
-
-		body.add(leftPanel, BorderLayout.WEST);
 		body.add(formCard, BorderLayout.CENTER);
 
 		// Nút hành động
@@ -93,9 +83,6 @@ public class NhanVienThemPage extends JPanel {
 			txtEmail.setText("");
 			txtPassword.setText("");
 			cbChucVu.setSelectedIndex(0);
-			selectedImagePath = "";
-			lblHinhAnh.setIcon(null);
-			lblHinhAnh.setText("Chưa chọn hình ảnh");
 		});
 
 		actions.add(btnLamMoi);
@@ -181,62 +168,4 @@ public class NhanVienThemPage extends JPanel {
 		parent.add(comboBox, gbc);
 	}
 
-	private JPanel taoImagePanel() {
-		JPanel imagePanel = new JPanel(new BorderLayout(10, 10));
-		imagePanel.setPreferredSize(new Dimension(280, 0));
-		imagePanel.setBackground(Color.decode("#F8FAFC"));
-		imagePanel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(AppTheme.BORDER, 2),
-			new EmptyBorder(10, 10, 10, 10)
-		));
-
-		// Khu vực hiển thị hình ảnh
-		lblHinhAnh = new JLabel();
-		lblHinhAnh.setHorizontalAlignment(JLabel.CENTER);
-		lblHinhAnh.setVerticalAlignment(JLabel.CENTER);
-		lblHinhAnh.setText("Chưa chọn hình ảnh");
-		lblHinhAnh.setFont(AppTheme.font(Font.ITALIC, 12));
-		lblHinhAnh.setForeground(AppTheme.TEXT_MUTED);
-		lblHinhAnh.setPreferredSize(new Dimension(240, 260));
-		lblHinhAnh.setBackground(Color.WHITE);
-		lblHinhAnh.setOpaque(true);
-		lblHinhAnh.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
-		imagePanel.add(lblHinhAnh, BorderLayout.CENTER);
-
-		JLabel hint = new JLabel("Ảnh thẻ 3x4 - căn giữa, nhận dạng rõ khuôn mặt");
-		hint.setFont(AppTheme.font(Font.PLAIN, 11));
-		hint.setForeground(AppTheme.TEXT_MUTED);
-		hint.setHorizontalAlignment(JLabel.CENTER);
-		imagePanel.add(hint, BorderLayout.NORTH);
-
-		// Nút chọn hình ảnh
-		JPanel btnPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 5, 5));
-		btnPanel.setBackground(Color.decode("#F8FAFC"));
-
-		JButton btnChon = new JButton("Chọn hình");
-		AppTheme.stylePrimaryButton(btnChon);
-		btnChon.setFont(AppTheme.font(Font.BOLD, 12));
-		btnChon.setPreferredSize(new Dimension(100, 34));
-
-		btnChon.addActionListener(e -> {
-			JFileChooser fileChooser = new JFileChooser();
-			fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif"));
-			int result = fileChooser.showOpenDialog(NhanVienThemPage.this);
-
-			if (result == JFileChooser.APPROVE_OPTION) {
-				File selectedFile = fileChooser.getSelectedFile();
-				selectedImagePath = selectedFile.getAbsolutePath();
-
-				ImageIcon icon = new ImageIcon(selectedImagePath);
-				java.awt.Image image = icon.getImage().getScaledInstance(160, 180, java.awt.Image.SCALE_SMOOTH);
-				lblHinhAnh.setIcon(new ImageIcon(image));
-				lblHinhAnh.setText("");
-			}
-		});
-
-		btnPanel.add(btnChon);
-		imagePanel.add(btnPanel, BorderLayout.SOUTH);
-
-		return imagePanel;
-	}
 }

@@ -1,12 +1,15 @@
 package view;
 
+import controller.ThongKeController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.math.BigDecimal;
 import javax.swing.JPanel;
 
 public class DoanhThuThongKePage extends ThongKeBaoCaoBasePage {
 	private static final long serialVersionUID = 1L;
+	private final ThongKeController thongKeController = new ThongKeController();
 
 	public DoanhThuThongKePage() {
 		super("Thống kê doanh thu");
@@ -28,10 +31,11 @@ public class DoanhThuThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createDayPanel() {
+		BigDecimal doanhThu = thongKeController.thongKeDoanhThu();
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			 spec("Doanh thu hôm nay", money(98600000L), "Ngày 03/04/2026", MAU_CHINH),
+			 spec("Tổng doanh thu", money(doanhThu.longValue()), "Từ dữ liệu hóa đơn", MAU_CHINH),
 			 spec("Số vé bán", "1.284", "vé", new Color(34, 197, 94)),
 			 spec("Giá trị TB/vé", money(76800L), "mỗi vé", new Color(245, 158, 11)),
 			 spec("Tăng trưởng so với hôm qua", "+8.4%", "đang tăng", new Color(139, 92, 246))

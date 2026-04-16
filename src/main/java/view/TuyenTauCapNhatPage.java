@@ -1,5 +1,7 @@
 package view;
 
+import controller.TuyenTauController;
+import entity.TuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,9 +11,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -19,6 +23,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import service.TuyenTauService.KetQuaXuLy;
 
 public class TuyenTauCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -26,9 +31,11 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 	private JTable table;
 	private JPanel formPanel;
+	private DefaultTableModel model;
 	
 	private JTextField txtMaTT, txtMaGaDi, txtMaGaDen, txtKhoangCach;
 	private JButton btnCapNhat, btnXoa, btnHuy;
+	private final TuyenTauController tuyenTauController = new TuyenTauController();
 
 	public TuyenTauCapNhatPage() {
 		setLayout(new BorderLayout());
@@ -65,18 +72,12 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		// Tạo bảng
 		String[] columns = { "#", "Mã tuyến", "Ga đi", "Ga đến", "Khoảng cách (km)" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { 1, "TT001", "Sài Gòn", "Hà Nội", "1728" });
-		model.addRow(new Object[] { 2, "TT002", "Sài Gòn", "Đà Nẵng", "962" });
-		model.addRow(new Object[] { 3, "TT003", "Sài Gòn", "Nha Trang", "450" });
-		model.addRow(new Object[] { 4, "TT004", "Hà Nội", "Hải Phòng", "120" });
-		model.addRow(new Object[] { 5, "TT005", "Đà Nẵng", "Huế", "110" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -117,6 +118,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 		splitPane.setDividerLocation(250);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
+		taiDuLieuBang();
 
 		return content;
 	}
@@ -246,6 +248,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnCapNhat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatTuyenTau());
 		buttonPanel.add(btnCapNhat);
 
 		btnXoa = new JButton("Xóa");
@@ -264,6 +267,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 		btnHuy.setFocusPainted(false);
 		btnHuy.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnHuy.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnHuy.addActionListener(e -> formPanel.removeAll());
 		buttonPanel.add(btnHuy);
 
 		formContainer.add(buttonPanel, gbc);
@@ -274,5 +278,33 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		List<TuyenTau> ds = tuyenTauController.timKiemTuyenTau(null, null, null);
+		int stt = 1;
+		for (TuyenTau tt : ds) {
+			model.addRow(new Object[] { stt++, tt.getMaTT(), tt.getMaGaDi(), tt.getMaGaDen(), tt.getKhoangCach() });
+		}
+	}
+
+	private void xuLyCapNhatTuyenTau() {
+		if (txtMaTT == null) {
+			return;
+		}
+		try {
+			double khoangCach = Double.parseDouble(txtKhoangCach.getText().trim());
+			KetQuaXuLy ketQua = tuyenTauController.capNhatTuyenTau(txtMaTT.getText(), txtMaGaDi.getText(), txtMaGaDen.getText(), khoangCach);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao);
+			if (ketQua.thanhCong) {
+				taiDuLieuBang();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Khoảng cách phải là số hợp lệ.");
+		}
 	}
 }

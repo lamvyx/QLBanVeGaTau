@@ -1,5 +1,7 @@
 package view;
 
+import controller.NhanVienController;
+import entity.NhanVien;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,33 +9,27 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.io.File;
+import java.util.List;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 
 public class NhanVienCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private final NhanVienController nhanVienController = new NhanVienController();
 
 	private JTable table;
+	private DefaultTableModel model;
 	private JPanel formPanel;
-	private JLabel lblHinhAnh;
-	private String selectedImagePath = "";
 	
 	private JTextField txtTen, txtUsername, txtSdt, txtEmail, cbChucVu;
 	private JButton btnCapNhat, btnXoa, btnHuy;
@@ -73,18 +69,14 @@ public class NhanVienCapNhatPage extends JPanel {
 
 		// Tạo bảng
 		String[] columns = { "#", "Mã NV", "Họ và tên", "Tài khoản", "Email", "Điện thoại", "Chức vụ" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { 1, "U001", "Nguyễn Văn Admin", "admin", "admin@saigontrain.vn", "0901234567", "Quản lý" });
-		model.addRow(new Object[] { 2, "U002", "Trần Thị Nhân Viên", "staff", "staff@saigontrain.vn", "0901234568", "Bán vé" });
-		model.addRow(new Object[] { 3, "U003", "Nguyễn Phát Đạt", "nguyen.phat", "phat@saigontrain.vn", "0901234569", "Bán vé" });
-		model.addRow(new Object[] { 4, "U004", "Lê Thị Mai", "le.mai", "mai@saigontrain.vn", "0901234570", "Hỗ trợ" });
-		model.addRow(new Object[] { 5, "U005", "Phạm Văn Cường", "pham.cuong", "cuong@saigontrain.vn", "0901234571", "Quản lý" });
+
+		loadDataFromDatabase();
 
 		table = new JTable(model);
 		table.setRowHeight(50);
@@ -95,23 +87,13 @@ public class NhanVienCapNhatPage extends JPanel {
 		table.setGridColor(Color.decode("#E4EBF3"));
 		table.setSelectionBackground(Color.decode("#B3D9FF"));
 
-		// Xử lý click vào hàng
-		table.addMouseListener(new MouseListener() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
+		table.getSelectionModel().addListSelectionListener(e -> {
+			if (!e.getValueIsAdjusting()) {
 				int row = table.getSelectedRow();
 				if (row >= 0) {
 					displayForm(row);
 				}
 			}
-			@Override
-			public void mouseEntered(MouseEvent e) {}
-			@Override
-			public void mouseExited(MouseEvent e) {}
-			@Override
-			public void mousePressed(MouseEvent e) {}
-			@Override
-			public void mouseReleased(MouseEvent e) {}
 		});
 
 		JScrollPane scrollPane = new JScrollPane(table);
@@ -127,6 +109,16 @@ public class NhanVienCapNhatPage extends JPanel {
 		content.add(splitPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<NhanVien> danhSach = nhanVienController.layTatCaNhanVien();
+		for (int i = 0; i < danhSach.size(); i++) {
+			NhanVien nv = danhSach.get(i);
+			model.addRow(new Object[] { i + 1, nv.getMaNV(), nv.getTenNV(), nv.getUsername(),
+					nhanVienController.layEmailTheoUsername(nv.getUsername()), nv.getSdt(), nv.getChucVu() });
+		}
 	}
 
 	private JPanel taoFormPanel() {
@@ -151,6 +143,8 @@ public class NhanVienCapNhatPage extends JPanel {
 		formPanel.setLayout(new BorderLayout());
 		formPanel.setBackground(Color.WHITE);
 
+		String maNV = table.getValueAt(row, 1).toString();
+
 		// Form chính
 		JPanel formContainer = new JPanel(new GridBagLayout());
 		formContainer.setBackground(Color.WHITE);
@@ -158,29 +152,16 @@ public class NhanVienCapNhatPage extends JPanel {
 		gbc.insets = new Insets(10, 10, 10, 10);
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 
-		// Row 0: Hình ảnh (to ra, chiếm 2 cột)
+		// Row 0: Họ và tên
 		gbc.gridx = 0;
 		gbc.gridy = 0;
-		gbc.gridwidth = 2;
-		gbc.gridheight = 4;
-		gbc.weightx = 0.4;
-		JPanel imagePanel = taoImagePanel();
-		formContainer.add(imagePanel, gbc);
-
-		// Reset gridwidth về 1 cho các trường khác
-		gbc.gridwidth = 1;
-		gbc.gridheight = 1;
-
-		// Row 0: Họ và tên
-		gbc.gridx = 2;
-		gbc.gridy = 0;
-		gbc.weightx = 0.3;
+		gbc.weightx = 0.25;
 		JLabel lbl = new JLabel("Họ và tên *");
 		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		lbl.setForeground(Color.decode("#2B4B74"));
 		formContainer.add(lbl, gbc);
 
-		gbc.gridx = 3;
+		gbc.gridx = 1;
 		txtTen = new JTextField(table.getValueAt(row, 2).toString());
 		txtTen.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtTen.setPreferredSize(new Dimension(200, 35));
@@ -191,17 +172,18 @@ public class NhanVienCapNhatPage extends JPanel {
 		formContainer.add(txtTen, gbc);
 
 		// Row 1: Tên tài khoản
-		gbc.gridx = 2;
+		gbc.gridx = 0;
 		gbc.gridy = 1;
 		lbl = new JLabel("Tên tài khoản *");
 		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		lbl.setForeground(Color.decode("#2B4B74"));
 		formContainer.add(lbl, gbc);
 
-		gbc.gridx = 3;
+		gbc.gridx = 1;
 		txtUsername = new JTextField(table.getValueAt(row, 3).toString());
 		txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtUsername.setPreferredSize(new Dimension(200, 35));
+		txtUsername.setEditable(false);
 		txtUsername.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(8, 8, 8, 8)
@@ -209,14 +191,14 @@ public class NhanVienCapNhatPage extends JPanel {
 		formContainer.add(txtUsername, gbc);
 
 		// Row 2: Số điện thoại
-		gbc.gridx = 2;
+		gbc.gridx = 0;
 		gbc.gridy = 2;
 		lbl = new JLabel("Số điện thoại");
 		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		lbl.setForeground(Color.decode("#2B4B74"));
 		formContainer.add(lbl, gbc);
 
-		gbc.gridx = 3;
+		gbc.gridx = 1;
 		txtSdt = new JTextField(table.getValueAt(row, 5).toString());
 		txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtSdt.setPreferredSize(new Dimension(200, 35));
@@ -227,14 +209,14 @@ public class NhanVienCapNhatPage extends JPanel {
 		formContainer.add(txtSdt, gbc);
 
 		// Row 3: Chức vụ
-		gbc.gridx = 2;
+		gbc.gridx = 0;
 		gbc.gridy = 3;
 		lbl = new JLabel("Chức vụ");
 		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		lbl.setForeground(Color.decode("#2B4B74"));
 		formContainer.add(lbl, gbc);
 
-		gbc.gridx = 3;
+		gbc.gridx = 1;
 		cbChucVu = new JTextField(table.getValueAt(row, 6).toString());
 		cbChucVu.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		cbChucVu.setPreferredSize(new Dimension(200, 35));
@@ -282,6 +264,7 @@ public class NhanVienCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(8, 20, 8, 20));
 		btnCapNhat.setPreferredSize(new Dimension(120, 40));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatNhanVien(maNV));
 
 		btnXoa = new JButton("Xóa");
 		btnXoa.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -290,6 +273,8 @@ public class NhanVienCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(8, 20, 8, 20));
 		btnXoa.setPreferredSize(new Dimension(100, 40));
+		btnXoa.addActionListener(e -> JOptionPane.showMessageDialog(this,
+				"Chức năng xóa chưa được bật trong màn hình này.", "Thông báo", JOptionPane.INFORMATION_MESSAGE));
 
 		btnHuy = new JButton("Hủy");
 		btnHuy.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -322,61 +307,28 @@ public class NhanVienCapNhatPage extends JPanel {
 		formPanel.repaint();
 	}
 
-	private JPanel taoImagePanel() {
-		JPanel imagePanel = new JPanel(new BorderLayout(10, 10));
-		imagePanel.setBackground(Color.decode("#F8FAFC"));
-		imagePanel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5"), 2),
-			new EmptyBorder(10, 10, 10, 10)
-		));
+	private void xuLyCapNhatNhanVien(String maNV) {
+		NhanVien nhanVienCu = timNhanVienTheoMa(maNV);
+		if (nhanVienCu == null) {
+			JOptionPane.showMessageDialog(this, "Không tìm thấy nhân viên cần cập nhật", "Lỗi",
+					JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 
-		// Khu vực hiển thị hình ảnh
-		lblHinhAnh = new JLabel();
-		lblHinhAnh.setHorizontalAlignment(JLabel.CENTER);
-		lblHinhAnh.setVerticalAlignment(JLabel.CENTER);
-		lblHinhAnh.setText("Chưa chọn hình ảnh");
-		lblHinhAnh.setFont(new Font("Segoe UI", Font.ITALIC, 12));
-		lblHinhAnh.setForeground(Color.decode("#8B95A7"));
-		lblHinhAnh.setPreferredSize(new Dimension(180, 200));
-		lblHinhAnh.setBackground(Color.WHITE);
-		lblHinhAnh.setOpaque(true);
-		lblHinhAnh.setBorder(BorderFactory.createLineBorder(Color.decode("#DCE3EC")));
-		imagePanel.add(lblHinhAnh, BorderLayout.CENTER);
+		service.NhanVienService.KetQuaXuLy ketQua = nhanVienController.capNhatNhanVien(maNV,
+				txtTen.getText(), txtSdt.getText(), txtEmail.getText(), cbChucVu.getText(),
+				nhanVienCu.isGioiTinh(), nhanVienCu.getNgaySinh(), nhanVienCu.getNgayVaoLam());
 
-		// Nút chọn hình ảnh
-		JPanel btnPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 5, 5));
-		btnPanel.setBackground(Color.decode("#F8FAFC"));
+		if (ketQua.thanhCong) {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Thành công", JOptionPane.INFORMATION_MESSAGE);
+			loadDataFromDatabase();
+		} else {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Lỗi", JOptionPane.ERROR_MESSAGE);
+		}
+	}
 
-		JButton btnChon = new JButton("Chọn hình");
-		btnChon.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnChon.setBackground(MAU_CHINH);
-		btnChon.setForeground(Color.WHITE);
-		btnChon.setFocusPainted(false);
-		btnChon.setBorder(new EmptyBorder(6, 12, 6, 12));
-
-		btnChon.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fileChooser = new JFileChooser();
-				fileChooser.setFileFilter(new FileNameExtensionFilter("Image Files", "jpg", "jpeg", "png", "gif"));
-				int result = fileChooser.showOpenDialog(NhanVienCapNhatPage.this);
-
-				if (result == JFileChooser.APPROVE_OPTION) {
-					File selectedFile = fileChooser.getSelectedFile();
-					selectedImagePath = selectedFile.getAbsolutePath();
-
-					// Hiển thị ảnh
-					ImageIcon icon = new ImageIcon(selectedImagePath);
-					java.awt.Image image = icon.getImage().getScaledInstance(160, 180, java.awt.Image.SCALE_SMOOTH);
-					lblHinhAnh.setIcon(new ImageIcon(image));
-					lblHinhAnh.setText("");
-				}
-			}
-		});
-
-		btnPanel.add(btnChon);
-		imagePanel.add(btnPanel, BorderLayout.SOUTH);
-
-		return imagePanel;
+	private NhanVien timNhanVienTheoMa(String maNV) {
+		List<NhanVien> danhSach = nhanVienController.timKiemNhanVien(maNV, null);
+		return danhSach.isEmpty() ? null : danhSach.get(0);
 	}
 }

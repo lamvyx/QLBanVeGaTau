@@ -1,9 +1,12 @@
 package view;
 
+import controller.TuyenTauController;
+import entity.TuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -11,6 +14,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 public class TuyenTauTraCuuPage extends JPanel {
@@ -20,6 +25,7 @@ public class TuyenTauTraCuuPage extends JPanel {
 	private JTextField txtTimKiem;
 	private JTable tableTuyenTau;
 	private DefaultTableModel model;
+	private final TuyenTauController tuyenTauController = new TuyenTauController();
 
 	public TuyenTauTraCuuPage() {
 		setLayout(new BorderLayout());
@@ -29,6 +35,8 @@ public class TuyenTauTraCuuPage extends JPanel {
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoSearchPanel(), BorderLayout.WEST);
 		add(taoTablePanel(), BorderLayout.CENTER);
+		caiDatTimKiem();
+		taiDuLieuBang();
 	}
 
 	private JPanel taoHeader() {
@@ -68,7 +76,6 @@ public class TuyenTauTraCuuPage extends JPanel {
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 8, 6, 8)
 		));
-		txtTimKiem.setText("Tìm kiếm...");
 		searchPanel.add(txtTimKiem);
 
 		return searchPanel;
@@ -91,13 +98,6 @@ public class TuyenTauTraCuuPage extends JPanel {
 			}
 		};
 
-		// Sample data
-		model.addRow(new Object[] { 1, "TT001", "Sài Gòn", "Hà Nội", "1728", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 2, "TT002", "Sài Gòn", "Đà Nẵng", "962", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 3, "TT003", "Sài Gòn", "Nha Trang", "450", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 4, "TT004", "Hà Nội", "Hải Phòng", "120", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 5, "TT005", "Đà Nẵng", "Huế", "110", "👁 ✏️ 🗑" });
-
 		tableTuyenTau = new JTable(model);
 		tableTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		tableTuyenTau.setRowHeight(28);
@@ -113,5 +113,37 @@ public class TuyenTauTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void caiDatTimKiem() {
+		txtTimKiem.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				taiDuLieuBang();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				taiDuLieuBang();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				taiDuLieuBang();
+			}
+		});
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		String keyword = txtTimKiem == null ? null : txtTimKiem.getText();
+		List<TuyenTau> ds = tuyenTauController.timKiemTuyenTau(null, keyword, keyword);
+		int stt = 1;
+		for (TuyenTau tt : ds) {
+			model.addRow(new Object[] { stt++, tt.getMaTT(), tt.getMaGaDi(), tt.getMaGaDen(), tt.getKhoangCach(), "" });
+		}
 	}
 }

@@ -1,12 +1,15 @@
 package view;
 
+import controller.ThongKeController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import javax.swing.JPanel;
+import service.ThongKeService.ThongKeSoLuongVe;
 
 public class VeThongKePage extends ThongKeBaoCaoBasePage {
 	private static final long serialVersionUID = 1L;
+	private final ThongKeController thongKeController = new ThongKeController();
 
 	public VeThongKePage() {
 		super("Thống kê vé");
@@ -28,13 +31,14 @@ public class VeThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createDayPanel() {
+		ThongKeSoLuongVe tk = thongKeController.thongKeSoLuongVe();
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			spec("Tổng vé trong ngày", "1.284", "03/04/2026", MAU_CHINH),
-			spec("Vé đang hoạt động", "542", "42%", new Color(34, 197, 94)),
-			spec("Vé đã dùng", "487", "38%", new Color(100, 116, 139)),
-			spec("Vé trả/hủy", "109", "8.5%", new Color(239, 68, 68))
+			spec("Tổng vé", String.valueOf(tk.tongSoVe), "Từ dữ liệu hệ thống", MAU_CHINH),
+			spec("Vé đã bán", String.valueOf(tk.soVeDaBan), "Trạng thái DA_BAN", new Color(34, 197, 94)),
+			spec("Vé còn trống", String.valueOf(tk.soVeConTrong), "Trạng thái CON_TRONG", new Color(100, 116, 139)),
+			spec("Vé không hiệu lực", String.valueOf(tk.soVeKhongHieuLuc), "Trạng thái KHONG_HIEU_LUC", new Color(239, 68, 68))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(1, 2, 12, 12));

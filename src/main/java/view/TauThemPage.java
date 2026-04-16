@@ -1,5 +1,6 @@
 package view;
 
+import controller.TauController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -10,15 +11,18 @@ import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import service.TauService.KetQuaXuLy;
 
 public class TauThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
 	
 	private JTextField txtMaTau, txtTenTau, txtSoLuongToa, txtSucChua, txtNamSanXuat;
+	private final TauController tauController = new TauController();
 
 	public TauThemPage() {
 		setLayout(new BorderLayout());
@@ -169,6 +173,7 @@ public class TauThemPage extends JPanel {
 		btnThem.setFocusPainted(false);
 		btnThem.setBorder(new EmptyBorder(8, 24, 8, 24));
 		btnThem.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnThem.addActionListener(e -> xuLyThemTau());
 		buttonPanel.add(btnThem);
 
 		JButton btnLamMoi = new JButton("Làm mới");
@@ -178,6 +183,7 @@ public class TauThemPage extends JPanel {
 		btnLamMoi.setFocusPainted(false);
 		btnLamMoi.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnLamMoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnLamMoi.addActionListener(e -> lamMoiForm());
 		buttonPanel.add(btnLamMoi);
 
 		formContainer.add(buttonPanel, gbc);
@@ -188,5 +194,26 @@ public class TauThemPage extends JPanel {
 
 		wrapper.add(scrollWrapper, BorderLayout.CENTER);
 		return wrapper;
+	}
+
+	private void xuLyThemTau() {
+		try {
+			int soToa = Integer.parseInt(txtSoLuongToa.getText().trim());
+			KetQuaXuLy ketQua = tauController.themTau(txtTenTau.getText(), soToa);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao + (ketQua.thanhCong ? " (" + ketQua.maThamChieu + ")" : ""));
+			if (ketQua.thanhCong) {
+				lamMoiForm();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Số lượng toa phải là số nguyên hợp lệ.");
+		}
+	}
+
+	private void lamMoiForm() {
+		txtMaTau.setText("");
+		txtTenTau.setText("");
+		txtSoLuongToa.setText("0");
+		txtSucChua.setText("0");
+		txtNamSanXuat.setText("2024");
 	}
 }

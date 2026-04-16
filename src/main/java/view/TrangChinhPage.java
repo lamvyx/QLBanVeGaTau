@@ -1,5 +1,6 @@
 package view;
 
+import controller.TaiKhoanController;
 import entity.TaiKhoan;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -16,6 +17,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -36,10 +40,13 @@ public class TrangChinhPage extends JFrame {
 			Path.of("src", "main", "resources", "Image", "arrow-down.png"), 12, 12);
 
 	private final TaiKhoan taiKhoan;
-	private JPanel contentPanel;
+	private final TaiKhoanController taiKhoanController = new TaiKhoanController();
+	private final List<MenuGroup> danhSachMenu;
+	private final JPanel contentPanel = new JPanel(new BorderLayout());
 
 	public TrangChinhPage(TaiKhoan taiKhoan) {
 		this.taiKhoan = taiKhoan;
+		this.danhSachMenu = taoMenuTheoVaiTro();
 		setTitle("Trang chính - " + taiKhoan.getHoTen());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(1400, 720);
@@ -49,7 +56,6 @@ public class TrangChinhPage extends JFrame {
 
 		add(taoThanhDieuHuong(), BorderLayout.NORTH);
 
-		contentPanel = new JPanel(new BorderLayout());
 		contentPanel.add(taoBannerChaoMung(), BorderLayout.CENTER);
 		add(contentPanel, BorderLayout.CENTER);
 	}
@@ -68,21 +74,21 @@ public class TrangChinhPage extends JFrame {
 		logo.setBorder(new EmptyBorder(0, 2, 0, 8));
 		left.add(logo);
 
-		for (String item : layMenuTheoVaiTro()) {
-			left.add(taoMenuButton(item, "Trang chủ".equals(item)));
+		for (MenuGroup menu : danhSachMenu) {
+			left.add(taoMenuButton(menu, menu.isTrangChu()));
 		}
 
 		JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 		right.setOpaque(false);
 
-		JLabel lblAvatar = new JLabel(taiKhoan.getHoTen().substring(0, 1), SwingConstants.CENTER);
+		JLabel lblAvatar = new JLabel(layTenHienThi().substring(0, 1), SwingConstants.CENTER);
 		lblAvatar.setOpaque(true);
 		lblAvatar.setBackground(Color.decode("#4B9BFF"));
 		lblAvatar.setForeground(Color.WHITE);
 		lblAvatar.setPreferredSize(new Dimension(34, 34));
 		lblAvatar.setFont(AppTheme.font(Font.BOLD, 16));
 
-		JButton btnUser = new JButton(taiKhoan.getHoTen() + "  •  " + hienThiVaiTro());
+		JButton btnUser = new JButton(layTenHienThi() + "  •  " + hienThiVaiTro());
 		btnUser.setForeground(TEXT_LIGHT);
 		btnUser.setBackground(NAV_BG);
 		btnUser.setFont(AppTheme.font(Font.BOLD, 12));
@@ -131,8 +137,8 @@ public class TrangChinhPage extends JFrame {
 		return banner;
 	}
 
-	private JButton taoMenuButton(String text, boolean active) {
-		JButton button = new JButton(text);
+	private JButton taoMenuButton(MenuGroup menu, boolean active) {
+		JButton button = new JButton(menu.tieuDe());
 		button.setFocusPainted(false);
 		button.setForeground(TEXT_LIGHT);
 		button.setFont(AppTheme.font(Font.BOLD, 12));
@@ -140,7 +146,7 @@ public class TrangChinhPage extends JFrame {
 		button.setBackground(active ? NAV_BG_ACTIVE : NAV_BG);
 		button.setOpaque(true);
 		button.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		if ("Trang chủ".equals(text)) {
+		if (menu.isTrangChu()) {
 			button.addActionListener(e -> {
 				contentPanel.removeAll();
 				contentPanel.add(taoBannerChaoMung(), BorderLayout.CENTER);
@@ -148,29 +154,28 @@ public class TrangChinhPage extends JFrame {
 				contentPanel.repaint();
 			});
 		} else {
-			button.setText(text);
 			button.setIcon(ARROW_DOWN_ICON);
 			button.setHorizontalTextPosition(JButton.LEFT);
 			button.setIconTextGap(4);
-			button.addActionListener(e -> hienThiDropdown(button, text));
+			button.addActionListener(e -> hienThiDropdown(button, menu));
 		}
 		return button;
 	}
 
-	private void hienThiDropdown(JButton source, String menuName) {
-		JPopupMenu popupMenu = taoMenuDropdown(menuName);
+	private void hienThiDropdown(JButton source, MenuGroup menu) {
+		JPopupMenu popupMenu = taoMenuDropdown(menu);
 		popupMenu.show(source, 0, source.getHeight());
 	}
 
-	private JPopupMenu taoMenuDropdown(String menuName) {
+	private JPopupMenu taoMenuDropdown(MenuGroup menu) {
 		JPopupMenu popupMenu = new JPopupMenu();
 		popupMenu.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 
-		for (String item : layMenuCon(menuName)) {
-			JMenuItem menuItem = new JMenuItem(item);
+		for (MenuAction item : menu.chucNangCon()) {
+			JMenuItem menuItem = new JMenuItem(item.tieuDe());
 			menuItem.setFont(AppTheme.font(Font.PLAIN, 13));
 			menuItem.addActionListener(e -> {
-				JPanel page = taoPageTheoMenu(menuName, item);
+				JPanel page = item.taoPage();
 				contentPanel.removeAll();
 				contentPanel.add(page, BorderLayout.CENTER);
 				contentPanel.revalidate();
@@ -182,200 +187,6 @@ public class TrangChinhPage extends JFrame {
 		return popupMenu;
 	}
 
-	private String[] layMenuCon(String menuName) {
-		switch (menuName) {
-		case "Nhân viên":
-			return new String[] { "Thêm nhân viên", "Tra cứu nhân viên", "Cập nhật thông tin" };
-		case "Khách hàng":
-			return new String[] { "Thêm khách hàng", "Tra cứu khách hàng", "Cập nhật thông tin", "Lịch sử vé" };
-		case "Vé":
-			return new String[] { "Bán vé", "Đổi vé", "Trả vé", "Kiểm tra chỗ trống", "In vé" };
-		case "Chuyến tàu":
-			return new String[] { "Thêm chuyến", "Tra cứu chuyến", "Cập nhật" };
-		case "Tàu":
-			return new String[] { "Thêm tàu", "Tra cứu tàu", "Cập nhật" };
-		case "Toa":
-			return new String[] { "Thêm toa", "Tra cứu toa", "Cập nhật" };
-		case "Tuyến tàu":
-			return new String[] { "Thêm tuyến", "Tra cứu tuyến", "Cập nhật" };
-		case "Dịch vụ":
-			return new String[] { "Thêm dịch vụ", "Tra cứu", "Cập nhật" };
-		case "Khuyến mãi":
-			return new String[] { "Thêm khuyến mãi", "Tra cứu", "Cập nhật"};
-		case "Thống kê":
-			return new String[] { "Doanh thu", "Vé", "Khách hàng", "Chuyến tàu" };
-		default:
-			return new String[] { "Chức năng 1", "Chức năng 2" };
-		}
-	}
-
-	private JPanel taoPageTheoMenu(String menuName, String menuCon) {
-		if ("Nhân viên".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm nhân viên":
-				return new NhanVienThemPage();
-			case "Tra cứu nhân viên":
-				return new NhanVienTraCuuPage();
-			case "Cập nhật thông tin":
-				return new NhanVienCapNhatPage();
-			default:
-				return new NhanVienTraCuuPage();
-			}
-		}
-
-		if ("Khách hàng".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm khách hàng":
-				return new KhachHangThemPage();
-			case "Tra cứu khách hàng":
-				return new KhachHangTraCuuPage();
-			case "Cập nhật thông tin":
-				return new KhachHangCapNhatPage();
-			case "Lịch sử vé":
-				return new LichSuVePage();
-			default:
-				return new KhachHangPage();
-			}
-		}
-
-		if ("Vé".equals(menuName)) {
-			switch (menuCon) {
-			case "Bán vé":
-				return new BanVePage();
-			case "Đổi vé":
-				return new DoiVePage();
-			case "Trả vé":
-				return new TraVePage();
-			case "Kiểm tra chỗ trống":
-				return new KiemTraChoTrongPage();
-			case "In vé":
-				return new InVePage();
-			default:
-				return new VeTauPage();
-			}
-		}
-
-		if ("Chuyến tàu".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm chuyến":
-				return new ChuyenTauThemPage();
-			case "Tra cứu chuyến":
-				return new ChuyenTauTraCuuPage();
-			case "Cập nhật":
-				return new ChuyenTauCapNhatPage();
-			default:
-				return new ChuyenTauTraCuuPage();
-			}
-		}
-
-		if ("Tàu".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm tàu":
-				return new TauThemPage();
-			case "Tra cứu tàu":
-				return new TauTraCuuPage();
-			case "Cập nhật":
-				return new TauCapNhatPage();
-			default:
-				return new TauTraCuuPage();
-			}
-		}
-
-		if ("Toa".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm toa":
-				return new ToaThemPage();
-			case "Tra cứu toa":
-				return new ToaTraCuuPage();
-			case "Cập nhật":
-				return new ToaCapNhatPage();
-			default:
-				return new ToaTraCuuPage();
-			}
-		}
-
-		if ("Dịch vụ".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm dịch vụ":
-				return new DichVuThemPage();
-			case "Tra cứu":
-				return new DichVuTraCuuPage();
-			case "Cập nhật":
-				return new DichVuCapNhatPage();
-			default:
-				return new DichVuTraCuuPage();
-			}
-		}
-
-		if ("Khuyến mãi".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm khuyến mãi":
-				return new KhuyenMaiThemPage();
-			case "Tra cứu":
-				return new KhuyenMaiTraCuuPage();
-			case "Cập nhật":
-				return new KhuyenMaiCapNhatPage();
-			case "Áp dụng":
-				return new KhuyenMaiTraCuuPage();
-			default:
-				return new KhuyenMaiTraCuuPage();
-			}
-		}
-
-		if ("Tuyến tàu".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm tuyến":
-				return new TuyenTauThemPage();
-			case "Tra cứu tuyến":
-				return new TuyenTauTraCuuPage();
-			case "Cập nhật":
-				return new TuyenTauCapNhatPage();
-			default:
-				return new TuyenTauTraCuuPage();
-			}
-		}
-
-		if ("Thống kê".equals(menuName)) {
-			switch (menuCon) {
-			case "Doanh thu":
-				return new DoanhThuThongKePage();
-			case "Vé":
-				return new VeThongKePage();
-			case "Khách hàng":
-				return new KhachHangThongKePage();
-			case "Chuyến tàu":
-				return new ChuyenTauThongKePage();
-			default:
-				return new ThongKePage();
-			}
-		}
-
-		switch (menuName) {
-		case "Nhân viên":
-			return new NhanVienPage();
-		case "Khách hàng":
-			return new KhachHangPage();
-		case "Vé":
-			return new VeTauPage();
-		case "Chuyến tàu":
-			return new ChuyenTauPage();
-		case "Tàu":
-			return new TauPage();
-		case "Toa":
-			return new ToaPage();
-		case "Tuyến tàu":
-			return new TuyenTauPage();
-		case "Dịch vụ":
-			return new DichVuPage();
-		case "Khuyến mãi":
-			return new KhuyenMaiPage();
-		case "Thống kê":
-			return new ThongKePage();
-		default:
-			return taoBannerChaoMung();
-		}
-	}
-
 	private void hienThiMenuNguoiDung(ActionEvent event) {
 		JButton source = (JButton) event.getSource();
 		JPopupMenu popupMenu = new JPopupMenu();
@@ -383,6 +194,7 @@ public class TrangChinhPage extends JFrame {
 		JMenuItem dangXuat = new JMenuItem("Đăng xuất");
 		dangXuat.setFont(AppTheme.font(Font.PLAIN, 13));
 		dangXuat.addActionListener(e -> {
+			taiKhoanController.dangXuat();
 			dispose();
 			new LoginPage().setVisible(true);
 		});
@@ -390,15 +202,118 @@ public class TrangChinhPage extends JFrame {
 		popupMenu.show(source, 0, source.getHeight());
 	}
 
-	private String[] layMenuTheoVaiTro() {
-		if ("QUAN_LY".equalsIgnoreCase(taiKhoan.getVaiTro())) {
-			return new String[] { "Trang chủ", "Nhân viên", "Khách hàng", "Vé", "Chuyến tàu", "Tàu", "Toa", "Tuyến tàu", "Dịch vụ", "Khuyến mãi", "Thống kê" };
-		}
-		return new String[] { "Trang chủ", "Khách hàng", "Vé" };
+	private String hienThiVaiTro() {
+		return laQuanLy() ? "Quản trị viên" : "Nhân viên";
 	}
 
-	private String hienThiVaiTro() {
-		return "QUAN_LY".equalsIgnoreCase(taiKhoan.getVaiTro()) ? "Quản trị viên" : "Nhân viên";
+	private String layTenHienThi() {
+		String hoTen = taiKhoan.getHoTen();
+		if (hoTen == null || hoTen.isBlank()) {
+			return taiKhoan.getTenDangNhap();
+		}
+		return hoTen;
+	}
+
+	private boolean laQuanLy() {
+		String vaiTro = taiKhoan.getVaiTro();
+		return "QUAN_LY".equalsIgnoreCase(vaiTro) || "ADMIN".equalsIgnoreCase(vaiTro);
+	}
+
+	private List<MenuGroup> taoMenuTheoVaiTro() {
+		List<MenuGroup> menu = new ArrayList<>();
+		menu.add(MenuGroup.trangChu());
+
+		if (laQuanLy()) {
+			menu.add(taoMenuNhanVien());
+			menu.add(taoMenuKhachHang());
+			menu.add(taoMenuVeTau());
+			menu.add(taoMenuChuyenTau());
+			menu.add(taoMenuTau());
+			menu.add(taoMenuToa());
+			menu.add(taoMenuTuyenTau());
+			menu.add(taoMenuDichVu());
+			menu.add(taoMenuKhuyenMai());
+			menu.add(taoMenuThongKe());
+			return menu;
+		}
+
+		menu.add(taoMenuKhachHang());
+		menu.add(taoMenuVeTau());
+		return menu;
+	}
+
+	private MenuGroup taoMenuNhanVien() {
+		return new MenuGroup("Nhân viên", List.of(
+				new MenuAction("Thêm nhân viên", NhanVienThemPage::new),
+				new MenuAction("Tra cứu nhân viên", NhanVienTraCuuPage::new),
+				new MenuAction("Cập nhật thông tin", NhanVienCapNhatPage::new)));
+	}
+
+	private MenuGroup taoMenuKhachHang() {
+		return new MenuGroup("Khách hàng", List.of(
+				new MenuAction("Thêm khách hàng", KhachHangThemPage::new),
+				new MenuAction("Tra cứu khách hàng", KhachHangTraCuuPage::new),
+				new MenuAction("Cập nhật thông tin", KhachHangCapNhatPage::new),
+				new MenuAction("Lịch sử vé", LichSuVePage::new)));
+	}
+
+	private MenuGroup taoMenuVeTau() {
+		return new MenuGroup("Vé", List.of(
+				new MenuAction("Bán vé", BanVePage::new),
+				new MenuAction("Đổi vé", DoiVePage::new),
+				new MenuAction("Trả vé", TraVePage::new),
+				new MenuAction("Kiểm tra chỗ trống", KiemTraChoTrongPage::new),
+				new MenuAction("In vé", InVePage::new)));
+	}
+
+	private MenuGroup taoMenuChuyenTau() {
+		return new MenuGroup("Chuyến tàu", List.of(
+				new MenuAction("Thêm chuyến", ChuyenTauThemPage::new),
+				new MenuAction("Tra cứu chuyến", ChuyenTauTraCuuPage::new),
+				new MenuAction("Cập nhật", ChuyenTauCapNhatPage::new)));
+	}
+
+	private MenuGroup taoMenuTau() {
+		return new MenuGroup("Tàu", List.of(
+				new MenuAction("Thêm tàu", TauThemPage::new),
+				new MenuAction("Tra cứu tàu", TauTraCuuPage::new),
+				new MenuAction("Cập nhật", TauCapNhatPage::new)));
+	}
+
+	private MenuGroup taoMenuToa() {
+		return new MenuGroup("Toa", List.of(
+				new MenuAction("Thêm toa", ToaThemPage::new),
+				new MenuAction("Tra cứu toa", ToaTraCuuPage::new),
+				new MenuAction("Cập nhật", ToaCapNhatPage::new)));
+	}
+
+	private MenuGroup taoMenuTuyenTau() {
+		return new MenuGroup("Tuyến tàu", List.of(
+				new MenuAction("Thêm tuyến", TuyenTauThemPage::new),
+				new MenuAction("Tra cứu tuyến", TuyenTauTraCuuPage::new),
+				new MenuAction("Cập nhật", TuyenTauCapNhatPage::new)));
+	}
+
+	private MenuGroup taoMenuDichVu() {
+		return new MenuGroup("Dịch vụ", List.of(
+				new MenuAction("Thêm dịch vụ", DichVuThemPage::new),
+				new MenuAction("Tra cứu", DichVuTraCuuPage::new),
+				new MenuAction("Cập nhật", DichVuCapNhatPage::new)));
+	}
+
+	private MenuGroup taoMenuKhuyenMai() {
+		return new MenuGroup("Khuyến mãi", List.of(
+				new MenuAction("Thêm khuyến mãi", KhuyenMaiThemPage::new),
+				new MenuAction("Tra cứu", KhuyenMaiTraCuuPage::new),
+				new MenuAction("Cập nhật", KhuyenMaiCapNhatPage::new)));
+	}
+
+	private MenuGroup taoMenuThongKe() {
+		return new MenuGroup("Thống kê", List.of(
+				new MenuAction("Doanh thu", DoanhThuThongKePage::new),
+				new MenuAction("Vé", VeThongKePage::new),
+				new MenuAction("Khách hàng", KhachHangThongKePage::new),
+				new MenuAction("Chuyến tàu", ChuyenTauThongKePage::new)));
 	}
 
 	private Image taiAnhBanner() {
@@ -465,6 +380,38 @@ public class TrangChinhPage extends JFrame {
 			g2.fillRect(0, 0, getWidth(), getHeight() / 2);
 
 			g2.dispose();
+		}
+	}
+
+	private record MenuAction(String tieuDe, Supplier<JPanel> pageFactory) {
+		private JPanel taoPage() {
+			return pageFactory.get();
+		}
+	}
+
+	private static class MenuGroup {
+		private final String tieuDe;
+		private final List<MenuAction> chucNangCon;
+
+		private MenuGroup(String tieuDe, List<MenuAction> chucNangCon) {
+			this.tieuDe = tieuDe;
+			this.chucNangCon = chucNangCon;
+		}
+
+		private static MenuGroup trangChu() {
+			return new MenuGroup("Trang chủ", List.of());
+		}
+
+		private String tieuDe() {
+			return tieuDe;
+		}
+
+		private List<MenuAction> chucNangCon() {
+			return chucNangCon;
+		}
+
+		private boolean isTrangChu() {
+			return chucNangCon.isEmpty();
 		}
 	}
 }

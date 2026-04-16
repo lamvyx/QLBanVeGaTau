@@ -120,10 +120,6 @@ public class KhachHangThongKePage extends ThongKeBaoCaoBasePage {
 		return wrap;
 	}
 
-	private JPanel createRankingPanel(String[] labels, int[] values, Color color) {
-		return new RankingPanel(labels, values, color);
-	}
-
 	private static final class RankingPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
 		private final String[] labels;

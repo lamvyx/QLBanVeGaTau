@@ -1,9 +1,12 @@
 package view;
 
+import controller.KhachHangController;
+import entity.KhachHang;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +20,9 @@ import javax.swing.table.DefaultTableModel;
 public class KhachHangTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private final KhachHangController khachHangController = new KhachHangController();
+	private DefaultTableModel model;
+	private JTable table;
 
 	public KhachHangTraCuuPage() {
 		setLayout(new BorderLayout());
@@ -57,20 +63,17 @@ public class KhachHangTraCuuPage extends JPanel {
 
 		// Phần bảng kết quả
 		String[] columns = { "#", "Mã KH", "Tên khách hàng", "Số ĐT", "Email", "CCCD", "Loại KH" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
 
-		model.addRow(new Object[] { 1, "KH001", "Trần Văn A", "0901234567", "tryvana@email.com", "012345678901", "Thường" });
-		model.addRow(new Object[] { 2, "KH002", "Nguyễn Thị B", "0912345678", "nguyenb@email.com", "012345678902", "VIP" });
-		model.addRow(new Object[] { 3, "KH003", "Phạm Văn C", "0923456789", "phamvan@email.com", "012345678903", "Thường" });
-		model.addRow(new Object[] { 4, "KH004", "Hoàng Thị D", "0934567890", "hoang.d@email.com", "012345678904", "Doanh nghiệp" });
-		model.addRow(new Object[] { 5, "KH005", "Võ Văn E", "0945678901", "vo.van.e@email.com", "012345678905", "VIP" });
+		// Lấy dữ liệu từ database
+		loadDataFromDatabase();
 
-		JTable table = new JTable(model);
+		table = new JTable(model);
 		table.setRowHeight(50);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		table.getTableHeader().setBackground(MAU_CHINH);
@@ -84,6 +87,24 @@ public class KhachHangTraCuuPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<KhachHang> danhSach = khachHangController.layTatCaKhachHang();
+
+		for (int i = 0; i < danhSach.size(); i++) {
+			KhachHang kh = danhSach.get(i);
+			model.addRow(new Object[] {
+				i + 1,
+				kh.getMaKH(),
+				kh.getTenKH(),
+				kh.getSdt(),
+				kh.getEmail(),
+				kh.getCccd(),
+				kh.isLoaiKH() ? "VIP" : "Thường"
+			});
+		}
 	}
 
 	private JPanel taoSearchPanel() {
@@ -108,15 +129,6 @@ public class KhachHangTraCuuPage extends JPanel {
 		));
 		panel.add(txtMa);
 
-		// Nút Tìm kiếm
-		JButton btnTimKiem = new JButton("Tìm kiếm");
-		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnTimKiem.setBackground(MAU_CHINH);
-		btnTimKiem.setForeground(Color.WHITE);
-		btnTimKiem.setFocusPainted(false);
-		btnTimKiem.setBorder(new EmptyBorder(6, 12, 6, 12));
-		panel.add(btnTimKiem);
-
 		// Tên khách hàng
 		JLabel lblTen = new JLabel("Tên khách hàng:");
 		lblTen.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -131,6 +143,37 @@ public class KhachHangTraCuuPage extends JPanel {
 		));
 		panel.add(txtTen);
 
+		// Nút Tìm kiếm
+		JButton btnTimKiem = new JButton("Tìm kiếm");
+		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		btnTimKiem.setBackground(MAU_CHINH);
+		btnTimKiem.setForeground(Color.WHITE);
+		btnTimKiem.setFocusPainted(false);
+		btnTimKiem.setBorder(new EmptyBorder(6, 12, 6, 12));
+		
+		btnTimKiem.addActionListener(e -> {
+			String ma = txtMa.getText().trim();
+			String ten = txtTen.getText().trim();
+			
+			model.setRowCount(0);
+			List<KhachHang> results = khachHangController.timKiemKhachHang(ma, ten);
+			
+			for (int i = 0; i < results.size(); i++) {
+				KhachHang kh = results.get(i);
+				model.addRow(new Object[] {
+					i + 1,
+					kh.getMaKH(),
+					kh.getTenKH(),
+					kh.getSdt(),
+					kh.getEmail(),
+					kh.getCccd(),
+					kh.isLoaiKH() ? "VIP" : "Thường"
+				});
+			}
+		});
+		
+		panel.add(btnTimKiem);
+
 		// Nút Làm mới
 		JButton btnLamMoi = new JButton("Làm mới");
 		btnLamMoi.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -140,12 +183,14 @@ public class KhachHangTraCuuPage extends JPanel {
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 12, 6, 12)
 		));
-		panel.add(btnLamMoi);
-
+		
 		btnLamMoi.addActionListener(e -> {
 			txtMa.setText("");
 			txtTen.setText("");
+			loadDataFromDatabase();
 		});
+		
+		panel.add(btnLamMoi);
 
 		return panel;
 	}

@@ -26,4 +26,12 @@ public class TaiKhoan_DAO {
 	public boolean doiMatKhau(String tenDangNhap, String matKhauMoi) {
 		return database.updatePassword(tenDangNhap, matKhauMoi);
 	}
+
+	public boolean taoTaiKhoan(TaiKhoan taiKhoan) {
+		return database.createTaiKhoan(taiKhoan);
+	}
+
+	public boolean tonTaiTaiKhoan(String tenDangNhap) {
+		return database.findByUsername(tenDangNhap) != null;
+	}
 }

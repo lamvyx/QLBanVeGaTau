@@ -1,5 +1,6 @@
 package view;
 
+import controller.TuyenTauController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -10,15 +11,18 @@ import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import service.TuyenTauService.KetQuaXuLy;
 
 public class TuyenTauThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
 	
 	private JTextField txtMaTT, txtMaGaDi, txtMaGaDen, txtKhoangCach;
+	private final TuyenTauController tuyenTauController = new TuyenTauController();
 
 	public TuyenTauThemPage() {
 		setLayout(new BorderLayout());
@@ -149,6 +153,7 @@ public class TuyenTauThemPage extends JPanel {
 		btnThem.setFocusPainted(false);
 		btnThem.setBorder(new EmptyBorder(8, 24, 8, 24));
 		btnThem.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnThem.addActionListener(e -> xuLyThemTuyenTau());
 		buttonPanel.add(btnThem);
 
 		JButton btnLamMoi = new JButton("Làm mới");
@@ -158,6 +163,7 @@ public class TuyenTauThemPage extends JPanel {
 		btnLamMoi.setFocusPainted(false);
 		btnLamMoi.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnLamMoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnLamMoi.addActionListener(e -> lamMoiForm());
 		buttonPanel.add(btnLamMoi);
 
 		formContainer.add(buttonPanel, gbc);
@@ -168,5 +174,25 @@ public class TuyenTauThemPage extends JPanel {
 
 		wrapper.add(scrollWrapper, BorderLayout.CENTER);
 		return wrapper;
+	}
+
+	private void xuLyThemTuyenTau() {
+		try {
+			double khoangCach = Double.parseDouble(txtKhoangCach.getText().trim());
+			KetQuaXuLy ketQua = tuyenTauController.themTuyenTau(txtMaGaDi.getText(), txtMaGaDen.getText(), khoangCach);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao + (ketQua.thanhCong ? " (" + ketQua.maThamChieu + ")" : ""));
+			if (ketQua.thanhCong) {
+				lamMoiForm();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Khoảng cách phải là số hợp lệ.");
+		}
+	}
+
+	private void lamMoiForm() {
+		txtMaTT.setText("");
+		txtMaGaDi.setText("");
+		txtMaGaDen.setText("");
+		txtKhoangCach.setText("0");
 	}
 }

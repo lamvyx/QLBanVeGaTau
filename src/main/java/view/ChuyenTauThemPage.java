@@ -1,5 +1,6 @@
 package view;
 
+import controller.ChuyenTauController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,20 +8,27 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import service.ChuyenTauService.KetQuaXuLy;
 
 public class ChuyenTauThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final DateTimeFormatter DATE_TIME_INPUT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 	
 	private JTextField txtMaChuyenTau, txtGioKhoiHanh, txtGioDenNoi, txtGiaCoban, txtTongSoCho;
 	private JComboBox<String> cbTau, cbTuyenTau, cbTrangThai;
+	private final ChuyenTauController chuyenTauController = new ChuyenTauController();
 
 	public ChuyenTauThemPage() {
 		setLayout(new BorderLayout());
@@ -91,8 +99,8 @@ public class ChuyenTauThemPage extends JPanel {
 		gbc.gridx = 1;
 		cbTau = new JComboBox<>();
 		cbTau.addItem("-- Chọn tàu --");
-		cbTau.addItem("T001 - Tàu Sapa");
-		cbTau.addItem("T002 - Tàu Hà Nội");
+		cbTau.addItem("TAU001 - Tàu Sapa");
+		cbTau.addItem("TAU002 - Tàu Hà Nội");
 		cbTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		cbTau.setPreferredSize(new Dimension(250, 35));
 		formContainer.add(cbTau, gbc);
@@ -108,9 +116,9 @@ public class ChuyenTauThemPage extends JPanel {
 		gbc.gridx = 1;
 		cbTuyenTau = new JComboBox<>();
 		cbTuyenTau.addItem("-- Chọn tuyến --");
-		cbTuyenTau.addItem("Sài Gòn - Hà Nội");
-		cbTuyenTau.addItem("Sài Gòn - Đà Nẵng");
-		cbTuyenTau.addItem("Sài Gòn - Nha Trang");
+		cbTuyenTau.addItem("TT001 - Sài Gòn - Hà Nội");
+		cbTuyenTau.addItem("TT002 - Sài Gòn - Đà Nẵng");
+		cbTuyenTau.addItem("TT003 - Sài Gòn - Nha Trang");
 		cbTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		cbTuyenTau.setPreferredSize(new Dimension(250, 35));
 		formContainer.add(cbTuyenTau, gbc);
@@ -131,7 +139,7 @@ public class ChuyenTauThemPage extends JPanel {
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(8, 8, 8, 8)
 		));
-		txtGioKhoiHanh.setText("dd/mm/yyyy --:-- --");
+		txtGioKhoiHanh.setText("03/04/2026 19:00");
 		formContainer.add(txtGioKhoiHanh, gbc);
 
 		// Row 4: Giờ đến nơi
@@ -225,6 +233,7 @@ public class ChuyenTauThemPage extends JPanel {
 		btnThem.setFocusPainted(false);
 		btnThem.setBorder(new EmptyBorder(8, 24, 8, 24));
 		btnThem.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnThem.addActionListener(e -> xuLyThemChuyenTau());
 		buttonPanel.add(btnThem);
 
 		JButton btnLamMoi = new JButton("Làm mới");
@@ -234,6 +243,7 @@ public class ChuyenTauThemPage extends JPanel {
 		btnLamMoi.setFocusPainted(false);
 		btnLamMoi.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnLamMoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnLamMoi.addActionListener(e -> lamMoiForm());
 		buttonPanel.add(btnLamMoi);
 
 		formContainer.add(buttonPanel, gbc);
@@ -244,5 +254,39 @@ public class ChuyenTauThemPage extends JPanel {
 
 		wrapper.add(scrollWrapper, BorderLayout.CENTER);
 		return wrapper;
+	}
+
+	private void xuLyThemChuyenTau() {
+		try {
+			String maTau = layMaTuCombo((String) cbTau.getSelectedItem());
+			String maTuyen = layMaTuCombo((String) cbTuyenTau.getSelectedItem());
+			LocalDateTime thoiGian = LocalDateTime.parse(txtGioKhoiHanh.getText().trim(), DATE_TIME_INPUT);
+			KetQuaXuLy ketQua = chuyenTauController.themChuyenTau(maTau, maTuyen, thoiGian);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao + (ketQua.thanhCong ? " (" + ketQua.maThamChieu + ")" : ""));
+			if (ketQua.thanhCong) {
+				lamMoiForm();
+			}
+		} catch (DateTimeParseException ex) {
+			JOptionPane.showMessageDialog(this, "Dữ liệu không hợp lệ. Vui lòng nhập giờ khởi hành theo định dạng dd/MM/yyyy HH:mm");
+		}
+	}
+
+	private String layMaTuCombo(String value) {
+		if (value == null) {
+			return null;
+		}
+		String[] parts = value.split(" - ");
+		return parts.length > 0 ? parts[0].trim() : value.trim();
+	}
+
+	private void lamMoiForm() {
+		txtMaChuyenTau.setText("");
+		cbTau.setSelectedIndex(0);
+		cbTuyenTau.setSelectedIndex(0);
+		txtGioKhoiHanh.setText("03/04/2026 19:00");
+		txtGioDenNoi.setText("dd/mm/yyyy --:-- --");
+		txtGiaCoban.setText("0");
+		txtTongSoCho.setText("0");
+		cbTrangThai.setSelectedIndex(0);
 	}
 }

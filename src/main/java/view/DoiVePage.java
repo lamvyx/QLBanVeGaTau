@@ -1,10 +1,13 @@
 package view;
 
+import controller.DoiTraController;
+import entity.VeTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -15,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import service.DoiTraService.KetQuaXuLy;
 
 public class DoiVePage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -34,6 +38,7 @@ public class DoiVePage extends JPanel {
 	private final JComboBox<String> cboVeMoi = new JComboBox<>();
 	private final JButton btnXacNhan = new JButton("Xác nhận đổi vé");
 	private String maVeDangXuLy;
+	private final DoiTraController doiTraController = new DoiTraController();
 
 	public DoiVePage() {
 		setLayout(new BorderLayout(0, 16));
@@ -187,8 +192,8 @@ public class DoiVePage extends JPanel {
 			JOptionPane.showMessageDialog(this, "Vui lòng nhập mã vé cần đổi.");
 			return;
 		}
-
-		if (!"VE0001".equals(maVe) && !"VE0002".equals(maVe) && !"VE0003".equals(maVe)) {
+		VeTau veHienTai = doiTraController.timVeTheoMa(maVe);
+		if (veHienTai == null) {
 			lblTrangThai.setForeground(Color.decode("#B42318"));
 			lblTrangThai.setText("Không tìm thấy vé " + maVe + ". Vui lòng kiểm tra lại.");
 			resetThongTin();
@@ -197,14 +202,17 @@ public class DoiVePage extends JPanel {
 
 		maVeDangXuLy = maVe;
 		lblCurrentMa.setText("Mã vé: " + maVe);
-		lblCurrentKhach.setText("KH: Nguyễn Văn Minh");
-		lblCurrentTuyen.setText("SE1 Sài Gòn - Hà Nội | Toa 2 - Ghế 14");
+		lblCurrentKhach.setText("KH: " + veHienTai.getMaKH());
+		lblCurrentTuyen.setText(veHienTai.getMaChuyenTau() + " | Toa " + veHienTai.getMaToa());
 
 		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
 		model.addElement("Chọn vé mới...");
-		model.addElement("VE0101 | Toa 3 - Ghế 06 | +120.000đ");
-		model.addElement("VE0102 | Toa 2 - Ghế 21 | +0đ");
-		model.addElement("VE0103 | Toa 1 - Ghế 09 | -80.000đ");
+		List<VeTau> dsVe = doiTraController.layVeTheoChuyenTau(veHienTai.getMaChuyenTau());
+		for (VeTau ve : dsVe) {
+			if (!maVe.equalsIgnoreCase(ve.getMaVeTau())) {
+				model.addElement(ve.getMaVeTau() + " | Toa " + ve.getMaToa() + " | " + ve.getGiaVe() + "đ");
+			}
+		}
 		cboVeMoi.setModel(model);
 		cboVeMoi.setSelectedIndex(0);
 		cboVeMoi.setEnabled(true);
@@ -229,10 +237,14 @@ public class DoiVePage extends JPanel {
 		}
 
 		String selected = String.valueOf(cboVeMoi.getSelectedItem());
-		lblNewMa.setText("Mã vé mới: " + selected.substring(0, 6));
-		lblNewKhach.setText("KH: Nguyễn Văn Minh");
-		lblNewTuyen.setText(selected.substring(9, selected.lastIndexOf("|" )).trim());
-		lblChenhLech.setText("Chênh lệch: " + selected.substring(selected.lastIndexOf("|") + 1).trim());
+		String[] parts = selected.split("\\\\|", 3);
+		String maVeMoi = parts.length > 0 ? parts[0].trim() : selected;
+		String moTa = parts.length > 1 ? parts[1].trim() : "";
+		String gia = parts.length > 2 ? parts[2].trim() : "";
+		lblNewMa.setText("Mã vé mới: " + maVeMoi);
+		lblNewKhach.setText(lblCurrentKhach.getText());
+		lblNewTuyen.setText(moTa);
+		lblChenhLech.setText("Giá mới: " + gia);
 		btnXacNhan.setEnabled(maVeDangXuLy != null);
 	}
 
@@ -242,10 +254,20 @@ public class DoiVePage extends JPanel {
 			return;
 		}
 
-		JOptionPane.showMessageDialog(this,
-				"Đổi vé thành công cho " + maVeDangXuLy + " -> " + cboVeMoi.getSelectedItem());
-		lblTrangThai.setForeground(Color.decode("#027A48"));
-		lblTrangThai.setText("Đổi vé thành công. Có thể tiếp tục tra mã vé khác.");
+		String selected = String.valueOf(cboVeMoi.getSelectedItem());
+		String[] parts = selected.split("\\\\|", 2);
+		String maVeMoi = parts.length > 0 ? parts[0].trim() : selected.trim();
+		KetQuaXuLy taoDon = doiTraController.taoDonDoiTra(maVeDangXuLy, maVeMoi, "DOI", "Đổi vé tại quầy");
+		if (!taoDon.thanhCong) {
+			JOptionPane.showMessageDialog(this, taoDon.thongBao);
+			return;
+		}
+		KetQuaXuLy xacNhan = doiTraController.xacNhanDonDoiTra(taoDon.maThamChieu);
+		JOptionPane.showMessageDialog(this, xacNhan.thongBao);
+		if (xacNhan.thanhCong) {
+			lblTrangThai.setForeground(Color.decode("#027A48"));
+			lblTrangThai.setText("Đổi vé thành công. Có thể tiếp tục tra mã vé khác.");
+		}
 		resetThongTin();
 		txtMaVe.setText("");
 	}

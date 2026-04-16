@@ -1,5 +1,7 @@
 package view;
 
+import controller.TauController;
+import entity.Tau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,9 +11,11 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -19,6 +23,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import service.TauService.KetQuaXuLy;
 
 public class TauCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -26,9 +31,11 @@ public class TauCapNhatPage extends JPanel {
 
 	private JTable table;
 	private JPanel formPanel;
+	private DefaultTableModel model;
 	
 	private JTextField txtMaTau, txtTenTau, txtSoToa, txtSucChua, txtNamSX;
 	private JButton btnCapNhat, btnXoa, btnHuy;
+	private final TauController tauController = new TauController();
 
 	public TauCapNhatPage() {
 		setLayout(new BorderLayout());
@@ -64,17 +71,12 @@ public class TauCapNhatPage extends JPanel {
 		));
 
 		String[] columns = { "#", "Mã tàu", "Tên tàu", "Số toa", "Sức chứa", "Năm sản xuất" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { 1, "T001", "Tàu SE1", 8, "400 ghế", "2015" });
-		model.addRow(new Object[] { 2, "T002", "Tàu SE2", 8, "400 ghế", "2018" });
-		model.addRow(new Object[] { 3, "T003", "Tàu TN1", 6, "300 ghế", "2020" });
-		model.addRow(new Object[] { 4, "T004", "Tàu HP1", 10, "500 ghế", "2019" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -112,6 +114,7 @@ public class TauCapNhatPage extends JPanel {
 		splitPane.setDividerLocation(250);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
+		taiDuLieuBang();
 
 		return content;
 	}
@@ -252,6 +255,7 @@ public class TauCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnCapNhat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatTau());
 		buttonPanel.add(btnCapNhat);
 
 		btnXoa = new JButton("Xóa");
@@ -270,6 +274,7 @@ public class TauCapNhatPage extends JPanel {
 		btnHuy.setFocusPainted(false);
 		btnHuy.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnHuy.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnHuy.addActionListener(e -> formPanel.removeAll());
 		buttonPanel.add(btnHuy);
 
 		formContainer.add(buttonPanel, gbc);
@@ -280,5 +285,34 @@ public class TauCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		List<Tau> ds = tauController.timKiemTau(null, null);
+		int stt = 1;
+		for (Tau tau : ds) {
+			int soToa = tau.getSoLuongToa();
+			model.addRow(new Object[] { stt++, tau.getMaTau(), tau.getTenTau(), soToa, soToa * 40 + " ghế", "-" });
+		}
+	}
+
+	private void xuLyCapNhatTau() {
+		if (txtMaTau == null) {
+			return;
+		}
+		try {
+			int soToa = Integer.parseInt(txtSoToa.getText().trim());
+			KetQuaXuLy ketQua = tauController.capNhatTau(txtMaTau.getText(), txtTenTau.getText(), soToa);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao);
+			if (ketQua.thanhCong) {
+				taiDuLieuBang();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Số toa phải là số nguyên hợp lệ.");
+		}
 	}
 }

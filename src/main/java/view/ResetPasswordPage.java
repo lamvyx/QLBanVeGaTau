@@ -1,6 +1,6 @@
 package view;
 
-import dao.TaiKhoan_DAO;
+import controller.TaiKhoanController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -23,15 +23,16 @@ public class ResetPasswordPage extends JDialog {
 	private static final Color NEUTRAL_BG = Color.decode("#F0F5F9");
 
 	private final String username;
-	private final TaiKhoan_DAO taiKhoanDAO;
+	private final TaiKhoanController taiKhoanController;
 	private final Runnable onSuccess;
 	private final JPasswordField txtMatKhauMoi = new JPasswordField(24);
 	private final JPasswordField txtXacNhan = new JPasswordField(24);
 
-	public ResetPasswordPage(JFrame parent, String username, TaiKhoan_DAO taiKhoanDAO, Runnable onSuccess) {
+	public ResetPasswordPage(JFrame parent, String username, TaiKhoanController taiKhoanController,
+			Runnable onSuccess) {
 		super(parent, "Đặt mật khẩu mới", true);
 		this.username = username;
-		this.taiKhoanDAO = taiKhoanDAO;
+		this.taiKhoanController = taiKhoanController;
 		this.onSuccess = onSuccess;
 		setSize(560, 420);
 		setLocationRelativeTo(parent);
@@ -141,12 +142,13 @@ public class ResetPasswordPage extends JDialog {
 			return;
 		}
 
-		if (!taiKhoanDAO.doiMatKhau(username, matKhauMoi)) {
-			JOptionPane.showMessageDialog(this, "Không thể cập nhật mật khẩu.");
+		service.TaiKhoanService.KetQuaXuLy ketQua = taiKhoanController.datLaiMatKhau(username, matKhauMoi, xacNhan);
+		if (!ketQua.thanhCong) {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao);
 			return;
 		}
 
-		JOptionPane.showMessageDialog(this, "Đổi mật khẩu thành công.");
+		JOptionPane.showMessageDialog(this, ketQua.thongBao);
 		dispose();
 		if (onSuccess != null) {
 			onSuccess.run();

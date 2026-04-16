@@ -1,5 +1,7 @@
 package view;
 
+import controller.HoaDonController;
+import entity.ChiTietHoaDonItem;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -31,6 +33,7 @@ import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import service.HoaDonService.KetQuaLapHoaDon;
 
 public class BanVePage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -73,6 +76,7 @@ public class BanVePage extends JPanel {
 
 	private BigDecimal selectedPrice = new BigDecimal("1105000");
 	private BigDecimal discountAmount = BigDecimal.ZERO;
+	private final HoaDonController hoaDonController = new HoaDonController();
 
 	private String selectedKhachHang = "Nguyễn Thị Lan";
 	private String selectedChuyen = "SE1-030426";
@@ -576,11 +580,29 @@ public class BanVePage extends JPanel {
 			return;
 		}
 
+		String maKH = null;
+		if (cboKhachHang != null && cboKhachHang.getSelectedItem() != null) {
+			String selected = String.valueOf(cboKhachHang.getSelectedItem());
+			String[] parts = selected.split(" - ");
+			maKH = parts.length > 0 ? parts[0].trim() : null;
+		}
+
+		List<ChiTietHoaDonItem> items = new ArrayList<>();
+		for (int i = 0; i < selectedSeats.size(); i++) {
+			items.add(new ChiTietHoaDonItem(null, null, null, "DV001", 1, selectedPrice));
+		}
+		KetQuaLapHoaDon ketQua = hoaDonController.lapHoaDon("NV001", maKH, selectedPromotion(), items);
+
 		String timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyyHHmm"));
-		generatedMaHD = "HD" + timeStamp;
+		generatedMaHD = ketQua.thanhCong ? ketQua.maHoaDon : "HD" + timeStamp;
 		generatedMaVe = "VE" + timeStamp + String.format("%02d", selectedSeats.size());
 		selectedNgayLap = LocalDateTime.now().format(TICKET_TIME_FORMAT);
-		selectedTrangThai = "Đã lập hóa đơn";
+		selectedTrangThai = ketQua.thanhCong ? "Đã lập hóa đơn" : "Lập hóa đơn nội bộ (chưa ghi DB)";
+		if (!ketQua.thanhCong) {
+			JOptionPane.showMessageDialog(this,
+					"Không thể ghi hóa đơn xuống CSDL: " + ketQua.thongBao + "\nHệ thống vẫn tạo hóa đơn tạm để tiếp tục thao tác.",
+					"Cảnh báo", JOptionPane.WARNING_MESSAGE);
+		}
 		refreshSuccessCard();
 		hienThiCard(successCard);
 	}

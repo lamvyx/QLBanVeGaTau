@@ -21,7 +21,6 @@ import javax.swing.border.EmptyBorder;
 
 public class KiemTraChoTrongPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = AppTheme.PRIMARY;
 	private static final Color MAU_TEXT = AppTheme.TEXT_PRIMARY;
 	private static final Color MAU_XANH = Color.decode("#22C55E");
 	private static final Color MAU_DO = Color.decode("#EF4444");

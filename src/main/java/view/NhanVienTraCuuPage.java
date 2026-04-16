@@ -1,9 +1,12 @@
 package view;
 
+import controller.NhanVienController;
+import entity.NhanVien;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +20,9 @@ import javax.swing.table.DefaultTableModel;
 public class NhanVienTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private final NhanVienController nhanVienController = new NhanVienController();
+	private DefaultTableModel model;
+	private JTable table;
 
 	public NhanVienTraCuuPage() {
 		setLayout(new BorderLayout());
@@ -57,20 +63,17 @@ public class NhanVienTraCuuPage extends JPanel {
 
 		// Phần bảng kết quả
 		String[] columns = { "#", "Mã NV", "Họ và tên", "Tài khoản", "Email", "Điện thoại", "Chức vụ" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
 
-		model.addRow(new Object[] { 1, "U001", "Nguyễn Văn Admin", "admin", "admin@saigontrain.vn", "0901234567", "Quản lý" });
-		model.addRow(new Object[] { 2, "U002", "Trần Thị Nhân Viên", "staff", "staff@saigontrain.vn", "0901234568", "Bán vé" });
-		model.addRow(new Object[] { 3, "U003", "Nguyễn Phát Đạt", "nguyen.phat", "phat@saigontrain.vn", "0901234569", "Bán vé" });
-		model.addRow(new Object[] { 4, "U004", "Lê Thị Mai", "le.mai", "mai@saigontrain.vn", "0901234570", "Hỗ trợ" });
-		model.addRow(new Object[] { 5, "U005", "Phạm Văn Cường", "pham.cuong", "cuong@saigontrain.vn", "0901234571", "Quản lý" });
+		// Lấy dữ liệu từ database
+		loadDataFromDatabase();
 
-		JTable table = new JTable(model);
+		table = new JTable(model);
 		table.setRowHeight(50);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		table.getTableHeader().setBackground(MAU_CHINH);
@@ -84,6 +87,24 @@ public class NhanVienTraCuuPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<NhanVien> danhSach = nhanVienController.layTatCaNhanVien();
+
+		for (int i = 0; i < danhSach.size(); i++) {
+			NhanVien nv = danhSach.get(i);
+			model.addRow(new Object[] {
+				i + 1,
+				nv.getMaNV(),
+				nv.getTenNV(),
+				nv.getUsername(),
+				nhanVienController.layEmailTheoUsername(nv.getUsername()),
+				nv.getSdt(),
+				nv.getChucVu()
+			});
+		}
 	}
 
 	private JPanel taoSearchPanel() {
@@ -108,15 +129,6 @@ public class NhanVienTraCuuPage extends JPanel {
 		));
 		panel.add(txtMa);
 
-		// Nút Tìm kiếm
-		JButton btnTimKiem = new JButton("Tìm kiếm");
-		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnTimKiem.setBackground(MAU_CHINH);
-		btnTimKiem.setForeground(Color.WHITE);
-		btnTimKiem.setFocusPainted(false);
-		btnTimKiem.setBorder(new EmptyBorder(6, 12, 6, 12));
-		panel.add(btnTimKiem);
-
 		// Tên nhân viên
 		JLabel lblTen = new JLabel("Tên nhân viên:");
 		lblTen.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -131,6 +143,37 @@ public class NhanVienTraCuuPage extends JPanel {
 		));
 		panel.add(txtTen);
 
+		// Nút Tìm kiếm
+		JButton btnTimKiem = new JButton("Tìm kiếm");
+		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		btnTimKiem.setBackground(MAU_CHINH);
+		btnTimKiem.setForeground(Color.WHITE);
+		btnTimKiem.setFocusPainted(false);
+		btnTimKiem.setBorder(new EmptyBorder(6, 12, 6, 12));
+		
+		btnTimKiem.addActionListener(e -> {
+			String ma = txtMa.getText().trim();
+			String ten = txtTen.getText().trim();
+			
+			model.setRowCount(0);
+			List<NhanVien> results = nhanVienController.timKiemNhanVien(ma, ten);
+			
+			for (int i = 0; i < results.size(); i++) {
+				NhanVien nv = results.get(i);
+				model.addRow(new Object[] {
+					i + 1,
+					nv.getMaNV(),
+					nv.getTenNV(),
+					nv.getUsername(),
+					nhanVienController.layEmailTheoUsername(nv.getUsername()),
+					nv.getSdt(),
+					nv.getChucVu()
+				});
+			}
+		});
+		
+		panel.add(btnTimKiem);
+
 		// Nút Làm mới
 		JButton btnLamMoi = new JButton("Làm mới");
 		btnLamMoi.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -140,12 +183,14 @@ public class NhanVienTraCuuPage extends JPanel {
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 12, 6, 12)
 		));
-		panel.add(btnLamMoi);
-
+		
 		btnLamMoi.addActionListener(e -> {
 			txtMa.setText("");
 			txtTen.setText("");
+			loadDataFromDatabase();
 		});
+		
+		panel.add(btnLamMoi);
 
 		return panel;
 	}

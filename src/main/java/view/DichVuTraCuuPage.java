@@ -1,9 +1,12 @@
 package view;
 
+import dao.DichVu_DAO;
+import entity.DichVu;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -91,12 +94,22 @@ public class DichVuTraCuuPage extends JPanel {
 			}
 		};
 
-		// Sample data
-		model.addRow(new Object[] { 1, "DV001", "Vé ngồi tiêu chuẩn", "0", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 2, "DV002", "Vé nằm thường", "0", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 3, "DV003", "Vé nằm VIP", "0", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 4, "DV004", "Bảo hiểm hành khách", "50000", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 5, "DV005", "Suất ăn nhẹ", "30000", "Hoạt động", "👁 ✏️ 🗑" });
+		// Lấy dữ liệu từ database
+		DichVu_DAO dao = new DichVu_DAO();
+		List<DichVu> danhSachDichVu = dao.layTatCaDichVu();
+		
+		// Thêm dữ liệu vào bảng
+		for (int i = 0; i < danhSachDichVu.size(); i++) {
+			DichVu dv = danhSachDichVu.get(i);
+			model.addRow(new Object[] { 
+				i + 1,
+				dv.getMaDV(),
+				dv.getTenDV(),
+				dv.getGiaDV().toString(),
+				dv.isTrangThai() ? "Hoạt động" : "Không hoạt động",
+				"👁 ✏️ 🗑"
+			});
+		}
 
 		tableDichVu = new JTable(model);
 		tableDichVu.setFont(new Font("Segoe UI", Font.PLAIN, 12));

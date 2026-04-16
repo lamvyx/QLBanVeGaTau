@@ -1,6 +1,6 @@
 package view;
 
-import dao.TaiKhoan_DAO;
+import controller.TaiKhoanController;
 import entity.TaiKhoan;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -31,7 +31,7 @@ public class LoginPage extends JFrame {
 	private static final Color MAU_NEN = AppTheme.PAGE_BG;
 	private static final Color MAU_LABEL = AppTheme.TEXT_MUTED;
 	private static final Color MAU_BORDER = AppTheme.BORDER;
-	private final TaiKhoan_DAO taiKhoanDAO = new TaiKhoan_DAO();
+	private final TaiKhoanController taiKhoanController = new TaiKhoanController();
 	private final JTextField txtTenDangNhap = new JTextField(20);
 	private final JPasswordField txtMatKhau = new JPasswordField(20);
 	private boolean isPasswordVisible = false;
@@ -302,14 +302,15 @@ public class LoginPage extends JFrame {
 	private void xuLyDangNhap() {
 		String tenDangNhap = txtTenDangNhap.getText().trim();
 		String matKhau = new String(txtMatKhau.getPassword()).trim();
-		TaiKhoan taiKhoan = taiKhoanDAO.timTaiKhoanDangNhap(tenDangNhap, matKhau);
-		if (taiKhoan != null) {
+		service.TaiKhoanService.KetQuaDangNhap ketQua = taiKhoanController.dangNhap(tenDangNhap, matKhau);
+		if (ketQua.thanhCong && ketQua.taiKhoan != null) {
+			TaiKhoan taiKhoan = ketQua.taiKhoan;
 			TrangChinhPage trangChinhPage = new TrangChinhPage(taiKhoan);
 			trangChinhPage.setVisible(true);
 			dispose();
 			return;
 		}
-		JOptionPane.showMessageDialog(this, "Sai tên đăng nhập hoặc mật khẩu");
+		JOptionPane.showMessageDialog(this, ketQua.thongBao);
 	}
 
 	private void xuLyQuenMatKhau() {
@@ -319,7 +320,7 @@ public class LoginPage extends JFrame {
 			return;
 		}
 
-		String email = taiKhoanDAO.layEmailTheoTaiKhoan(tenDangNhap);
+		String email = taiKhoanController.layEmailTheoTaiKhoan(tenDangNhap);
 		if (email == null) {
 			JOptionPane.showMessageDialog(this, "Tài khoản không tồn tại");
 			return;
@@ -327,7 +328,7 @@ public class LoginPage extends JFrame {
 
 		OtpVerificationPage otpPage = new OtpVerificationPage(this, email, verified -> {
 			if (Boolean.TRUE.equals(verified)) {
-				ResetPasswordPage resetPage = new ResetPasswordPage(this, tenDangNhap, taiKhoanDAO,
+				ResetPasswordPage resetPage = new ResetPasswordPage(this, tenDangNhap, taiKhoanController,
 						() -> JOptionPane.showMessageDialog(this, "Bạn có thể đăng nhập bằng mật khẩu mới."));
 				resetPage.setVisible(true);
 			}
