@@ -100,6 +100,28 @@ public class KhachHangService {
 		return khachHangDAO.layTatCaKhachHang();
 	}
 
+	public KetQuaXuLy xoaKhachHang(String maKH) {
+		KetQuaXuLy ketQua = new KetQuaXuLy();
+
+		if (maKH == null || maKH.isBlank()) {
+			ketQua.thongBao = "Mã khách hàng không hợp lệ";
+			return ketQua;
+		}
+
+		KhachHang khachHang = khachHangDAO.timKhachHangTheoMa(maKH.trim());
+		if (khachHang == null) {
+			ketQua.thongBao = "Khách hàng không tồn tại";
+			return ketQua;
+		}
+
+		boolean thanhCong = khachHangDAO.xoaKhachHang(maKH.trim());
+		ketQua.thanhCong = thanhCong;
+		ketQua.maThamChieu = maKH.trim();
+		ketQua.thongBao = thanhCong ? "Xóa khách hàng thành công"
+				: "Không thể xóa khách hàng (có thể đang phát sinh vé/hóa đơn liên quan)";
+		return ketQua;
+	}
+
 	public static class KetQuaXuLy {
 		public boolean thanhCong;
 		public String thongBao;

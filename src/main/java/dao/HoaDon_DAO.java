@@ -128,6 +128,144 @@ public class HoaDon_DAO {
 		}
 	}
 
+	public boolean taoHoaDonBanVe(HoaDon hoaDon, String maCT, String maToa, List<String> viTriGheList,
+			BigDecimal giaVe, String tenHanhKhach, String cccd, LocalDate ngaySinh) {
+		Connection conn = null;
+		try {
+			conn = DatabaseConnection.getConnection();
+			if (conn == null || hoaDon == null || maCT == null || maCT.isBlank() || maToa == null || maToa.isBlank()
+					|| viTriGheList == null || viTriGheList.isEmpty() || giaVe == null) {
+				return false;
+			}
+
+			conn.setAutoCommit(false);
+
+			String maKH = hoaDon.getMaKH() == null ? null : hoaDon.getMaKH().trim();
+			if (maKH == null || maKH.isBlank() || !tonTaiKhachHang(conn, maKH)) {
+				System.err.println("[HoaDon_DAO] Không tồn tại khách hàng với mã: " + hoaDon.getMaKH());
+				conn.rollback();
+				return false;
+			}
+
+			String sqlHoaDon = "INSERT INTO HoaDon(maHD, maNV, maKH, maKM, maThue, thoiGian, phuongThucThanhToan, ngayThanhToan, trangThaiThanhToan) VALUES(?,?,?,?,?,?,?,?,?)";
+			try (PreparedStatement ps = conn.prepareStatement(sqlHoaDon)) {
+				ps.setString(1, hoaDon.getMaHD());
+				ps.setString(2, hoaDon.getMaNV());
+				ps.setString(3, maKH);
+				ps.setString(4, hoaDon.getMaKM());
+				ps.setString(5, "T001");
+				LocalDate date = hoaDon.getThoiGian() != null ? hoaDon.getThoiGian().toLocalDate() : LocalDate.now();
+				ps.setDate(6, Date.valueOf(date));
+				ps.setString(7, "TIEN_MAT");
+				ps.setDate(8, Date.valueOf(date));
+				ps.setBoolean(9, true);
+				if (ps.executeUpdate() <= 0) {
+					conn.rollback();
+					return false;
+				}
+			}
+
+			int nextVe = laySoThuTuTiepTheo(conn, "VeTau", "maVeTau", "VE", 2);
+			int nextChiTietVe = laySoThuTuTiepTheo(conn, "ChiTietVeTau", "maChiTiet", "CTVE", 4);
+			int nextChiTietHD = laySoThuTuTiepTheo(conn, "ChiTietHoaDon", "maCTHD", "CTHD", 4);
+
+			String sqlVeTau = "INSERT INTO VeTau(maVeTau, maKH, maCT, maToa, giaVe, trangThai) VALUES(?,?,?,?,?,?)";
+			String sqlCTVe = "INSERT INTO ChiTietVeTau(maChiTiet, maVeTau, tenHanhKhach, CCCD, ngaySinh, viTriGhe, loaiVe, giaVeTheoLoai) VALUES(?,?,?,?,?,?,?,?)";
+			String sqlCTHD = "INSERT INTO ChiTietHoaDon(maCTHD, maHD, maVeTau, maDV, soLuong, donGia) VALUES(?,?,?,?,?,?)";
+
+			try (PreparedStatement psVeTau = conn.prepareStatement(sqlVeTau);
+					PreparedStatement psCTVe = conn.prepareStatement(sqlCTVe);
+					PreparedStatement psCTHD = conn.prepareStatement(sqlCTHD)) {
+				for (String viTriGhe : viTriGheList) {
+					if (viTriGhe == null || viTriGhe.isBlank()) {
+						continue;
+					}
+
+					String maVeTau = String.format("VE%03d", nextVe++);
+					String maChiTietVe = String.format("CTVE%03d", nextChiTietVe++);
+					String maCTHD = String.format("CTHD%03d", nextChiTietHD++);
+
+					psVeTau.setString(1, maVeTau);
+					psVeTau.setString(2, maKH);
+					psVeTau.setString(3, maCT.trim());
+					psVeTau.setString(4, maToa.trim());
+					psVeTau.setDouble(5, giaVe.doubleValue());
+					psVeTau.setString(6, "DA_THANH_TOAN");
+					psVeTau.addBatch();
+
+					psCTVe.setString(1, maChiTietVe);
+					psCTVe.setString(2, maVeTau);
+					psCTVe.setString(3, tenHanhKhach);
+					psCTVe.setString(4, cccd);
+					psCTVe.setDate(5, Date.valueOf(ngaySinh));
+					psCTVe.setString(6, viTriGhe.trim().toUpperCase());
+					psCTVe.setString(7, "NGUOI_LON");
+					psCTVe.setDouble(8, giaVe.doubleValue());
+					psCTVe.addBatch();
+
+					psCTHD.setString(1, maCTHD);
+					psCTHD.setString(2, hoaDon.getMaHD());
+					psCTHD.setString(3, maVeTau);
+					psCTHD.setString(4, null);
+					psCTHD.setInt(5, 1);
+					psCTHD.setDouble(6, giaVe.doubleValue());
+					psCTHD.addBatch();
+				}
+
+				psVeTau.executeBatch();
+				psCTVe.executeBatch();
+				psCTHD.executeBatch();
+			}
+
+			conn.commit();
+			return true;
+		} catch (Exception e) {
+			try {
+				if (conn != null) {
+					conn.rollback();
+				}
+			} catch (Exception ignored) {
+			}
+			System.err.println("[HoaDon_DAO] Lỗi tạo hóa đơn bán vé: " + e.getMessage());
+			return false;
+		} finally {
+			try {
+				if (conn != null) {
+					conn.setAutoCommit(true);
+				}
+			} catch (Exception ignored) {
+			}
+		}
+	}
+
+	private int laySoThuTuTiepTheo(Connection conn, String tableName, String idColumn, String prefix, int prefixLength)
+			throws Exception {
+		int max = 0;
+		String sql = "SELECT " + idColumn + " FROM " + tableName;
+		try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
+			while (rs.next()) {
+				String ma = rs.getString(1);
+				if (ma != null && ma.startsWith(prefix)) {
+					try {
+						max = Math.max(max, Integer.parseInt(ma.substring(prefixLength)));
+					} catch (NumberFormatException ignored) {
+					}
+				}
+			}
+		}
+		return max + 1;
+	}
+
+	private boolean tonTaiKhachHang(Connection conn, String maKH) throws Exception {
+		String sql = "SELECT 1 FROM KhachHang WHERE maKH = ?";
+		try (PreparedStatement ps = conn.prepareStatement(sql)) {
+			ps.setString(1, maKH);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		}
+	}
+
 	public List<HoaDon> timKiemHoaDon(String tuKhoa) {
 		List<HoaDon> danhSach = new ArrayList<>();
 		try {

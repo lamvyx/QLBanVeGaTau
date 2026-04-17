@@ -320,8 +320,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(8, 20, 8, 20));
 		btnXoa.setPreferredSize(new Dimension(100, 40));
-		btnXoa.addActionListener(e -> JOptionPane.showMessageDialog(this,
-				"Chức năng xóa chưa được bật trong màn hình này.", "Thông báo", JOptionPane.INFORMATION_MESSAGE));
+		btnXoa.addActionListener(e -> xuLyXoaKhachHang(maKH));
 
 		btnHuy = new JButton("Hủy");
 		btnHuy.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -333,16 +332,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		));
 		btnHuy.setPreferredSize(new Dimension(100, 40));
 
-		btnHuy.addActionListener(e -> {
-			formPanel.removeAll();
-			formPanel.setLayout(new BorderLayout());
-			JLabel lblHuongDan = new JLabel("Chọn khách hàng từ bảng trên để chỉnh sửa");
-			lblHuongDan.setFont(new Font("Segoe UI", Font.ITALIC, 14));
-			lblHuongDan.setForeground(Color.decode("#8B95A7"));
-			formPanel.add(lblHuongDan, BorderLayout.CENTER);
-			formPanel.revalidate();
-			formPanel.repaint();
-		});
+		btnHuy.addActionListener(e -> resetFormPanel());
 
 		actions.add(btnCapNhat);
 		actions.add(btnXoa);
@@ -368,6 +358,37 @@ public class KhachHangCapNhatPage extends JPanel {
 		} else {
 			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Lỗi", JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	private void xuLyXoaKhachHang(String maKH) {
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa khách hàng " + maKH + " không?",
+				"Xác nhận xóa khách hàng",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		service.KhachHangService.KetQuaXuLy ketQua = khachHangController.xoaKhachHang(maKH);
+		if (ketQua.thanhCong) {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Thành công", JOptionPane.INFORMATION_MESSAGE);
+			loadDataFromDatabase();
+			resetFormPanel();
+		} else {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Lỗi", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void resetFormPanel() {
+		formPanel.removeAll();
+		formPanel.setLayout(new BorderLayout());
+		JLabel lblHuongDan = new JLabel("Chọn khách hàng từ bảng trên để chỉnh sửa");
+		lblHuongDan.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+		lblHuongDan.setForeground(Color.decode("#8B95A7"));
+		formPanel.add(lblHuongDan, BorderLayout.CENTER);
+		formPanel.revalidate();
+		formPanel.repaint();
 	}
 
 	private KhachHang timKhachHangTheoMa(String maKH) {

@@ -4,8 +4,11 @@ import controller.KhachHangController;
 import entity.KhachHang;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -108,18 +111,26 @@ public class KhachHangTraCuuPage extends JPanel {
 	}
 
 	private JPanel taoSearchPanel() {
-		JPanel panel = new JPanel(new GridLayout(2, 3, 10, 10));
+		JPanel panel = new JPanel(new GridBagLayout());
 		panel.setBackground(Color.WHITE);
 		panel.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
 			new EmptyBorder(15, 15, 15, 15)
 		));
 
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(6, 8, 6, 8);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.anchor = GridBagConstraints.WEST;
+
 		// Mã khách hàng
 		JLabel lblMa = new JLabel("Mã khách hàng:");
 		lblMa.setFont(new Font("Segoe UI", Font.BOLD, 12));
 		lblMa.setForeground(Color.decode("#2B4B74"));
-		panel.add(lblMa);
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		gbc.weightx = 0;
+		panel.add(lblMa, gbc);
 
 		JTextField txtMa = new JTextField();
 		txtMa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -127,13 +138,19 @@ public class KhachHangTraCuuPage extends JPanel {
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 8, 6, 8)
 		));
-		panel.add(txtMa);
+		gbc.gridx = 1;
+		gbc.gridy = 0;
+		gbc.weightx = 1;
+		panel.add(txtMa, gbc);
 
 		// Tên khách hàng
 		JLabel lblTen = new JLabel("Tên khách hàng:");
 		lblTen.setFont(new Font("Segoe UI", Font.BOLD, 12));
 		lblTen.setForeground(Color.decode("#2B4B74"));
-		panel.add(lblTen);
+		gbc.gridx = 2;
+		gbc.gridy = 0;
+		gbc.weightx = 0;
+		panel.add(lblTen, gbc);
 
 		JTextField txtTen = new JTextField();
 		txtTen.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -141,7 +158,10 @@ public class KhachHangTraCuuPage extends JPanel {
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 8, 6, 8)
 		));
-		panel.add(txtTen);
+		gbc.gridx = 3;
+		gbc.gridy = 0;
+		gbc.weightx = 1;
+		panel.add(txtTen, gbc);
 
 		// Nút Tìm kiếm
 		JButton btnTimKiem = new JButton("Tìm kiếm");
@@ -171,8 +191,6 @@ public class KhachHangTraCuuPage extends JPanel {
 				});
 			}
 		});
-		
-		panel.add(btnTimKiem);
 
 		// Nút Làm mới
 		JButton btnLamMoi = new JButton("Làm mới");
@@ -189,8 +207,18 @@ public class KhachHangTraCuuPage extends JPanel {
 			txtTen.setText("");
 			loadDataFromDatabase();
 		});
-		
-		panel.add(btnLamMoi);
+
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+		buttonPanel.setOpaque(false);
+		buttonPanel.add(btnTimKiem);
+		buttonPanel.add(btnLamMoi);
+
+		gbc.gridx = 0;
+		gbc.gridy = 1;
+		gbc.gridwidth = 4;
+		gbc.weightx = 1;
+		gbc.fill = GridBagConstraints.NONE;
+		panel.add(buttonPanel, gbc);
 
 		return panel;
 	}

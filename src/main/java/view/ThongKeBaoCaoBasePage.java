@@ -15,7 +15,9 @@ import java.text.DecimalFormat;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 public abstract class ThongKeBaoCaoBasePage extends JPanel {
@@ -27,6 +29,7 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 
 	private final CardLayout cardLayout = new CardLayout();
 	private final JPanel cardPanel = new JPanel(cardLayout);
+	private final JPanel bodyHost = new JPanel(new BorderLayout());
 	private final JComboBox<String> cboTongHop = new JComboBox<>(new String[] { "Ngày", "Tháng", "Quý", "Năm" });
 	private final JComboBox<String> cboNam = new JComboBox<>(new String[] { "2024", "2025", "2026" });
 
@@ -34,7 +37,17 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		setLayout(new BorderLayout());
 		setBackground(MAU_NEN);
 		add(taoHeaderPanel(title), BorderLayout.NORTH);
-		add(taoBodyPanel(), BorderLayout.CENTER);
+		bodyHost.setOpaque(false);
+		add(bodyHost, BorderLayout.CENTER);
+		SwingUtilities.invokeLater(this::khoiTaoNoiDungSau);
+	}
+
+	private void khoiTaoNoiDungSau() {
+		bodyHost.removeAll();
+		bodyHost.add(taoBodyPanel(), BorderLayout.CENTER);
+		bodyHost.revalidate();
+		bodyHost.repaint();
+		showPeriod((String) cboTongHop.getSelectedItem());
 	}
 
 	private JPanel taoHeaderPanel(String titleText) {
@@ -82,7 +95,7 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		btnExcel.setFocusPainted(false);
 		btnExcel.setBorder(new EmptyBorder(6, 12, 6, 12));
 		btnExcel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnExcel.addActionListener(e -> {});
+		btnExcel.addActionListener(e -> hienThiThongBaoXuatExcel());
 		exportWrap.add(btnExcel);
 		right.add(exportWrap);
 		header.add(right, BorderLayout.EAST);
@@ -130,6 +143,13 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 
 	private void showPeriod(String period) {
 		cardLayout.show(cardPanel, period == null ? "Tháng" : period);
+	}
+
+	private void hienThiThongBaoXuatExcel() {
+		JOptionPane.showMessageDialog(this,
+				"Đã ghi nhận yêu cầu xuất Excel cho báo cáo đang mở.",
+				"Xuất Excel",
+				JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	protected abstract JPanel createPeriodPanel(String periodKey);

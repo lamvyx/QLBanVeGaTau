@@ -258,6 +258,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnXoa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnXoa.addActionListener(e -> xuLyXoaTuyenTau());
 		buttonPanel.add(btnXoa);
 
 		btnHuy = new JButton("Hủy");
@@ -305,6 +306,32 @@ public class TuyenTauCapNhatPage extends JPanel {
 			}
 		} catch (NumberFormatException ex) {
 			JOptionPane.showMessageDialog(this, "Khoảng cách phải là số hợp lệ.");
+		}
+	}
+
+	private void xuLyXoaTuyenTau() {
+		if (txtMaTT == null || txtMaTT.getText().trim().isEmpty()) {
+			return;
+		}
+		String maTT = txtMaTT.getText().trim();
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa tuyến tàu " + maTT + " không?",
+				"Xác nhận xóa tuyến tàu",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		KetQuaXuLy ketQua = tuyenTauController.xoaTuyenTau(maTT);
+		JOptionPane.showMessageDialog(this, ketQua.thongBao,
+				ketQua.thanhCong ? "Thành công" : "Lỗi",
+				ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+		if (ketQua.thanhCong) {
+			taiDuLieuBang();
+			formPanel.removeAll();
+			formPanel.revalidate();
+			formPanel.repaint();
 		}
 	}
 }

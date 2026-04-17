@@ -1,7 +1,12 @@
 package dao;
 
 import connectDB.Database;
+import connectDB.DatabaseConnection;
 import entity.KhuyenMai;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -140,6 +145,50 @@ public class KhuyenMai_DAO {
 		} catch (Exception e) {
 			LOGGER.log(Level.WARNING, "Lỗi đếm khuyến mãi hoạt động", e);
 			return 0;
+		}
+	}
+
+	public boolean capNhatKhuyenMai(KhuyenMai khuyenMai) {
+		if (khuyenMai == null || khuyenMai.getMaKM() == null || khuyenMai.getMaKM().isBlank()) {
+			return false;
+		}
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) {
+				return false;
+			}
+			String sql = "UPDATE KhuyenMai SET tenKM = ?, tyLeKM = ?, ngayBD = ?, ngayKT = ? WHERE maKM = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, khuyenMai.getTenKM());
+				ps.setBigDecimal(2, khuyenMai.getTyLeKM());
+				ps.setDate(3, Date.valueOf(khuyenMai.getNgayBD()));
+				ps.setDate(4, Date.valueOf(khuyenMai.getNgayKT()));
+				ps.setString(5, khuyenMai.getMaKM());
+				return ps.executeUpdate() > 0;
+			}
+		} catch (SQLException e) {
+			LOGGER.log(Level.WARNING, "Lỗi cập nhật khuyến mãi " + khuyenMai.getMaKM(), e);
+			return false;
+		}
+	}
+
+	public boolean xoaKhuyenMai(String maKM) {
+		if (maKM == null || maKM.isBlank()) {
+			return false;
+		}
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) {
+				return false;
+			}
+			String sql = "DELETE FROM KhuyenMai WHERE maKM = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maKM);
+				return ps.executeUpdate() > 0;
+			}
+		} catch (SQLException e) {
+			LOGGER.log(Level.WARNING, "Lỗi xóa khuyến mãi " + maKM, e);
+			return false;
 		}
 	}
 }

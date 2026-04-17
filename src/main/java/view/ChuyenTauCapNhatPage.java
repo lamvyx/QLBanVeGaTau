@@ -269,6 +269,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnXoa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnXoa.addActionListener(e -> xuLyXoaChuyenTau());
 		buttonPanel.add(btnXoa);
 
 		btnHuy = new JButton("Hủy");
@@ -319,6 +320,32 @@ public class ChuyenTauCapNhatPage extends JPanel {
 			}
 		} catch (DateTimeParseException ex) {
 			JOptionPane.showMessageDialog(this, "Giờ khởi hành không hợp lệ (dd/MM/yyyy HH:mm).");
+		}
+	}
+
+	private void xuLyXoaChuyenTau() {
+		if (txtMaChuyenTau == null || txtMaChuyenTau.getText().trim().isEmpty()) {
+			return;
+		}
+		String maCT = txtMaChuyenTau.getText().trim();
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa chuyến tàu " + maCT + " không?",
+				"Xác nhận xóa chuyến tàu",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		KetQuaXuLy ketQua = chuyenTauController.xoaChuyenTau(maCT);
+		JOptionPane.showMessageDialog(this, ketQua.thongBao,
+				ketQua.thanhCong ? "Thành công" : "Lỗi",
+				ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+		if (ketQua.thanhCong) {
+			taiDuLieuBang();
+			formPanel.removeAll();
+			formPanel.revalidate();
+			formPanel.repaint();
 		}
 	}
 }

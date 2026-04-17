@@ -23,6 +23,10 @@ public class ChuyenTauController {
 				chuanHoaRongThanhNull(maTuyenTau), ngayGioKhoiHanh, trangThai);
 	}
 
+	public KetQuaXuLy xoaChuyenTau(String maCT) {
+		return chuyenTauService.xoaChuyenTau(chuanHoa(maCT));
+	}
+
 	private String chuanHoa(String s) {
 		return s == null ? null : s.trim();
 	}

@@ -48,6 +48,27 @@ public class ChuyenTauService {
 		return ketQua;
 	}
 
+	public KetQuaXuLy xoaChuyenTau(String maCT) {
+		KetQuaXuLy ketQua = new KetQuaXuLy();
+		if (maCT == null || maCT.trim().isEmpty()) {
+			ketQua.thongBao = "Mã chuyến tàu không hợp lệ";
+			return ketQua;
+		}
+
+		boolean tonTai = !chuyenTauDAO.timKiemChuyenTau(maCT.trim()).isEmpty();
+		if (!tonTai) {
+			ketQua.thongBao = "Không tìm thấy chuyến tàu";
+			return ketQua;
+		}
+
+		boolean ok = chuyenTauDAO.xoaChuyenTau(maCT.trim());
+		ketQua.thanhCong = ok;
+		ketQua.maThamChieu = maCT.trim();
+		ketQua.thongBao = ok ? "Xóa chuyến tàu thành công"
+				: "Không thể xóa chuyến tàu (có thể đã phát sinh vé liên quan)";
+		return ketQua;
+	}
+
 	public static class KetQuaXuLy {
 		public boolean thanhCong;
 		public String thongBao;

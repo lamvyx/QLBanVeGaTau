@@ -1,5 +1,7 @@
 package view;
 
+import controller.ToaController;
+import entity.Toa;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,10 +11,12 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -20,6 +24,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import service.ToaService.KetQuaXuLy;
 
 public class ToaCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -27,10 +32,12 @@ public class ToaCapNhatPage extends JPanel {
 
 	private JTable table;
 	private JPanel formPanel;
+	private DefaultTableModel model;
 	
 	private JTextField txtMaToa, txtSoGhe, txtViTriToa;
 	private JComboBox<String> cbLoaiToa, cbTau;
 	private JButton btnCapNhat, btnXoa, btnHuy;
+	private final ToaController toaController = new ToaController();
 
 	public ToaCapNhatPage() {
 		setLayout(new BorderLayout());
@@ -66,17 +73,12 @@ public class ToaCapNhatPage extends JPanel {
 		));
 
 		String[] columns = { "#", "Mã toa", "Loại toa", "Tàu", "Số ghế", "Vị trí" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { 1, "TOA001", "Toa ngủ", "T001", "50", "Toa 1" });
-		model.addRow(new Object[] { 2, "TOA002", "Toa ngồi", "T001", "80", "Toa 2" });
-		model.addRow(new Object[] { 3, "TOA003", "Toa hàng hoá", "T002", "100", "Toa 1" });
-		model.addRow(new Object[] { 4, "TOA004", "Toa nhà bếp", "T002", "20", "Toa 2" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -114,6 +116,7 @@ public class ToaCapNhatPage extends JPanel {
 		splitPane.setDividerLocation(250);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
+		taiDuLieuBang();
 
 		return content;
 	}
@@ -176,10 +179,12 @@ public class ToaCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		cbLoaiToa = new JComboBox<>();
-		cbLoaiToa.addItem(table.getValueAt(row, 2).toString());
-		cbLoaiToa.addItem("Toa ngủ");
-		cbLoaiToa.addItem("Toa ngồi");
+		cbLoaiToa.addItem("Ngồi mềm");
+		cbLoaiToa.addItem("Nằm điều hòa");
+		cbLoaiToa.addItem("Ghế cứng");
+		cbLoaiToa.addItem("Ngồi cứng");
 		cbLoaiToa.addItem("Toa hàng hoá");
+		cbLoaiToa.setSelectedItem(table.getValueAt(row, 2).toString());
 		cbLoaiToa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		cbLoaiToa.setPreferredSize(new Dimension(200, 30));
 		formContainer.add(cbLoaiToa, gbc);
@@ -194,10 +199,10 @@ public class ToaCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		cbTau = new JComboBox<>();
-		cbTau.addItem(table.getValueAt(row, 3).toString());
-		cbTau.addItem("T001");
-		cbTau.addItem("T002");
-		cbTau.addItem("T003");
+		for (String maTau : toaController.layDanhSachMaTau()) {
+			cbTau.addItem(maTau);
+		}
+		cbTau.setSelectedItem(table.getValueAt(row, 3).toString());
 		cbTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		cbTau.setPreferredSize(new Dimension(200, 30));
 		formContainer.add(cbTau, gbc);
@@ -254,6 +259,7 @@ public class ToaCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnCapNhat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatToa());
 		buttonPanel.add(btnCapNhat);
 
 		btnXoa = new JButton("Xóa");
@@ -263,6 +269,7 @@ public class ToaCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnXoa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnXoa.addActionListener(e -> xuLyXoaToa());
 		buttonPanel.add(btnXoa);
 
 		btnHuy = new JButton("Hủy");
@@ -272,6 +279,7 @@ public class ToaCapNhatPage extends JPanel {
 		btnHuy.setFocusPainted(false);
 		btnHuy.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnHuy.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnHuy.addActionListener(e -> formPanel.removeAll());
 		buttonPanel.add(btnHuy);
 
 		formContainer.add(buttonPanel, gbc);
@@ -282,5 +290,62 @@ public class ToaCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		List<Toa> ds = toaController.timKiemToa(null);
+		int stt = 1;
+		for (Toa toa : ds) {
+			model.addRow(new Object[] { stt++, toa.getMaToa(), toa.getLoaiToa(), toa.getMaTau(), toa.getSoGhe(), toa.getViTriToa() });
+		}
+	}
+
+	private void xuLyCapNhatToa() {
+		if (txtMaToa == null) {
+			return;
+		}
+		try {
+			int soGhe = Integer.parseInt(txtSoGhe.getText().trim());
+			KetQuaXuLy ketQua = toaController.capNhatToa(txtMaToa.getText(), String.valueOf(cbTau.getSelectedItem()),
+					String.valueOf(cbLoaiToa.getSelectedItem()), soGhe, txtViTriToa.getText(), true);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao,
+					ketQua.thanhCong ? "Thành công" : "Lỗi",
+					ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+			if (ketQua.thanhCong) {
+				taiDuLieuBang();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Số ghế phải là số nguyên hợp lệ.");
+		}
+	}
+
+	private void xuLyXoaToa() {
+		if (txtMaToa == null || txtMaToa.getText().trim().isEmpty()) {
+			return;
+		}
+		String maToa = txtMaToa.getText().trim();
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa toa " + maToa + " không?",
+				"Xác nhận xóa toa",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		KetQuaXuLy ketQua = toaController.xoaToa(maToa);
+		JOptionPane.showMessageDialog(this, ketQua.thongBao,
+				ketQua.thanhCong ? "Thành công" : "Lỗi",
+				ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+		if (ketQua.thanhCong) {
+			taiDuLieuBang();
+			formPanel.removeAll();
+			formPanel.revalidate();
+			formPanel.repaint();
+		}
 	}
 }

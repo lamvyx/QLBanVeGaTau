@@ -114,6 +114,27 @@ public class NhanVienService {
 		return nhanVienDAO.timEmailTheoUsername(username);
 	}
 
+	public KetQuaXuLy xoaNhanVien(String maNV) {
+		KetQuaXuLy ketQua = new KetQuaXuLy();
+
+		if (maNV == null || maNV.isBlank()) {
+			ketQua.thongBao = "Mã nhân viên không hợp lệ";
+			return ketQua;
+		}
+
+		NhanVien nhanVien = nhanVienDAO.timNhanVienTheoMa(maNV.trim());
+		if (nhanVien == null) {
+			ketQua.thongBao = "Nhân viên không tồn tại";
+			return ketQua;
+		}
+
+		boolean thanhCong = nhanVienDAO.xoaNhanVien(maNV.trim());
+		ketQua.thanhCong = thanhCong;
+		ketQua.maThamChieu = maNV.trim();
+		ketQua.thongBao = thanhCong ? "Xóa nhân viên thành công" : "Không thể xóa nhân viên";
+		return ketQua;
+	}
+
 	private String xacDinhVaiTroTheoChucVu(String chucVu) {
 		if (chucVu != null && chucVu.toLowerCase().contains("quản")) {
 			return "ADMIN";

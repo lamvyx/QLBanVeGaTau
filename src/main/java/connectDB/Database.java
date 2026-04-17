@@ -421,6 +421,27 @@ public class Database {
 		return false;
 	}
 
+	/**
+	 * Xóa khách hàng
+	 */
+	public boolean deleteKhachHang(String maKH) {
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null)
+				return false;
+
+			String query = "DELETE FROM KhachHang WHERE maKH = ?";
+			try (PreparedStatement stmt = conn.prepareStatement(query)) {
+				stmt.setString(1, maKH);
+				int result = stmt.executeUpdate();
+				return result > 0;
+			}
+		} catch (SQLException e) {
+			logDatabaseError("xóa khách hàng " + maKH, e);
+		}
+		return false;
+	}
+
 	// ==================== DỊCH VỤ - DichVu ====================
 
 	/**
@@ -437,7 +458,7 @@ public class Database {
 			try (Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
 				while (rs.next()) {
 					DichVu dv = new DichVu(rs.getString("maDV"), rs.getString("tenDV"), rs.getBoolean("trangThai"),
-							rs.getBigDecimal("giaDV"));
+							rs.getBigDecimal("giaTien"));
 					dichVuList.add(dv);
 				}
 			}

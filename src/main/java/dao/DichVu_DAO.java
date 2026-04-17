@@ -1,7 +1,11 @@
 package dao;
 
 import connectDB.Database;
+import connectDB.DatabaseConnection;
 import entity.DichVu;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,6 +114,49 @@ public class DichVu_DAO {
 		} catch (Exception e) {
 			System.err.println("Không thể đếm số dịch vụ hoạt động: " + e.getMessage());
 			return 0;
+		}
+	}
+
+	public boolean capNhatDichVu(DichVu dichVu) {
+		if (dichVu == null || dichVu.getMaDV() == null || dichVu.getMaDV().isBlank()) {
+			return false;
+		}
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) {
+				return false;
+			}
+			String sql = "UPDATE DichVu SET tenDV = ?, giaTien = ?, trangThai = ? WHERE maDV = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, dichVu.getTenDV());
+				ps.setBigDecimal(2, dichVu.getGiaDV());
+				ps.setBoolean(3, dichVu.isTrangThai());
+				ps.setString(4, dichVu.getMaDV());
+				return ps.executeUpdate() > 0;
+			}
+		} catch (SQLException e) {
+			System.err.println("Không thể cập nhật dịch vụ " + dichVu.getMaDV() + ": " + e.getMessage());
+			return false;
+		}
+	}
+
+	public boolean xoaDichVu(String maDV) {
+		if (maDV == null || maDV.isBlank()) {
+			return false;
+		}
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) {
+				return false;
+			}
+			String sql = "DELETE FROM DichVu WHERE maDV = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maDV);
+				return ps.executeUpdate() > 0;
+			}
+		} catch (SQLException e) {
+			System.err.println("Không thể xóa dịch vụ " + maDV + ": " + e.getMessage());
+			return false;
 		}
 	}
 }

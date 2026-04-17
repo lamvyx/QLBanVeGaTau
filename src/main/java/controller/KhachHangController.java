@@ -29,6 +29,10 @@ public class KhachHangController {
 		return khachHangService.layTatCaKhachHang();
 	}
 
+	public KetQuaXuLy xoaKhachHang(String maKH) {
+		return khachHangService.xoaKhachHang(chuanHoaChuoi(maKH));
+	}
+
 	private String chuanHoaChuoi(String value) {
 		return value == null ? null : value.trim();
 	}

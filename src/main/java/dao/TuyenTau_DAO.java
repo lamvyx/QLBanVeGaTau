@@ -5,6 +5,7 @@ import entity.TuyenTau;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class TuyenTau_DAO {
 							rs.getDouble("khoangCach")));
 				}
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			System.err.println("[TuyenTau_DAO] Lỗi lấy danh sách tuyến tàu: " + e.getMessage());
 		}
 		return danhSach;
@@ -45,7 +46,7 @@ public class TuyenTau_DAO {
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			System.err.println("[TuyenTau_DAO] Lỗi tìm tuyến tàu theo mã: " + e.getMessage());
 		}
 		return null;
@@ -65,7 +66,7 @@ public class TuyenTau_DAO {
 				ps.setDouble(4, tuyenTau.getKhoangCach());
 				return ps.executeUpdate() > 0;
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			System.err.println("[TuyenTau_DAO] Lỗi thêm tuyến tàu: " + e.getMessage());
 			return false;
 		}
@@ -85,8 +86,25 @@ public class TuyenTau_DAO {
 				ps.setString(4, tuyenTau.getMaTT());
 				return ps.executeUpdate() > 0;
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			System.err.println("[TuyenTau_DAO] Lỗi cập nhật tuyến tàu: " + e.getMessage());
+			return false;
+		}
+	}
+
+	public boolean xoaTuyenTau(String maTT) {
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null || maTT == null || maTT.isBlank()) {
+				return false;
+			}
+			String sql = "DELETE FROM TuyenTau WHERE maTT = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maTT);
+				return ps.executeUpdate() > 0;
+			}
+		} catch (SQLException e) {
+			System.err.println("[TuyenTau_DAO] Lỗi xóa tuyến tàu: " + e.getMessage());
 			return false;
 		}
 	}

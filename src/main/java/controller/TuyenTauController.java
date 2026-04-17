@@ -22,6 +22,10 @@ public class TuyenTauController {
 				chuanHoaRongThanhNull(maGaDen), khoangCach);
 	}
 
+	public KetQuaXuLy xoaTuyenTau(String maTT) {
+		return tuyenTauService.xoaTuyenTau(chuanHoa(maTT));
+	}
+
 	private String chuanHoa(String s) {
 		return s == null ? null : s.trim();
 	}

@@ -1,7 +1,12 @@
 package view;
 
+import controller.ChuyenTauController;
 import controller.HoaDonController;
-import entity.ChiTietHoaDonItem;
+import controller.KhachHangController;
+import controller.ToaController;
+import entity.ChuyenTau;
+import entity.KhachHang;
+import entity.Toa;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -18,8 +23,11 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -68,15 +76,39 @@ public class BanVePage extends JPanel {
 	private JLabel lblTrangThaiPrint;
 	private JLabel lblSeatCountPrint;
 	private JLabel lblSelectedSeatsPrint;
+	private JLabel lblSeatTitle;
+	private JLabel lblMaVeSuccess;
+	private JLabel lblTongTienSuccess;
+	private JLabel lblMaHDPrintValue;
+	private JLabel lblSoVePrintValue;
+	private JLabel lblKhachHangPrintValue;
+	private JLabel lblChuyenPrintValue;
+	private JLabel lblTuyenPrintValue;
+	private JLabel lblKhoiHanhPrintValue;
+	private JLabel lblToaGhePrintValue;
+	private JLabel lblGiaPrintValue;
+	private JLabel lblTrangThaiPrintValue;
 
 	private JTextField txtMaKM;
-	private JComboBox<String> cboKhachHang;
-	private JComboBox<String> cboChuyenTau;
-	private JComboBox<String> cboToaTau;
+	private JComboBox<KhachHangOption> cboKhachHang;
+	private JComboBox<ChuyenTauOption> cboChuyenTau;
+	private JComboBox<ToaOption> cboToaTau;
+	private JPanel seatGridContainer;
 
 	private BigDecimal selectedPrice = new BigDecimal("1105000");
 	private BigDecimal discountAmount = BigDecimal.ZERO;
 	private final HoaDonController hoaDonController = new HoaDonController();
+	private final KhachHangController khachHangController = new KhachHangController();
+	private final ChuyenTauController chuyenTauController = new ChuyenTauController();
+	private final ToaController toaController = new ToaController();
+	private final List<KhachHangOption> dsKhachHang = new ArrayList<>();
+	private final List<ChuyenTauOption> dsChuyenTau = new ArrayList<>();
+	private final Map<String, List<ToaOption>> toaTheoChuyen = new HashMap<>();
+
+	private String selectedMaKH;
+	private String selectedMaCT;
+	private String selectedMaToa;
+	private int currentSeatCount = 32;
 
 	private String selectedKhachHang = "Nguyễn Thị Lan";
 	private String selectedChuyen = "SE1-030426";
@@ -87,17 +119,19 @@ public class BanVePage extends JPanel {
 	private String selectedTrangThai = "Đang chờ lập hóa đơn";
 	private String generatedMaHD = "HD03042601";
 	private String generatedMaVe = "VE03042601";
+	private boolean daChotGiaoDich;
+	private int soVeDaChot;
+	private String danhSachGheDaChot = "Chưa chọn ghế";
+	private BigDecimal tongTienDaChot = BigDecimal.ZERO;
+	private String khoiHanhDaChot = "";
+	private String khachHangDaChot = "";
+	private String chuyenDaChot = "";
+	private String tuyenDaChot = "";
+	private String toaDaChot = "";
 
 	public BanVePage() {
 		setLayout(new BorderLayout());
 		setBackground(MAU_NEN);
-
-		bookedSeats.add("A02");
-		bookedSeats.add("A04");
-		bookedSeats.add("B02");
-		bookedSeats.add("C01");
-		bookedSeats.add("C06");
-		bookedSeats.add("D03");
 
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoBody(), BorderLayout.CENTER);
@@ -105,6 +139,7 @@ public class BanVePage extends JPanel {
 		buildSaleCard();
 		buildSuccessCard();
 		buildPrintCard();
+		taiDuLieuBanDau();
 		resetForm();
 		hienThiCard(saleCard);
 	}
@@ -182,78 +217,53 @@ public class BanVePage extends JPanel {
 		parent.add(field, gbc);
 	}
 
-	private JComboBox<String> createCustomerCombo() {
-		cboKhachHang = new JComboBox<>(new String[] {
-			"C002 - Nguyễn Thị Lan - 0976543210",
-			"C001 - Trần Văn Minh - 0901234567",
-			"C003 - Lê Anh Tuấn - 0987654321"
-		});
-		cboKhachHang.setSelectedIndex(0);
+	private JComboBox<KhachHangOption> createCustomerCombo() {
+		cboKhachHang = new JComboBox<>();
 		cboKhachHang.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboKhachHang.setPreferredSize(new Dimension(220, 30));
 		cboKhachHang.addActionListener(e -> {
-			String value = (String) cboKhachHang.getSelectedItem();
+			KhachHangOption value = (KhachHangOption) cboKhachHang.getSelectedItem();
 			if (value != null) {
-				String[] parts = value.split(" - ");
-				selectedKhachHang = parts.length > 1 ? parts[1] : value;
+				selectedKhachHang = value.tenKH;
+				selectedMaKH = value.maKH;
 				refreshSummary();
 			}
 		});
 		return cboKhachHang;
 	}
 
-	private JComboBox<String> createChuyenCombo() {
-		cboChuyenTau = new JComboBox<>(new String[] {
-			"SE1-030426 - Sài Gòn - Hà Nội - 19:00",
-			"SE2-030426 - Sài Gòn - Đà Nẵng - 07:00",
-			"TN1-030426 - Sài Gòn - Nha Trang - 06:00"
-		});
-		cboChuyenTau.setSelectedIndex(0);
+	private JComboBox<ChuyenTauOption> createChuyenCombo() {
+		cboChuyenTau = new JComboBox<>();
 		cboChuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboChuyenTau.setPreferredSize(new Dimension(220, 30));
 		cboChuyenTau.addActionListener(e -> {
-			String value = (String) cboChuyenTau.getSelectedItem();
+			ChuyenTauOption value = (ChuyenTauOption) cboChuyenTau.getSelectedItem();
 			if (value != null) {
-				String[] parts = value.split(" - ");
-				selectedChuyen = parts.length > 0 ? parts[0] : value;
-				if (value.contains("Hà Nội")) {
-					selectedTuyen = "Sài Gòn - Hà Nội";
-				} else if (value.contains("Đà Nẵng")) {
-					selectedTuyen = "Sài Gòn - Đà Nẵng";
-				} else {
-					selectedTuyen = "Sài Gòn - Nha Trang";
-				}
-				selectedKhoiHanh = parts.length > 3 ? parts[3] + " 3/4/2026" : selectedKhoiHanh;
+				selectedChuyen = value.maCT;
+				selectedMaCT = value.maCT;
+				selectedTuyen = value.maTuyen;
+				selectedKhoiHanh = value.thoiGianKhoiHanh;
+				taiToaTheoChuyen(value);
 				refreshSummary();
 			}
 		});
 		return cboChuyenTau;
 	}
 
-	private JComboBox<String> createToaCombo() {
-		cboToaTau = new JComboBox<>(new String[] {
-			"Toa 1 - Ghế cứng - 40 ghế",
-			"Toa 2 - Ghế mềm - 40 ghế",
-			"Toa 3 - Nằm mềm - 24 ghế"
-		});
-		cboToaTau.setSelectedIndex(1);
+	private JComboBox<ToaOption> createToaCombo() {
+		cboToaTau = new JComboBox<>();
 		cboToaTau.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboToaTau.setPreferredSize(new Dimension(220, 30));
 		cboToaTau.addActionListener(e -> {
-			String value = (String) cboToaTau.getSelectedItem();
+			ToaOption value = (ToaOption) cboToaTau.getSelectedItem();
 			if (value != null) {
-				int firstDash = value.indexOf(" - ");
-				int secondDash = value.lastIndexOf(" - ");
-				String toaName = firstDash >= 0 ? value.substring(0, firstDash) : value;
-				String toaType = firstDash >= 0 && secondDash > firstDash ? value.substring(firstDash + 3, secondDash) : value;
-				selectedToa = toaName + " (" + toaType + ")";
-				if (value.contains("Ghế cứng")) {
-					selectedPrice = new BigDecimal("850000");
-				} else if (value.contains("Ghế mềm")) {
-					selectedPrice = new BigDecimal("1105000");
-				} else {
-					selectedPrice = new BigDecimal("1530000");
-				}
+				selectedMaToa = value.maToa;
+				selectedToa = value.maToa + " (" + value.loaiToa + ")";
+				selectedPrice = value.giaVe;
+				currentSeatCount = value.soGhe;
+				selectedSeats.clear();
+				capNhatGheDaDatTheoToa();
+				refreshSeatGrid();
 				refreshSummary();
 			}
 		});
@@ -300,10 +310,10 @@ public class BanVePage extends JPanel {
 
 		JPanel header = new JPanel(new BorderLayout());
 		header.setOpaque(false);
-		JLabel title = new JLabel("2. Chọn chỗ ngồi - Toa 2 (Ghế mềm)");
-		title.setFont(new Font("Segoe UI", Font.BOLD, 15));
-		title.setForeground(MAU_TEXT);
-		header.add(title, BorderLayout.NORTH);
+		lblSeatTitle = new JLabel("2. Chọn chỗ ngồi");
+		lblSeatTitle.setFont(new Font("Segoe UI", Font.BOLD, 15));
+		lblSeatTitle.setForeground(MAU_TEXT);
+		header.add(lblSeatTitle, BorderLayout.NORTH);
 
 		lblSeatSummary = new JLabel();
 		lblSeatSummary.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -320,6 +330,7 @@ public class BanVePage extends JPanel {
 
 		JPanel gridWrap = new JPanel(new BorderLayout());
 		gridWrap.setOpaque(false);
+		seatGridContainer = gridWrap;
 		gridWrap.add(createSeatGrid(), BorderLayout.CENTER);
 		wrap.add(gridWrap, BorderLayout.SOUTH);
 		return wrap;
@@ -340,11 +351,19 @@ public class BanVePage extends JPanel {
 	}
 
 	private JScrollPane createSeatGrid() {
-		JPanel seats = new JPanel(new GridLayout(8, 4, 8, 8));
+		int cols = 4;
+		int rows = Math.max(1, (int) Math.ceil((double) currentSeatCount / cols));
+		JPanel seats = new JPanel(new GridLayout(rows, cols, 8, 8));
 		seats.setOpaque(false);
 		seatButtons.clear();
-		for (int row = 0; row < 8; row++) {
-			for (int col = 0; col < 4; col++) {
+		int index = 0;
+		for (int row = 0; row < rows; row++) {
+			for (int col = 0; col < cols; col++) {
+				if (index >= currentSeatCount) {
+					JLabel spacer = new JLabel();
+					seats.add(spacer);
+					continue;
+				}
 				String seatCode = String.valueOf((char) ('A' + col)) + String.format("%02d", row + 1);
 				JButton seat = new JButton(seatCode);
 				seat.setActionCommand(seatCode);
@@ -354,6 +373,7 @@ public class BanVePage extends JPanel {
 				seat.addActionListener(e -> onSeatSelected((JButton) e.getSource()));
 				seatButtons.add(seat);
 				seats.add(seat);
+				index++;
 			}
 		}
 		refreshSeatButtonStyles();
@@ -489,7 +509,7 @@ public class BanVePage extends JPanel {
 
 	private void onSeatSelected(JButton source) {
 		String seatCode = source.getActionCommand();
-		if (bookedSeats.contains(seatCode)) {
+		if (bookedSeats.contains(chuanHoaMaGhe(seatCode))) {
 			return;
 		}
 
@@ -506,12 +526,12 @@ public class BanVePage extends JPanel {
 
 	private void refreshSeatButtonStyles() {
 		for (JButton seat : seatButtons) {
-			String seatCode = seat.getActionCommand();
+			String seatCode = chuanHoaMaGhe(seat.getActionCommand());
 			if (bookedSeats.contains(seatCode)) {
 				seat.setBackground(new Color(255, 240, 240));
 				seat.setForeground(MAU_DO);
 				seat.setBorder(BorderFactory.createLineBorder(MAU_DO, 2));
-			} else if (selectedSeats.contains(seatCode)) {
+			} else if (selectedSeats.contains(seat.getActionCommand())) {
 				seat.setBackground(MAU_CHINH);
 				seat.setForeground(Color.WHITE);
 				seat.setBorder(BorderFactory.createLineBorder(MAU_CHINH.darker(), 2));
@@ -568,6 +588,9 @@ public class BanVePage extends JPanel {
 		if (lblTongTien != null) {
 			lblTongTien.setText(formatMoney(getGrandTotal()));
 		}
+		if (lblSeatTitle != null) {
+			lblSeatTitle.setText("2. Chọn chỗ ngồi - " + selectedToa);
+		}
 		updateSeatSummary();
 		refreshSuccessCard();
 		contentPanel.revalidate();
@@ -579,70 +602,131 @@ public class BanVePage extends JPanel {
 			JOptionPane.showMessageDialog(this, "Vui lòng chọn ít nhất một chỗ ngồi.", "Thiếu dữ liệu", JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-
-		String maKH = null;
-		if (cboKhachHang != null && cboKhachHang.getSelectedItem() != null) {
-			String selected = String.valueOf(cboKhachHang.getSelectedItem());
-			String[] parts = selected.split(" - ");
-			maKH = parts.length > 0 ? parts[0].trim() : null;
+		KhachHangOption khachDangChon = cboKhachHang == null ? null : (KhachHangOption) cboKhachHang.getSelectedItem();
+		if (khachDangChon != null && khachDangChon.maKH != null && !khachDangChon.maKH.isBlank()) {
+			selectedMaKH = khachDangChon.maKH.trim();
+			selectedKhachHang = khachDangChon.tenKH;
+		}
+		if (selectedMaKH == null || selectedMaKH.isBlank() || selectedMaCT == null || selectedMaToa == null) {
+			JOptionPane.showMessageDialog(this,
+					"Thiếu thông tin khách hàng/chuyến tàu/toa tàu. Vui lòng chọn lại.",
+					"Thiếu dữ liệu", JOptionPane.WARNING_MESSAGE);
+			return;
 		}
 
-		List<ChiTietHoaDonItem> items = new ArrayList<>();
-		for (int i = 0; i < selectedSeats.size(); i++) {
-			items.add(new ChiTietHoaDonItem(null, null, null, "DV001", 1, selectedPrice));
-		}
-		KetQuaLapHoaDon ketQua = hoaDonController.lapHoaDon("NV001", maKH, selectedPromotion(), items);
+		KetQuaLapHoaDon ketQua = hoaDonController.lapHoaDonBanVe("NV001", selectedMaKH, selectedPromotion(),
+				selectedMaCT, selectedMaToa, new ArrayList<>(selectedSeats), selectedPrice);
 
 		String timeStamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyyHHmm"));
+		int soVeVuaChon = selectedSeats.size();
 		generatedMaHD = ketQua.thanhCong ? ketQua.maHoaDon : "HD" + timeStamp;
-		generatedMaVe = "VE" + timeStamp + String.format("%02d", selectedSeats.size());
+		generatedMaVe = "VE" + timeStamp + String.format("%02d", soVeVuaChon);
 		selectedNgayLap = LocalDateTime.now().format(TICKET_TIME_FORMAT);
-		selectedTrangThai = ketQua.thanhCong ? "Đã lập hóa đơn" : "Lập hóa đơn nội bộ (chưa ghi DB)";
+		selectedTrangThai = ketQua.thanhCong ? "Đã lập hóa đơn" : "Không thể đặt vé";
 		if (!ketQua.thanhCong) {
 			JOptionPane.showMessageDialog(this,
-					"Không thể ghi hóa đơn xuống CSDL: " + ketQua.thongBao + "\nHệ thống vẫn tạo hóa đơn tạm để tiếp tục thao tác.",
+					"Không thể ghi hóa đơn xuống CSDL: " + ketQua.thongBao,
 					"Cảnh báo", JOptionPane.WARNING_MESSAGE);
+			capNhatGheDaDatTheoToa();
+			refreshSeatGrid();
+			return;
 		}
+
+		daChotGiaoDich = true;
+		soVeDaChot = soVeVuaChon;
+		danhSachGheDaChot = String.join(", ", selectedSeats);
+		tongTienDaChot = getGrandTotal();
+		khoiHanhDaChot = selectedKhoiHanh;
+		khachHangDaChot = selectedKhachHang;
+		chuyenDaChot = selectedChuyen;
+		tuyenDaChot = selectedTuyen;
+		toaDaChot = selectedToa;
+
+		capNhatGheDaDatTheoToa();
+		selectedSeats.clear();
+		refreshSeatGrid();
 		refreshSuccessCard();
 		hienThiCard(successCard);
 	}
 
 	private void refreshSuccessCard() {
+		int soVeHienThi = daChotGiaoDich ? soVeDaChot : selectedSeats.size();
+		String gheHienThi = daChotGiaoDich ? danhSachGheDaChot : getSelectedSeatSummary();
+		BigDecimal tongTienHienThi = daChotGiaoDich ? tongTienDaChot : getGrandTotal();
+		String khoiHanhHienThi = daChotGiaoDich ? khoiHanhDaChot : selectedKhoiHanh;
+		String khachHangHienThi = daChotGiaoDich ? khachHangDaChot : selectedKhachHang;
+		String chuyenHienThi = daChotGiaoDich ? chuyenDaChot : selectedChuyen;
+		String tuyenHienThi = daChotGiaoDich ? tuyenDaChot : selectedTuyen;
+		String toaHienThi = daChotGiaoDich ? toaDaChot : selectedToa;
+
 		if (lblMaHD != null) {
 			lblMaHD.setText(generatedMaHD);
 		}
+		if (lblMaVeSuccess != null) {
+			lblMaVeSuccess.setText(generatedMaVe);
+		}
 		if (lblSoVe != null) {
-			lblSoVe.setText(selectedSeats.size() + " vé");
+			lblSoVe.setText(soVeHienThi + " vé");
 		}
 		if (lblKhachHang != null) {
-			lblKhachHang.setText(selectedKhachHang);
+			lblKhachHang.setText(khachHangHienThi);
 		}
 		if (lblChuyen != null) {
-			lblChuyen.setText(selectedChuyen);
+			lblChuyen.setText(chuyenHienThi);
 		}
 		if (lblTuyen != null) {
-			lblTuyen.setText(selectedTuyen);
+			lblTuyen.setText(tuyenHienThi);
 		}
 		if (lblKhoiHanh != null) {
-			lblKhoiHanh.setText(selectedNgayLap);
+			lblKhoiHanh.setText(khoiHanhHienThi);
 		}
 		if (lblToaGhe != null) {
-			lblToaGhe.setText(selectedToa + " · " + getSelectedSeatSummary());
+			lblToaGhe.setText(toaHienThi + " · " + gheHienThi);
 		}
 		if (lblGia != null) {
-			lblGia.setText(formatMoney(getGrandTotal()));
+			lblGia.setText(formatMoney(tongTienHienThi));
+		}
+		if (lblTongTienSuccess != null) {
+			lblTongTienSuccess.setText(formatMoney(tongTienHienThi));
 		}
 		if (lblNgayLap != null) {
 			lblNgayLap.setText(selectedNgayLap);
+		}
+		if (lblMaHDPrintValue != null) {
+			lblMaHDPrintValue.setText(generatedMaHD);
+		}
+		if (lblSoVePrintValue != null) {
+			lblSoVePrintValue.setText(soVeHienThi + " vé");
+		}
+		if (lblKhachHangPrintValue != null) {
+			lblKhachHangPrintValue.setText(khachHangHienThi);
+		}
+		if (lblChuyenPrintValue != null) {
+			lblChuyenPrintValue.setText(chuyenHienThi);
+		}
+		if (lblTuyenPrintValue != null) {
+			lblTuyenPrintValue.setText(tuyenHienThi);
+		}
+		if (lblKhoiHanhPrintValue != null) {
+			lblKhoiHanhPrintValue.setText(khoiHanhHienThi);
+		}
+		if (lblToaGhePrintValue != null) {
+			lblToaGhePrintValue.setText(toaHienThi + " · " + gheHienThi);
+		}
+		if (lblGiaPrintValue != null) {
+			lblGiaPrintValue.setText(formatMoney(tongTienHienThi));
+		}
+		if (lblTrangThaiPrintValue != null) {
+			lblTrangThaiPrintValue.setText(selectedTrangThai);
 		}
 		if (lblTrangThaiPrint != null) {
 			lblTrangThaiPrint.setText(selectedTrangThai);
 		}
 		if (lblSeatCountPrint != null) {
-			lblSeatCountPrint.setText(selectedSeats.size() + " vé");
+			lblSeatCountPrint.setText(soVeHienThi + " vé");
 		}
 		if (lblSelectedSeatsPrint != null) {
-			lblSelectedSeatsPrint.setText(getSelectedSeatSummary());
+			lblSelectedSeatsPrint.setText(gheHienThi);
 		}
 	}
 
@@ -686,28 +770,28 @@ public class BanVePage extends JPanel {
 		JLabel shop = new JLabel("GA TÀU SÀI GÒN");
 		shop.setForeground(new Color(191, 219, 254));
 		shop.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		JLabel code = new JLabel(generatedMaVe);
-		code.setForeground(Color.WHITE);
-		code.setFont(new Font("Segoe UI", Font.BOLD, 28));
-		JLabel price = new JLabel(formatMoney(getGrandTotal()));
-		price.setForeground(Color.WHITE);
-		price.setFont(new Font("Segoe UI", Font.BOLD, 20));
+		lblMaVeSuccess = new JLabel(generatedMaVe);
+		lblMaVeSuccess.setForeground(Color.WHITE);
+		lblMaVeSuccess.setFont(new Font("Segoe UI", Font.BOLD, 28));
+		lblTongTienSuccess = new JLabel(formatMoney(getGrandTotal()));
+		lblTongTienSuccess.setForeground(Color.WHITE);
+		lblTongTienSuccess.setFont(new Font("Segoe UI", Font.BOLD, 20));
 		JPanel head = new JPanel(new BorderLayout());
 		head.setOpaque(false);
 		head.add(shop, BorderLayout.WEST);
-		head.add(price, BorderLayout.EAST);
+		head.add(lblTongTienSuccess, BorderLayout.EAST);
 		ticket.add(head, BorderLayout.NORTH);
-		ticket.add(code, BorderLayout.CENTER);
+		ticket.add(lblMaVeSuccess, BorderLayout.CENTER);
 
 		JPanel detail = new JPanel(new GridBagLayout());
 		detail.setOpaque(false);
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(6, 0, 6, 0);
 		gbc.fill = GridBagConstraints.HORIZONTAL;
-		addDetail(detail, gbc, 0, "Khách hàng", selectedKhachHang);
-		addDetail(detail, gbc, 1, "Tuyến", selectedTuyen);
-		addDetail(detail, gbc, 2, "Khởi hành", selectedNgayLap);
-		addDetail(detail, gbc, 3, "Toa / Ghế", selectedToa + " · " + getSelectedSeatSummary());
+		lblKhachHang = addSuccessDetail(detail, gbc, 0, "Khách hàng");
+		lblTuyen = addSuccessDetail(detail, gbc, 1, "Tuyến");
+		lblKhoiHanh = addSuccessDetail(detail, gbc, 2, "Khởi hành");
+		lblToaGhe = addSuccessDetail(detail, gbc, 3, "Toa / Ghế");
 		ticket.add(detail, BorderLayout.SOUTH);
 
 		JButton btnInVe = new JButton("In vé");
@@ -737,9 +821,16 @@ public class BanVePage extends JPanel {
 		stack.add(ticket, BorderLayout.CENTER);
 		stack.add(buttons, BorderLayout.SOUTH);
 		successCard.add(stack, BorderLayout.CENTER);
+
+		lblMaHD = new JLabel();
+		lblSoVe = new JLabel();
+		lblChuyen = new JLabel();
+		lblGia = new JLabel();
+		lblNgayLap = new JLabel();
+		refreshSuccessCard();
 	}
 
-	private void addDetail(JPanel parent, GridBagConstraints gbc, int row, String label, String value) {
+	private JLabel addSuccessDetail(JPanel parent, GridBagConstraints gbc, int row, String label) {
 		gbc.gridx = 0;
 		gbc.gridy = row;
 		JLabel lbl = new JLabel(label);
@@ -748,11 +839,12 @@ public class BanVePage extends JPanel {
 		parent.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		JLabel val = new JLabel(value);
+		JLabel val = new JLabel();
 		val.setForeground(Color.WHITE);
 		val.setFont(new Font("Segoe UI", Font.BOLD, 12));
 		val.setHorizontalAlignment(SwingConstants.RIGHT);
 		parent.add(val, gbc);
+		return val;
 	}
 
 	private void buildPrintCard() {
@@ -774,34 +866,15 @@ public class BanVePage extends JPanel {
 		GridBagConstraints gbc = new GridBagConstraints();
 		gbc.insets = new Insets(8, 8, 8, 8);
 		gbc.fill = GridBagConstraints.HORIZONTAL;
-		String[][] fields = {
-			{ "Mã hóa đơn", generatedMaHD },
-			{ "Số vé", selectedSeats.size() + " vé" },
-			{ "Khách hàng", selectedKhachHang },
-			{ "Chuyến tàu", selectedChuyen },
-			{ "Tuyến", selectedTuyen },
-			{ "Khởi hành", selectedNgayLap },
-			{ "Toa / Ghế", selectedToa + " · " + getSelectedSeatSummary() },
-			{ "Giá vé", formatMoney(getGrandTotal()) },
-			{ "Trạng thái", selectedTrangThai }
-		};
-		for (int i = 0; i < fields.length; i++) {
-			gbc.gridx = 0;
-			gbc.gridy = i;
-			gbc.weightx = 0.28;
-			JLabel lbl = new JLabel(fields[i][0] + ":");
-			lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-			lbl.setForeground(MAU_TEXT);
-			receipt.add(lbl, gbc);
-
-			gbc.gridx = 1;
-			gbc.weightx = 0.72;
-			JLabel val = new JLabel(fields[i][1]);
-			val.setFont(new Font("Segoe UI", Font.BOLD, 13));
-			val.setForeground(MAU_TEXT);
-			val.setHorizontalAlignment(SwingConstants.RIGHT);
-			receipt.add(val, gbc);
-		}
+		lblMaHDPrintValue = addPrintReceiptRow(receipt, gbc, 0, "Mã hóa đơn");
+		lblSoVePrintValue = addPrintReceiptRow(receipt, gbc, 1, "Số vé");
+		lblKhachHangPrintValue = addPrintReceiptRow(receipt, gbc, 2, "Khách hàng");
+		lblChuyenPrintValue = addPrintReceiptRow(receipt, gbc, 3, "Chuyến tàu");
+		lblTuyenPrintValue = addPrintReceiptRow(receipt, gbc, 4, "Tuyến");
+		lblKhoiHanhPrintValue = addPrintReceiptRow(receipt, gbc, 5, "Khởi hành");
+		lblToaGhePrintValue = addPrintReceiptRow(receipt, gbc, 6, "Toa / Ghế");
+		lblGiaPrintValue = addPrintReceiptRow(receipt, gbc, 7, "Giá vé");
+		lblTrangThaiPrintValue = addPrintReceiptRow(receipt, gbc, 8, "Trạng thái");
 		wrapper.add(receipt, BorderLayout.CENTER);
 
 		lblSeatCountPrint = new JLabel();
@@ -814,7 +887,6 @@ public class BanVePage extends JPanel {
 			label.setForeground(new Color(108, 122, 138));
 			quickSummary.add(label);
 		}
-		wrapper.add(quickSummary, BorderLayout.SOUTH);
 
 		JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
 		footer.setOpaque(false);
@@ -824,7 +896,10 @@ public class BanVePage extends JPanel {
 		btnIn.setFocusPainted(false);
 		btnIn.setFont(new Font("Segoe UI", Font.BOLD, 13));
 		btnIn.setBorder(new EmptyBorder(8, 16, 8, 16));
-		btnIn.addActionListener(e -> {});
+		btnIn.addActionListener(e -> JOptionPane.showMessageDialog(this,
+				"Đã gửi lệnh in hóa đơn cho mã " + generatedMaHD + ".",
+				"In hóa đơn",
+				JOptionPane.INFORMATION_MESSAGE));
 		JButton btnBack = new JButton("Quay lại");
 		btnBack.setBackground(Color.WHITE);
 		btnBack.setForeground(MAU_TEXT);
@@ -842,22 +917,61 @@ public class BanVePage extends JPanel {
 		footer.add(btnIn);
 		footer.add(btnBack);
 		footer.add(btnMoi);
-		wrapper.add(footer, BorderLayout.SOUTH);
+
+		JPanel southWrap = new JPanel(new BorderLayout(0, 10));
+		southWrap.setOpaque(false);
+		southWrap.add(quickSummary, BorderLayout.NORTH);
+		southWrap.add(footer, BorderLayout.SOUTH);
+		wrapper.add(southWrap, BorderLayout.SOUTH);
 
 		printCard.add(wrapper, BorderLayout.CENTER);
+		refreshSuccessCard();
+	}
+
+	private JLabel addPrintReceiptRow(JPanel parent, GridBagConstraints gbc, int row, String label) {
+		gbc.gridx = 0;
+		gbc.gridy = row;
+		gbc.weightx = 0.28;
+		JLabel lbl = new JLabel(label + ":");
+		lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+		lbl.setForeground(MAU_TEXT);
+		parent.add(lbl, gbc);
+
+		gbc.gridx = 1;
+		gbc.weightx = 0.72;
+		JLabel val = new JLabel();
+		val.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		val.setForeground(MAU_TEXT);
+		val.setHorizontalAlignment(SwingConstants.RIGHT);
+		parent.add(val, gbc);
+		return val;
 	}
 
 	private void resetForm() {
 		selectedSeats.clear();
-		selectedSeats.add("B03");
+		daChotGiaoDich = false;
+		soVeDaChot = 0;
+		danhSachGheDaChot = "Chưa chọn ghế";
+		tongTienDaChot = BigDecimal.ZERO;
+		khoiHanhDaChot = "";
+		khachHangDaChot = "";
+		chuyenDaChot = "";
+		tuyenDaChot = "";
+		toaDaChot = "";
 		if (cboKhachHang != null) {
-			cboKhachHang.setSelectedIndex(0);
+			if (cboKhachHang.getItemCount() > 0) {
+				cboKhachHang.setSelectedIndex(0);
+			}
 		}
 		if (cboChuyenTau != null) {
-			cboChuyenTau.setSelectedIndex(0);
+			if (cboChuyenTau.getItemCount() > 0) {
+				cboChuyenTau.setSelectedIndex(0);
+			}
 		}
 		if (cboToaTau != null) {
-			cboToaTau.setSelectedIndex(1);
+			if (cboToaTau.getItemCount() > 0) {
+				cboToaTau.setSelectedIndex(0);
+			}
 		}
 		if (txtMaKM != null) {
 			txtMaKM.setText("");
@@ -866,9 +980,143 @@ public class BanVePage extends JPanel {
 		selectedNgayLap = LocalDateTime.now().format(TICKET_TIME_FORMAT);
 		generatedMaHD = "HD" + LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyy")) + "01";
 		generatedMaVe = "VE" + LocalDate.now().format(DateTimeFormatter.ofPattern("ddMMyy")) + "01";
+		capNhatGheDaDatTheoToa();
+		refreshSeatGrid();
 		refreshSeatButtonStyles();
 		updateSeatSummary();
 		refreshSummary();
+	}
+
+	private void taiDuLieuBanDau() {
+		dsKhachHang.clear();
+		for (KhachHang kh : khachHangController.layTatCaKhachHang()) {
+			dsKhachHang.add(new KhachHangOption(kh.getMaKH(), kh.getTenKH(), kh.getSdt()));
+		}
+		if (cboKhachHang != null) {
+			cboKhachHang.removeAllItems();
+			for (KhachHangOption option : dsKhachHang) {
+				cboKhachHang.addItem(option);
+			}
+		}
+
+		dsChuyenTau.clear();
+		for (ChuyenTau ct : chuyenTauController.timKiemChuyenTau("")) {
+			dsChuyenTau.add(new ChuyenTauOption(ct.getMaCT(), ct.getMaTau(), ct.getMaTuyenTau(), formatKhoiHanh(ct)));
+		}
+		if (cboChuyenTau != null) {
+			cboChuyenTau.removeAllItems();
+			for (ChuyenTauOption option : dsChuyenTau) {
+				cboChuyenTau.addItem(option);
+			}
+		}
+
+		toaTheoChuyen.clear();
+		List<Toa> dsToa = toaController.timKiemToa(null);
+		for (Toa toa : dsToa) {
+			ToaOption option = new ToaOption(toa.getMaToa(), toa.getLoaiToa(), toa.getSoGhe(),
+					xacDinhGiaVeTheoLoaiToa(toa.getLoaiToa()));
+			toaTheoChuyen.computeIfAbsent(toa.getMaTau(), k -> new ArrayList<>()).add(option);
+		}
+
+		if (cboKhachHang != null && cboKhachHang.getItemCount() > 0) {
+			cboKhachHang.setSelectedIndex(0);
+		} else {
+			selectedMaKH = null;
+			selectedKhachHang = "Chưa chọn khách hàng";
+		}
+		if (cboChuyenTau != null && cboChuyenTau.getItemCount() > 0) {
+			cboChuyenTau.setSelectedIndex(0);
+		} else {
+			if (cboToaTau != null) {
+				cboToaTau.removeAllItems();
+			}
+			selectedMaCT = null;
+			selectedMaToa = null;
+			selectedToa = "Chưa chọn toa";
+			selectedChuyen = "Chưa chọn chuyến";
+			selectedTuyen = "";
+			selectedKhoiHanh = "";
+		}
+	}
+
+	private void taiToaTheoChuyen(ChuyenTauOption chuyen) {
+		if (cboToaTau == null) {
+			return;
+		}
+		cboToaTau.removeAllItems();
+		List<ToaOption> ds = toaTheoChuyen.getOrDefault(chuyen.maTau, Collections.emptyList());
+		for (ToaOption toa : ds) {
+			cboToaTau.addItem(toa);
+		}
+		if (cboToaTau.getItemCount() > 0) {
+			cboToaTau.setSelectedIndex(0);
+		} else {
+			selectedMaToa = null;
+			selectedToa = "Chưa chọn toa";
+			bookedSeats.clear();
+			selectedSeats.clear();
+			refreshSeatGrid();
+		}
+	}
+
+	private void capNhatGheDaDatTheoToa() {
+		bookedSeats.clear();
+		if (selectedMaCT == null || selectedMaToa == null) {
+			return;
+		}
+		Set<String> daDat = hoaDonController.layGheDaDat(selectedMaCT, selectedMaToa);
+		for (String ghe : daDat) {
+			bookedSeats.add(chuanHoaMaGhe(ghe));
+		}
+	}
+
+	private void refreshSeatGrid() {
+		if (seatGridContainer == null) {
+			return;
+		}
+		seatGridContainer.removeAll();
+		seatGridContainer.add(createSeatGrid(), BorderLayout.CENTER);
+		seatGridContainer.revalidate();
+		seatGridContainer.repaint();
+	}
+
+	private BigDecimal xacDinhGiaVeTheoLoaiToa(String loaiToa) {
+		if (loaiToa == null) {
+			return new BigDecimal("1105000");
+		}
+		String value = loaiToa.toLowerCase();
+		if (value.contains("ngồi mềm") || value.contains("ghế mềm")) {
+			return new BigDecimal("1105000");
+		}
+		if (value.contains("nằm")) {
+			return new BigDecimal("1530000");
+		}
+		return new BigDecimal("850000");
+	}
+
+	private String formatKhoiHanh(ChuyenTau ct) {
+		if (ct.getNgayKhoiHanh() == null) {
+			return "Chưa rõ";
+		}
+		return ct.getNgayKhoiHanh().format(TICKET_TIME_FORMAT);
+	}
+
+	private String chuanHoaMaGhe(String raw) {
+		if (raw == null) {
+			return "";
+		}
+		String value = raw.trim().toUpperCase();
+		if (value.matches("[A-Z]\\d+")) {
+			char cot = value.charAt(0);
+			int row = Integer.parseInt(value.substring(1));
+			return cot + String.format("%02d", row);
+		}
+		if (value.matches("\\d+[A-Z]")) {
+			char cot = value.charAt(value.length() - 1);
+			int row = Integer.parseInt(value.substring(0, value.length() - 1));
+			return cot + String.format("%02d", row);
+		}
+		return value;
 	}
 
 	private void hienThiCard(JPanel card) {
@@ -880,5 +1128,60 @@ public class BanVePage extends JPanel {
 
 	private String formatMoney(BigDecimal value) {
 		return String.format("%,.0f đ", value);
+	}
+
+	private static final class KhachHangOption {
+		private final String maKH;
+		private final String tenKH;
+		private final String sdt;
+
+		private KhachHangOption(String maKH, String tenKH, String sdt) {
+			this.maKH = maKH;
+			this.tenKH = tenKH == null ? "" : tenKH;
+			this.sdt = sdt == null ? "" : sdt;
+		}
+
+		@Override
+		public String toString() {
+			return maKH + " - " + tenKH + (sdt.isBlank() ? "" : " - " + sdt);
+		}
+	}
+
+	private static final class ChuyenTauOption {
+		private final String maCT;
+		private final String maTau;
+		private final String maTuyen;
+		private final String thoiGianKhoiHanh;
+
+		private ChuyenTauOption(String maCT, String maTau, String maTuyen, String thoiGianKhoiHanh) {
+			this.maCT = maCT;
+			this.maTau = maTau;
+			this.maTuyen = maTuyen;
+			this.thoiGianKhoiHanh = thoiGianKhoiHanh;
+		}
+
+		@Override
+		public String toString() {
+			return maCT + " - " + maTau + " - " + maTuyen + " - " + thoiGianKhoiHanh;
+		}
+	}
+
+	private static final class ToaOption {
+		private final String maToa;
+		private final String loaiToa;
+		private final int soGhe;
+		private final BigDecimal giaVe;
+
+		private ToaOption(String maToa, String loaiToa, int soGhe, BigDecimal giaVe) {
+			this.maToa = maToa;
+			this.loaiToa = loaiToa;
+			this.soGhe = soGhe;
+			this.giaVe = giaVe;
+		}
+
+		@Override
+		public String toString() {
+			return maToa + " - " + loaiToa + " - " + soGhe + " ghế";
+		}
 	}
 }

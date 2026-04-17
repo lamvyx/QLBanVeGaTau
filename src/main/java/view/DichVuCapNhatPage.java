@@ -1,5 +1,7 @@
 package view;
 
+import controller.DichVuController;
+import entity.DichVu;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,9 +11,12 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.math.BigDecimal;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -19,6 +24,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import service.DichVuService.KetQuaXuLy;
 
 public class DichVuCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -26,9 +32,11 @@ public class DichVuCapNhatPage extends JPanel {
 
 	private JTable table;
 	private JPanel formPanel;
+	private DefaultTableModel model;
 	
 	private JTextField txtMaDV, txtTenDV, txtGiaDV;
 	private JButton btnCapNhat, btnXoa, btnHuy;
+	private final DichVuController dichVuController = new DichVuController();
 
 	public DichVuCapNhatPage() {
 		setLayout(new BorderLayout());
@@ -64,18 +72,12 @@ public class DichVuCapNhatPage extends JPanel {
 		));
 
 		String[] columns = { "#", "Mã DV", "Tên DV", "Giá DV", "Trạng thái" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { 1, "DV001", "Ăn sáng", "50.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { 2, "DV002", "Ăn cơm trưa", "75.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { 3, "DV003", "Bảo hiểm", "100.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { 4, "DV004", "WiFi", "30.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { 5, "DV005", "Phòng VIP", "200.000 đ", "Hoạt động" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -113,6 +115,7 @@ public class DichVuCapNhatPage extends JPanel {
 		splitPane.setDividerLocation(250);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
+		taiDuLieuBang();
 
 		return content;
 	}
@@ -217,6 +220,7 @@ public class DichVuCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnCapNhat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatDichVu());
 		buttonPanel.add(btnCapNhat);
 
 		btnXoa = new JButton("Xóa");
@@ -226,6 +230,7 @@ public class DichVuCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnXoa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnXoa.addActionListener(e -> xuLyXoaDichVu());
 		buttonPanel.add(btnXoa);
 
 		btnHuy = new JButton("Hủy");
@@ -235,6 +240,7 @@ public class DichVuCapNhatPage extends JPanel {
 		btnHuy.setFocusPainted(false);
 		btnHuy.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnHuy.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnHuy.addActionListener(e -> formPanel.removeAll());
 		buttonPanel.add(btnHuy);
 
 		formContainer.add(buttonPanel, gbc);
@@ -245,5 +251,61 @@ public class DichVuCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		List<DichVu> ds = dichVuController.timKiemDichVu(null, null);
+		int stt = 1;
+		for (DichVu dv : ds) {
+			model.addRow(new Object[] { stt++, dv.getMaDV(), dv.getTenDV(), dv.getGiaDV(), dv.isTrangThai() ? "Hoạt động" : "Ngừng" });
+		}
+	}
+
+	private void xuLyCapNhatDichVu() {
+		if (txtMaDV == null) {
+			return;
+		}
+		try {
+			BigDecimal gia = new BigDecimal(txtGiaDV.getText().replace("đ", "").replace(".", "").replace(",", "").trim());
+			KetQuaXuLy ketQua = dichVuController.capNhatDichVu(txtMaDV.getText(), txtTenDV.getText(), gia, true);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao,
+					ketQua.thanhCong ? "Thành công" : "Lỗi",
+					ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+			if (ketQua.thanhCong) {
+				taiDuLieuBang();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Giá dịch vụ không hợp lệ.");
+		}
+	}
+
+	private void xuLyXoaDichVu() {
+		if (txtMaDV == null || txtMaDV.getText().trim().isEmpty()) {
+			return;
+		}
+		String maDV = txtMaDV.getText().trim();
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa dịch vụ " + maDV + " không?",
+				"Xác nhận xóa dịch vụ",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		KetQuaXuLy ketQua = dichVuController.xoaDichVu(maDV);
+		JOptionPane.showMessageDialog(this, ketQua.thongBao,
+				ketQua.thanhCong ? "Thành công" : "Lỗi",
+				ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+		if (ketQua.thanhCong) {
+			taiDuLieuBang();
+			formPanel.removeAll();
+			formPanel.revalidate();
+			formPanel.repaint();
+		}
 	}
 }

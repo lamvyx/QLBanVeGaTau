@@ -8,7 +8,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class VeTau_DAO {
 	public VeTau timTheoMaVe(String maVeTau) {
@@ -109,5 +111,39 @@ public class VeTau_DAO {
 			System.err.println("[VeTau_DAO] Lỗi đếm vé: " + e.getMessage());
 		}
 		return 0;
+	}
+
+	public Set<String> layGheDaDat(String maCT, String maToa) {
+		Set<String> dsGhe = new LinkedHashSet<>();
+		if (maCT == null || maCT.isBlank() || maToa == null || maToa.isBlank()) {
+			return dsGhe;
+		}
+
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) {
+				return dsGhe;
+			}
+
+			String sql = "SELECT ctv.viTriGhe "
+					+ "FROM VeTau vt "
+					+ "JOIN ChiTietVeTau ctv ON ctv.maVeTau = vt.maVeTau "
+					+ "WHERE vt.maCT = ? AND vt.maToa = ? AND vt.trangThai <> 'DA_HOAN'";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maCT.trim());
+				ps.setString(2, maToa.trim());
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						String viTri = rs.getString("viTriGhe");
+						if (viTri != null && !viTri.isBlank()) {
+							dsGhe.add(viTri.trim().toUpperCase());
+						}
+					}
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("[VeTau_DAO] Lỗi lấy danh sách ghế đã đặt: " + e.getMessage());
+		}
+		return dsGhe;
 	}
 }

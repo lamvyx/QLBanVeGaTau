@@ -192,6 +192,18 @@ public class KhachHang_DAO {
 		}
 	}
 
+	public boolean xoaKhachHang(String maKH) {
+		try {
+			if (maKH == null || maKH.isBlank() || !kiemTraMaKHTonTai(maKH)) {
+				return false;
+			}
+			return database.deleteKhachHang(maKH);
+		} catch (Exception e) {
+			System.err.println("Không thể xóa khách hàng " + maKH + ": " + e.getMessage());
+			return false;
+		}
+	}
+
 	public boolean kiemTraMaKHTonTai(String maKH) {
 		return timKhachHangTheoMa(maKH) != null;
 	}

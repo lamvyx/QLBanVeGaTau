@@ -75,6 +75,27 @@ public class TuyenTauService {
 		return ketQua;
 	}
 
+	public KetQuaXuLy xoaTuyenTau(String maTT) {
+		KetQuaXuLy ketQua = new KetQuaXuLy();
+		if (maTT == null || maTT.trim().isEmpty()) {
+			ketQua.thongBao = "Mã tuyến tàu không hợp lệ";
+			return ketQua;
+		}
+
+		TuyenTau current = tuyenTauDAO.timTheoMa(maTT.trim());
+		if (current == null) {
+			ketQua.thongBao = "Không tìm thấy tuyến tàu";
+			return ketQua;
+		}
+
+		boolean ok = tuyenTauDAO.xoaTuyenTau(maTT.trim());
+		ketQua.thanhCong = ok;
+		ketQua.maThamChieu = maTT.trim();
+		ketQua.thongBao = ok ? "Xóa tuyến tàu thành công"
+				: "Không thể xóa tuyến tàu (có thể đang được chuyến tàu sử dụng)";
+		return ketQua;
+	}
+
 	public static class KetQuaXuLy {
 		public boolean thanhCong;
 		public String thongBao;

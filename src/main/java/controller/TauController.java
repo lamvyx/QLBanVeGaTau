@@ -20,6 +20,10 @@ public class TauController {
 		return tauService.capNhatTau(chuanHoa(maTau), chuanHoaRongThanhNull(tenTau), soLuongToa);
 	}
 
+	public KetQuaXuLy xoaTau(String maTau) {
+		return tauService.xoaTau(chuanHoa(maTau));
+	}
+
 	private String chuanHoa(String s) {
 		return s == null ? null : s.trim();
 	}

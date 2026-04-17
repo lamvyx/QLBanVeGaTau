@@ -1,5 +1,7 @@
 package view;
 
+import controller.KhuyenMaiController;
+import entity.KhuyenMai;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,9 +11,15 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -19,6 +27,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import service.KhuyenMaiService.KetQuaXuLy;
 
 public class KhuyenMaiCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -26,9 +35,12 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 
 	private JTable table;
 	private JPanel formPanel;
+	private DefaultTableModel model;
 	
 	private JTextField txtMaKM, txtTenKM, txtTyLeKM, txtNgayBD, txtNgayKT;
 	private JButton btnCapNhat, btnXoa, btnHuy;
+	private final KhuyenMaiController khuyenMaiController = new KhuyenMaiController();
+	private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	public KhuyenMaiCapNhatPage() {
 		setLayout(new BorderLayout());
@@ -64,18 +76,12 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		));
 
 		String[] columns = { "#", "Mã KM", "Tên KM", "Tỷ lệ (%)", "Ngày BĐ", "Ngày KT", "Trạng thái" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { 1, "KM001", "Hè 2024", "10%", "01/06/2024", "31/08/2024", "Đang chạy" });
-		model.addRow(new Object[] { 2, "KM002", "Thu 2024", "15%", "01/09/2024", "30/11/2024", "Sắp diễn ra" });
-		model.addRow(new Object[] { 3, "KM003", "Tết 2024", "20%", "01/01/2024", "31/01/2024", "Kết thúc" });
-		model.addRow(new Object[] { 4, "KM004", "Sinh nhật công ty", "5%", "01/04/2024", "30/04/2024", "Kết thúc" });
-		model.addRow(new Object[] { 5, "KM005", "Black Friday", "25%", "01/11/2024", "30/11/2024", "Sắp diễn ra" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -113,6 +119,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		splitPane.setDividerLocation(280);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
+		taiDuLieuBang();
 
 		return content;
 	}
@@ -253,6 +260,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnCapNhat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatKhuyenMai());
 		buttonPanel.add(btnCapNhat);
 
 		btnXoa = new JButton("Xóa");
@@ -262,6 +270,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnXoa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnXoa.addActionListener(e -> xuLyXoaKhuyenMai());
 		buttonPanel.add(btnXoa);
 
 		btnHuy = new JButton("Hủy");
@@ -271,6 +280,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		btnHuy.setFocusPainted(false);
 		btnHuy.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnHuy.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnHuy.addActionListener(e -> formPanel.removeAll());
 		buttonPanel.add(btnHuy);
 
 		formContainer.add(buttonPanel, gbc);
@@ -281,5 +291,76 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		List<KhuyenMai> ds = khuyenMaiController.timKiemKhuyenMai(null, null);
+		int stt = 1;
+		LocalDate homNay = LocalDate.now();
+		for (KhuyenMai km : ds) {
+			String trangThai;
+			if (homNay.isBefore(km.getNgayBD())) {
+				trangThai = "Sắp diễn ra";
+			} else if (homNay.isAfter(km.getNgayKT())) {
+				trangThai = "Kết thúc";
+			} else {
+				trangThai = "Đang chạy";
+			}
+			model.addRow(new Object[] { stt++, km.getMaKM(), km.getTenKM(), km.getTyLeKM(),
+					km.getNgayBD().format(DATE_FORMAT), km.getNgayKT().format(DATE_FORMAT), trangThai });
+		}
+	}
+
+	private void xuLyCapNhatKhuyenMai() {
+		if (txtMaKM == null) {
+			return;
+		}
+		try {
+			String tyLeText = txtTyLeKM.getText().replace("%", "").trim();
+			BigDecimal tyLe = new BigDecimal(tyLeText);
+			LocalDate ngayBD = LocalDate.parse(txtNgayBD.getText().trim(), DATE_FORMAT);
+			LocalDate ngayKT = LocalDate.parse(txtNgayKT.getText().trim(), DATE_FORMAT);
+			KetQuaXuLy ketQua = khuyenMaiController.capNhatKhuyenMai(txtMaKM.getText(), txtTenKM.getText(), tyLe, ngayBD, ngayKT);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao,
+					ketQua.thanhCong ? "Thành công" : "Lỗi",
+					ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+			if (ketQua.thanhCong) {
+				taiDuLieuBang();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Tỷ lệ khuyến mãi không hợp lệ.");
+		} catch (DateTimeParseException ex) {
+			JOptionPane.showMessageDialog(this, "Ngày không hợp lệ (định dạng dd/MM/yyyy).");
+		}
+	}
+
+	private void xuLyXoaKhuyenMai() {
+		if (txtMaKM == null || txtMaKM.getText().trim().isEmpty()) {
+			return;
+		}
+		String maKM = txtMaKM.getText().trim();
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa khuyến mãi " + maKM + " không?",
+				"Xác nhận xóa khuyến mãi",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		KetQuaXuLy ketQua = khuyenMaiController.xoaKhuyenMai(maKM);
+		JOptionPane.showMessageDialog(this, ketQua.thongBao,
+				ketQua.thanhCong ? "Thành công" : "Lỗi",
+				ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+		if (ketQua.thanhCong) {
+			taiDuLieuBang();
+			formPanel.removeAll();
+			formPanel.revalidate();
+			formPanel.repaint();
+		}
 	}
 }

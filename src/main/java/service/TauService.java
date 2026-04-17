@@ -68,6 +68,26 @@ public class TauService {
 		return ketQua;
 	}
 
+	public KetQuaXuLy xoaTau(String maTau) {
+		KetQuaXuLy ketQua = new KetQuaXuLy();
+		if (maTau == null || maTau.trim().isEmpty()) {
+			ketQua.thongBao = "Mã tàu không hợp lệ";
+			return ketQua;
+		}
+
+		Tau current = tauDAO.timTheoMa(maTau.trim());
+		if (current == null) {
+			ketQua.thongBao = "Không tìm thấy tàu";
+			return ketQua;
+		}
+
+		boolean ok = tauDAO.xoaTau(maTau.trim());
+		ketQua.thanhCong = ok;
+		ketQua.maThamChieu = maTau.trim();
+		ketQua.thongBao = ok ? "Xóa tàu thành công" : "Không thể xóa tàu (có thể đang liên kết với toa/chuyến tàu)";
+		return ketQua;
+	}
+
 	public static class KetQuaXuLy {
 		public boolean thanhCong;
 		public String thongBao;

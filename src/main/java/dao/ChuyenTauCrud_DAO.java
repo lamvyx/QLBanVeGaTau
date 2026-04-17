@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -38,7 +39,7 @@ public class ChuyenTauCrud_DAO {
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			System.err.println("[ChuyenTauCrud_DAO] Lỗi tìm kiếm chuyến tàu: " + e.getMessage());
 		}
 		return danhSach;
@@ -61,7 +62,7 @@ public class ChuyenTauCrud_DAO {
 				ps.setBoolean(6, chuyenTau.isTrangThai());
 				return ps.executeUpdate() > 0;
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			System.err.println("[ChuyenTauCrud_DAO] Lỗi thêm chuyến tàu: " + e.getMessage());
 			return false;
 		}
@@ -84,8 +85,25 @@ public class ChuyenTauCrud_DAO {
 				ps.setString(6, chuyenTau.getMaCT());
 				return ps.executeUpdate() > 0;
 			}
-		} catch (Exception e) {
+		} catch (SQLException e) {
 			System.err.println("[ChuyenTauCrud_DAO] Lỗi cập nhật chuyến tàu: " + e.getMessage());
+			return false;
+		}
+	}
+
+	public boolean xoaChuyenTau(String maCT) {
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null || maCT == null || maCT.isBlank()) {
+				return false;
+			}
+			String sql = "DELETE FROM ChuyenTau WHERE maCT = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maCT);
+				return ps.executeUpdate() > 0;
+			}
+		} catch (SQLException e) {
+			System.err.println("[ChuyenTauCrud_DAO] Lỗi xóa chuyến tàu: " + e.getMessage());
 			return false;
 		}
 	}

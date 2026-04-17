@@ -43,6 +43,10 @@ public class NhanVienController {
 		return nhanVienService.layEmailTheoUsername(chuanHoaChuoiRongThanhNull(username));
 	}
 
+	public KetQuaXuLy xoaNhanVien(String maNV) {
+		return nhanVienService.xoaNhanVien(chuanHoaChuoi(maNV));
+	}
+
 	private LocalDate parseDateOrDefault(String rawValue, LocalDate defaultValue) {
 		if (rawValue == null || rawValue.isBlank()) {
 			return defaultValue;

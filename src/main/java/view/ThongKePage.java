@@ -16,6 +16,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
@@ -71,7 +72,7 @@ public class ThongKePage extends JPanel {
 		btnExcel.setFocusPainted(false);
 		btnExcel.setBorder(new EmptyBorder(6, 12, 6, 12));
 		btnExcel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnExcel.addActionListener(e -> {});
+		btnExcel.addActionListener(e -> hienThiThongBaoXuatExcel());
 		right.add(btnExcel);
 		header.add(right, BorderLayout.EAST);
 
@@ -109,21 +110,11 @@ public class ThongKePage extends JPanel {
 				return;
 			}
 			switch (selection) {
-			case "Doanh thu":
-				showCard("doanhthu");
-				break;
-			case "Vé":
-				showCard("ve");
-				break;
-			case "Khách hàng":
-				showCard("khachhang");
-				break;
-			case "Chuyến tàu":
-				showCard("chuyentau");
-				break;
-			default:
-				showCard("doanhthu");
-				break;
+			case "Doanh thu" -> showCard("doanhthu");
+			case "Vé" -> showCard("ve");
+			case "Khách hàng" -> showCard("khachhang");
+			case "Chuyến tàu" -> showCard("chuyentau");
+			default -> showCard("doanhthu");
 			}
 		});
 		bar.add(cboDanhMuc);
@@ -141,6 +132,13 @@ public class ThongKePage extends JPanel {
 
 	private void showCard(String name) {
 		cardLayout.show(cardPanel, name);
+	}
+
+	private void hienThiThongBaoXuatExcel() {
+		JOptionPane.showMessageDialog(this,
+				"Đã ghi nhận yêu cầu xuất Excel cho báo cáo đang hiển thị.",
+				"Xuất Excel",
+				JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private JPanel taoDoanhThuPanel() {
