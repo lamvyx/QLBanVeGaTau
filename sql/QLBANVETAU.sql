@@ -393,5 +393,22 @@ INSERT INTO ChiTietHoaDon VALUES
     ('CTHD003', 'HD001', NULL,    'DV001', 2, 50000);
 GO
 
+-- ============================================
+-- BỔ SUNG NHÂN VIÊN MỚI (insert đơn giản)
+-- ============================================
+INSERT INTO TaiKhoan (username, password, vaiTro)
+VALUES ('vylam12005', '123456', 'NHAN_VIEN');
+GO
+
+INSERT INTO NhanVien (
+    maNV, tenNV, sdt, gioiTinh, ngaySinh, ngayVaoLam,
+    trangThai, email, chucVu, username
+)
+VALUES (
+    'NV004', N'Vy Lam', '0900001205', 1, '2005-01-12', CAST(GETDATE() AS DATE),
+    1, 'vylam.12005@gmail.com', N'Nhân viên bán vé', 'vylam12005'
+);
+GO
+
 PRINT N'Tạo CSDL QuanLyVeTau thành công!';
 GO

@@ -8,11 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class TaiKhoan_DAO {
-	private static final String ADMIN_MAC_DINH_USERNAME = "admin";
-	private static final String ADMIN_MAC_DINH_PASSWORD = "admin123";
-	private static final String ADMIN_MAC_DINH_EMAIL = "admin@local";
-	private static final String ADMIN_MAC_DINH_HOTEN = "Quan tri he thong";
-
 	private static final String SQL_TIM_TAI_KHOAN = """
 			SELECT tk.username, tk.[password] AS matKhau, tk.vaiTro,
 			       ISNULL(nv.email, '') AS email,
@@ -25,10 +20,6 @@ public class TaiKhoan_DAO {
 	private static final String SQL_CAP_NHAT_MAT_KHAU = "UPDATE TaiKhoan SET [password] = ? WHERE username = ?";
 
 	public TaiKhoan timTaiKhoanDangNhap(String tenDangNhap, String matKhau) {
-		if (laTaiKhoanAdminMacDinh(tenDangNhap, matKhau)) {
-			return taoTaiKhoanAdminMacDinh();
-		}
-
 		TaiKhoan taiKhoan = timTheoTenDangNhap(tenDangNhap);
 		if (taiKhoan == null) {
 			return null;
@@ -41,10 +32,6 @@ public class TaiKhoan_DAO {
 	}
 
 	public String layEmailTheoTaiKhoan(String tenDangNhap) {
-		if (ADMIN_MAC_DINH_USERNAME.equalsIgnoreCase(tenDangNhap == null ? "" : tenDangNhap.trim())) {
-			return ADMIN_MAC_DINH_EMAIL;
-		}
-
 		TaiKhoan taiKhoan = timTheoTenDangNhap(tenDangNhap);
 		return taiKhoan == null ? null : taiKhoan.getEmail();
 	}
@@ -81,21 +68,5 @@ public class TaiKhoan_DAO {
 		}
 	}
 
-	private boolean laTaiKhoanAdminMacDinh(String tenDangNhap, String matKhau) {
-		if (tenDangNhap == null || matKhau == null) {
-			return false;
-		}
-		return ADMIN_MAC_DINH_USERNAME.equalsIgnoreCase(tenDangNhap.trim())
-				&& ADMIN_MAC_DINH_PASSWORD.equals(matKhau);
-	}
 
-	private TaiKhoan taoTaiKhoanAdminMacDinh() {
-		return new TaiKhoan(
-			ADMIN_MAC_DINH_USERNAME,
-			ADMIN_MAC_DINH_PASSWORD,
-			ADMIN_MAC_DINH_EMAIL,
-			ADMIN_MAC_DINH_HOTEN,
-			"QUAN_LY"
-		);
-	}
 }

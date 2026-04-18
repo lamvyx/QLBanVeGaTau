@@ -5,7 +5,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public final class Database {
-	private static final String DEFAULT_URL = "jdbc:sqlserver://localhost:1433;databaseName=QuanLyVeTau;encrypt=true;trustServerCertificate=true";
+	private static final String DEFAULT_URL = "jdbc:sqlserver://localhost:1433;databaseName=QLBANVETAU;encrypt=true;trustServerCertificate=true";
 	private static final String DEFAULT_USER = "sa";
 	private static final String DEFAULT_PASSWORD = "sapassword";
 
