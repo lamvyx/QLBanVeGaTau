@@ -13,6 +13,7 @@ import java.awt.GridLayout;
 import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,8 +30,14 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 	private final JPanel cardPanel = new JPanel(cardLayout);
 	private final JComboBox<String> cboTongHop = new JComboBox<>(new String[] { "Ngày", "Tháng", "Quý", "Năm" });
 	private final JComboBox<String> cboNam = new JComboBox<>(new String[] { "2024", "2025", "2026" });
+	private final boolean chiThongKeTheoNgay;
 
 	protected ThongKeBaoCaoBasePage(String title) {
+		this(title, false);
+	}
+
+	protected ThongKeBaoCaoBasePage(String title, boolean chiThongKeTheoNgay) {
+		this.chiThongKeTheoNgay = chiThongKeTheoNgay;
 		setLayout(new BorderLayout());
 		setBackground(MAU_NEN);
 		add(taoHeaderPanel(title), BorderLayout.NORTH);
@@ -61,6 +68,10 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		cboTongHop.setSelectedItem("Tháng");
 		cboTongHop.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboTongHop.setPreferredSize(new Dimension(96, 28));
+		if (chiThongKeTheoNgay) {
+			cboTongHop.setModel(new DefaultComboBoxModel<>(new String[] { "Ngày" }));
+			cboTongHop.setSelectedItem("Ngày");
+		}
 		right.add(cboTongHop);
 
 		JLabel lblNam = new JLabel("Năm:");
@@ -71,6 +82,7 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		cboNam.setSelectedItem("2026");
 		cboNam.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboNam.setPreferredSize(new Dimension(72, 28));
+		cboNam.setEnabled(!chiThongKeTheoNgay);
 		right.add(cboNam);
 
 		JPanel exportWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
@@ -115,6 +127,9 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		JLabel sub = new JLabel("Dùng bộ lọc Tổng hợp để chuyển giữa Ngày, Tháng, Quý, Năm");
 		sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		sub.setForeground(new Color(108, 122, 138));
+		if (chiThongKeTheoNgay) {
+			sub.setText("Nhân viên chỉ xem thống kê theo Ngày");
+		}
 		bar.add(sub);
 		return bar;
 	}

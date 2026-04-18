@@ -12,6 +12,10 @@ public class VeThongKePage extends ThongKeBaoCaoBasePage {
 		super("Thống kê vé");
 	}
 
+	public VeThongKePage(boolean chiThongKeTheoNgay) {
+		super("Thống kê vé", chiThongKeTheoNgay);
+	}
+
 	@Override
 	protected JPanel createPeriodPanel(String periodKey) {
 		switch (periodKey) {
