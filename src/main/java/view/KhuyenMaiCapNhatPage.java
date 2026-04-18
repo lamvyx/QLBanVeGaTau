@@ -63,7 +63,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
-		String[] columns = { "#", "Mã KM", "Tên KM", "Tỷ lệ (%)", "Ngày BĐ", "Ngày KT", "Trạng thái" };
+		String[] columns = { "Mã KM", "Tên KM", "Tỷ lệ (%)", "Ngày BĐ", "Ngày KT", "Trạng thái" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -71,11 +71,11 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { 1, "KM001", "Hè 2024", "10%", "01/06/2024", "31/08/2024", "Đang chạy" });
-		model.addRow(new Object[] { 2, "KM002", "Thu 2024", "15%", "01/09/2024", "30/11/2024", "Sắp diễn ra" });
-		model.addRow(new Object[] { 3, "KM003", "Tết 2024", "20%", "01/01/2024", "31/01/2024", "Kết thúc" });
-		model.addRow(new Object[] { 4, "KM004", "Sinh nhật công ty", "5%", "01/04/2024", "30/04/2024", "Kết thúc" });
-		model.addRow(new Object[] { 5, "KM005", "Black Friday", "25%", "01/11/2024", "30/11/2024", "Sắp diễn ra" });
+		model.addRow(new Object[] { "KM001", "Hè 2024", "10%", "01/06/2024", "31/08/2024", "Đang chạy" });
+		model.addRow(new Object[] { "KM002", "Thu 2024", "15%", "01/09/2024", "30/11/2024", "Sắp diễn ra" });
+		model.addRow(new Object[] { "KM003", "Tết 2024", "20%", "01/01/2024", "31/01/2024", "Kết thúc" });
+		model.addRow(new Object[] { "KM004", "Sinh nhật công ty", "5%", "01/04/2024", "30/04/2024", "Kết thúc" });
+		model.addRow(new Object[] { "KM005", "Black Friday", "25%", "01/11/2024", "30/11/2024", "Sắp diễn ra" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);

@@ -97,7 +97,7 @@ public class ChuyenTauTraCuuPage extends JPanel {
 			new EmptyBorder(12, 14, 12, 14)
 		));
 
-		String[] columns = { "#", "Mã chuyến", "Tàu", "Tuyến đường", "Khởi hành", "Đến nơi", "Chỗ trống", "Giá cơ bản", "Trạng thái", "Thao tác" };
+		String[] columns = { "Mã chuyến", "Tàu", "Tuyến đường", "Khởi hành", "Đến nơi", "Chỗ trống", "Giá cơ bản", "Trạng thái" };
 		model = new DefaultTableModel(columns, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -107,12 +107,12 @@ public class ChuyenTauTraCuuPage extends JPanel {
 		};
 
 		// Sample data
-		model.addRow(new Object[] { 1, "SE1-020426", "SE1", "Sài Gòn - Hà Nội", "19:00:00 2/4/2026", "01:00:00 4/4/2026", "112/196", "850.000 đ", "Lên lịch", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 2, "SE1-030426", "SE1", "Sài Gòn - Hà Nội", "19:00:00 3/4/2026", "01:00:00 5/4/2026", "145/196", "850.000 đ", "Lên lịch", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 3, "SE2-020426", "SE2", "Sài Gòn - Đà Nẵng", "07:00:00 2/4/2026", "23:00:00 2/4/2026", "56/76", "530.000 đ", "Đang chạy", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 4, "TN1-020426", "TN1", "Sài Gòn - Nha Trang", "06:00:00 2/4/2026", "13:00:00 2/4/2026", "0/96", "280.000 đ", "Hoàn thành", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 5, "SG1-020426", "SG1", "Sài Gòn - Hà Nội", "20:00:00 5/4/2026", "02:00:00 7/4/2026", "12/16", "1.500.000 đ", "Lên lịch", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 6, "SE2-030426", "SE2", "Sài Gòn - Nha Trang", "08:00:00 3/4/2026", "15:00:00 3/4/2026", "48/76", "280.000 đ", "Lên lịch", "👁 ✏️ 🗑" });
+		model.addRow(new Object[] { "SE1-020426", "SE1", "Sài Gòn - Hà Nội", "19:00:00 2/4/2026", "01:00:00 4/4/2026", "112/196", "850.000 đ", "Lên lịch" });
+		model.addRow(new Object[] { "SE1-030426", "SE1", "Sài Gòn - Hà Nội", "19:00:00 3/4/2026", "01:00:00 5/4/2026", "145/196", "850.000 đ", "Lên lịch" });
+		model.addRow(new Object[] { "SE2-020426", "SE2", "Sài Gòn - Đà Nẵng", "07:00:00 2/4/2026", "23:00:00 2/4/2026", "56/76", "530.000 đ", "Đang chạy" });
+		model.addRow(new Object[] { "TN1-020426", "TN1", "Sài Gòn - Nha Trang", "06:00:00 2/4/2026", "13:00:00 2/4/2026", "0/96", "280.000 đ", "Hoàn thành" });
+		model.addRow(new Object[] { "SG1-020426", "SG1", "Sài Gòn - Hà Nội", "20:00:00 5/4/2026", "02:00:00 7/4/2026", "12/16", "1.500.000 đ", "Lên lịch" });
+		model.addRow(new Object[] { "SE2-030426", "SE2", "Sài Gòn - Nha Trang", "08:00:00 3/4/2026", "15:00:00 3/4/2026", "48/76", "280.000 đ", "Lên lịch" });
 
 		tableChuyenTau = new JTable(model);
 		tableChuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));

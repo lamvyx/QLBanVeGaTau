@@ -97,7 +97,7 @@ public class KhuyenMaiTraCuuPage extends JPanel {
 			new EmptyBorder(12, 14, 12, 14)
 		));
 
-		String[] columns = { "#", "Mã KM", "Tên khuyến mãi", "Tỷ lệ (%)", "Ngày bắt đầu", "Ngày kết thúc", "Trạng thái", "Thao tác" };
+		String[] columns = { "Mã KM", "Tên khuyến mãi", "Tỷ lệ (%)", "Ngày bắt đầu", "Ngày kết thúc", "Trạng thái" };
 		model = new DefaultTableModel(columns, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -107,11 +107,11 @@ public class KhuyenMaiTraCuuPage extends JPanel {
 		};
 
 		// Sample data
-		model.addRow(new Object[] { 1, "KM001", "Giảm giá Tết", 10, "01/01/2026", "05/01/2026", "Kết thúc", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 2, "KM002", "Giảm giá Tháng 4", 5, "01/04/2026", "30/04/2026", "Đang chạy", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 3, "KM003", "Giảm giá Hè", 15, "01/06/2026", "31/08/2026", "Sắp diễn ra", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 4, "KM004", "Khuyến mãi nhóm", 8, "10/04/2026", "20/04/2026", "Đang chạy", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 5, "KM005", "Giảm giá VIP", 20, "15/05/2026", "15/06/2026", "Sắp diễn ra", "👁 ✏️ 🗑" });
+		model.addRow(new Object[] { "KM001", "Giảm giá Tết", 10, "01/01/2026", "05/01/2026", "Kết thúc" });
+		model.addRow(new Object[] { "KM002", "Giảm giá Tháng 4", 5, "01/04/2026", "30/04/2026", "Đang chạy" });
+		model.addRow(new Object[] { "KM003", "Giảm giá Hè", 15, "01/06/2026", "31/08/2026", "Sắp diễn ra" });
+		model.addRow(new Object[] { "KM004", "Khuyến mãi nhóm", 8, "10/04/2026", "20/04/2026", "Đang chạy" });
+		model.addRow(new Object[] { "KM005", "Giảm giá VIP", 20, "15/05/2026", "15/06/2026", "Sắp diễn ra" });
 
 		tableKhuyenMai = new JTable(model);
 		tableKhuyenMai.setFont(new Font("Segoe UI", Font.PLAIN, 12));

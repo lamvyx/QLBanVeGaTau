@@ -82,7 +82,7 @@ public class DichVuTraCuuPage extends JPanel {
 			new EmptyBorder(12, 14, 12, 14)
 		));
 
-		String[] columns = { "#", "Mã dịch vụ", "Tên dịch vụ", "Giá (VND)", "Trạng thái", "Thao tác" };
+		String[] columns = { "Mã dịch vụ", "Tên dịch vụ", "Giá (VND)", "Trạng thái" };
 		model = new DefaultTableModel(columns, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -92,11 +92,11 @@ public class DichVuTraCuuPage extends JPanel {
 		};
 
 		// Sample data
-		model.addRow(new Object[] { 1, "DV001", "Vé ngồi tiêu chuẩn", "0", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 2, "DV002", "Vé nằm thường", "0", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 3, "DV003", "Vé nằm VIP", "0", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 4, "DV004", "Bảo hiểm hành khách", "50000", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 5, "DV005", "Suất ăn nhẹ", "30000", "Hoạt động", "👁 ✏️ 🗑" });
+		model.addRow(new Object[] { "DV001", "Vé ngồi tiêu chuẩn", "0", "Hoạt động" });
+		model.addRow(new Object[] { "DV002", "Vé nằm thường", "0", "Hoạt động" });
+		model.addRow(new Object[] { "DV003", "Vé nằm VIP", "0", "Hoạt động" });
+		model.addRow(new Object[] { "DV004", "Bảo hiểm hành khách", "50000", "Hoạt động" });
+		model.addRow(new Object[] { "DV005", "Suất ăn nhẹ", "30000", "Hoạt động" });
 
 		tableDichVu = new JTable(model);
 		tableDichVu.setFont(new Font("Segoe UI", Font.PLAIN, 12));

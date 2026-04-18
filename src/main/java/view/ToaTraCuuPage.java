@@ -98,7 +98,7 @@ public class ToaTraCuuPage extends JPanel {
 			new EmptyBorder(12, 14, 12, 14)
 		));
 
-		String[] columns = { "#", "Mã toa", "Loại toa", "Tàu", "Số ghế", "Vị trí", "Trạng thái", "Thao tác" };
+		String[] columns = { "Mã toa", "Loại toa", "Tàu", "Số ghế", "Vị trí", "Trạng thái" };
 		model = new DefaultTableModel(columns, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -108,12 +108,12 @@ public class ToaTraCuuPage extends JPanel {
 		};
 
 		// Sample data
-		model.addRow(new Object[] { 1, "A1", "Ghế ngồi", "T001", 40, "Thứ 1", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 2, "A2", "Ghế ngồi", "T001", 40, "Thứ 2", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 3, "B1", "Giường nằm", "T002", 32, "Thứ 3", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 4, "C1", "Giường nằm khoang VIP", "T003", 16, "Thứ 1", "Bảo trì", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 5, "D1", "Toa hàng", "T001", 0, "Thứ 8", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 6, "A3", "Ghế ngồi", "T002", 40, "Thứ 3", "Hoạt động", "👁 ✏️ 🗑" });
+		model.addRow(new Object[] { "A1", "Ghế ngồi", "T001", 40, "Thứ 1", "Hoạt động" });
+		model.addRow(new Object[] { "A2", "Ghế ngồi", "T001", 40, "Thứ 2", "Hoạt động" });
+		model.addRow(new Object[] { "B1", "Giường nằm", "T002", 32, "Thứ 3", "Hoạt động" });
+		model.addRow(new Object[] { "C1", "Giường nằm khoang VIP", "T003", 16, "Thứ 1", "Bảo trí" });
+		model.addRow(new Object[] { "D1", "Toa hàng", "T001", 0, "Thứ 8", "Hoạt động" });
+		model.addRow(new Object[] { "A3", "Ghế ngồi", "T002", 40, "Thứ 3", "Hoạt động" });
 
 		tableToa = new JTable(model);
 		tableToa.setFont(new Font("Segoe UI", Font.PLAIN, 12));

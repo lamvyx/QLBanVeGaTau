@@ -1,6 +1,7 @@
 package view;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -36,7 +37,7 @@ public class NhanVienCapNhatPage extends JPanel {
 
 	private JTextField txtMaNV;
 	private JTextField txtHoTen;
-	private JTextField txtUsername;
+	private JTextField txtEmail;
 	private JTextField txtNgaySinh;
 	private JTextField txtNgayVaoLam;
 	private JComboBox<String> cbGioiTinh;
@@ -111,7 +112,7 @@ public class NhanVienCapNhatPage extends JPanel {
 		top.add(lbl, BorderLayout.WEST);
 		top.add(txtSearch, BorderLayout.EAST);
 
-		String[] cols = { "Mã NV", "Họ tên", "Username", "Số điện thoại", "Giới tính", "Chức vụ", "Trạng thái" };
+		String[] cols = { "Mã NV", "Họ tên", "Username", "Email", "Số điện thoại", "Giới tính", "Chức vụ", "Trạng thái" };
 		DefaultTableModel model = new DefaultTableModel(cols, 0) {
 			private static final long serialVersionUID = 1L;
 
@@ -121,10 +122,10 @@ public class NhanVienCapNhatPage extends JPanel {
 			}
 		};
 
-		model.addRow(new Object[] { "NV-1024", "Nguyễn Văn An", "nvan", "0901 234 567", "Nam", "Quản lý ga", "Đang làm việc" });
-		model.addRow(new Object[] { "NV-1025", "Lê Thị Bình", "ltbinh", "0912 345 678", "Nữ", "Nhân viên bán vé", "Ngừng làm việc" });
-		model.addRow(new Object[] { "NV-1026", "Trần Minh Chiến", "tmchien", "0923 456 789", "Nam", "Kỹ thuật viên", "Đang làm việc" });
-		model.addRow(new Object[] { "NV-1088", "Phạm Hồng Dung", "phdung", "0934 567 890", "Nữ", "Kế toán trưởng", "Đang làm việc" });
+		model.addRow(new Object[] { "NV-1024", "Nguyễn Văn An", "nvan", "nvan@saigonrail.vn", "0901 234 567", "Nam", "Quản lý ga", "Đang làm việc" });
+		model.addRow(new Object[] { "NV-1025", "Lê Thị Bình", "ltbinh", "ltbinh@saigonrail.vn", "0912 345 678", "Nữ", "Nhân viên bán vé", "Ngừng làm việc" });
+		model.addRow(new Object[] { "NV-1026", "Trần Minh Chiến", "tmchien", "tmchien@saigonrail.vn", "0923 456 789", "Nam", "Kỹ thuật viên", "Đang làm việc" });
+		model.addRow(new Object[] { "NV-1088", "Phạm Hồng Dung", "phdung", "phdung@saigonrail.vn", "0934 567 890", "Nữ", "Kế toán trưởng", "Đang làm việc" });
 
 		table = new JTable(model);
 		AppTheme.styleTable(table);
@@ -208,7 +209,7 @@ public class NhanVienCapNhatPage extends JPanel {
 
 		txtMaNV = new JTextField();
 		txtHoTen = new JTextField();
-		txtUsername = new JTextField();
+		txtEmail = new JTextField();
 		txtNgaySinh = new JTextField("yyyy-mm-dd");
 		txtNgayVaoLam = new JTextField("yyyy-mm-dd");
 		cbGioiTinh = new JComboBox<>(new String[] { "Nam", "Nữ" });
@@ -218,7 +219,7 @@ public class NhanVienCapNhatPage extends JPanel {
 		txtMaNV.setEditable(false);
 		styleInput(txtMaNV);
 		styleInput(txtHoTen);
-		styleInput(txtUsername);
+		styleInput(txtEmail);
 		styleInput(txtNgaySinh);
 		styleInput(txtNgayVaoLam);
 		styleInput(txtSdt);
@@ -227,7 +228,7 @@ public class NhanVienCapNhatPage extends JPanel {
 
 		themDong(form, gbc, 0, 0, "MÃ NHÂN VIÊN (READ-ONLY)", txtMaNV);
 		themDong(form, gbc, 2, 0, "HỌ VÀ TÊN", txtHoTen);
-		themDong(form, gbc, 0, 1, "USERNAME", txtUsername);
+		themDong(form, gbc, 0, 1, "EMAIL", txtEmail);
 		themDong(form, gbc, 2, 1, "SỐ ĐIỆN THOẠI", txtSdt);
 		themDong(form, gbc, 0, 2, "GIỚI TÍNH", cbGioiTinh);
 		themDong(form, gbc, 2, 2, "CHỨC VỤ", cbChucVu);
@@ -262,45 +263,44 @@ public class NhanVienCapNhatPage extends JPanel {
 	}
 
 	private JPanel taoActionPanel() {
-		JPanel actions = new JPanel(new BorderLayout());
+		JPanel actions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
 		actions.setOpaque(false);
 		actions.setBorder(new EmptyBorder(8, 0, 0, 0));
 
-		JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
-		left.setOpaque(false);
-		JButton btnLuu = new JButton("Lưu thay đổi");
-		AppTheme.stylePrimaryButton(btnLuu);
 		JButton btnCapNhat = new JButton("Cập nhật");
-		AppTheme.styleSecondaryButton(btnCapNhat);
-		left.add(btnLuu);
-		left.add(btnCapNhat);
+		AppTheme.stylePrimaryButton(btnCapNhat);
 
-		JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-		right.setOpaque(false);
 		JButton btnXoa = new JButton("Xóa");
-		AppTheme.styleSecondaryButton(btnXoa);
+		btnXoa.setFont(AppTheme.font(Font.BOLD, 13));
+		btnXoa.setBackground(Color.decode("#DC2626"));
+		btnXoa.setForeground(Color.WHITE);
+		btnXoa.setFocusPainted(false);
+		btnXoa.setBorder(new EmptyBorder(8, 16, 8, 16));
+		btnXoa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
 		JButton btnHuy = new JButton("Hủy");
 		AppTheme.styleSecondaryButton(btnHuy);
 		btnHuy.addActionListener(e -> xoaForm());
-		right.add(btnXoa);
-		right.add(btnHuy);
+		btnCapNhat.addActionListener(e -> {
+		});
+		btnXoa.addActionListener(e -> xoaForm());
 
-		actions.add(left, BorderLayout.WEST);
-		actions.add(right, BorderLayout.EAST);
+		actions.add(btnCapNhat);
+		actions.add(btnXoa);
+		actions.add(btnHuy);
 		return actions;
 	}
 
 	private void doDuLieuLenForm(int row) {
 		txtMaNV.setText(String.valueOf(table.getValueAt(row, 0)));
 		txtHoTen.setText(String.valueOf(table.getValueAt(row, 1)));
-		txtUsername.setText(String.valueOf(table.getValueAt(row, 2)));
-		txtSdt.setText(String.valueOf(table.getValueAt(row, 3)));
-		cbGioiTinh.setSelectedItem(String.valueOf(table.getValueAt(row, 4)));
-		cbChucVu.setSelectedItem(String.valueOf(table.getValueAt(row, 5)));
+		txtEmail.setText(String.valueOf(table.getValueAt(row, 3)));
+		txtSdt.setText(String.valueOf(table.getValueAt(row, 4)));
+		cbGioiTinh.setSelectedItem(String.valueOf(table.getValueAt(row, 5)));
+		cbChucVu.setSelectedItem(String.valueOf(table.getValueAt(row, 6)));
 		txtNgaySinh.setText("1995-01-01");
 		txtNgayVaoLam.setText("2020-01-01");
 
-		String trangThai = String.valueOf(table.getValueAt(row, 6));
+		String trangThai = String.valueOf(table.getValueAt(row, 7));
 		rdDangLam.setSelected("Đang làm việc".equalsIgnoreCase(trangThai));
 		rdNgungLam.setSelected("Ngừng làm việc".equalsIgnoreCase(trangThai));
 	}
@@ -308,7 +308,7 @@ public class NhanVienCapNhatPage extends JPanel {
 	private void xoaForm() {
 		txtMaNV.setText("");
 		txtHoTen.setText("");
-		txtUsername.setText("");
+		txtEmail.setText("");
 		txtNgaySinh.setText("yyyy-mm-dd");
 		txtNgayVaoLam.setText("yyyy-mm-dd");
 		txtSdt.setText("");

@@ -65,7 +65,7 @@ public class ToaCapNhatPage extends JPanel {
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
-		String[] columns = { "#", "Mã toa", "Loại toa", "Tàu", "Số ghế", "Vị trí" };
+		String[] columns = { "Mã toa", "Loại toa", "Tàu", "Số ghế", "Vị trí" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -73,10 +73,10 @@ public class ToaCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { 1, "TOA001", "Toa ngủ", "T001", "50", "Toa 1" });
-		model.addRow(new Object[] { 2, "TOA002", "Toa ngồi", "T001", "80", "Toa 2" });
-		model.addRow(new Object[] { 3, "TOA003", "Toa hàng hoá", "T002", "100", "Toa 1" });
-		model.addRow(new Object[] { 4, "TOA004", "Toa nhà bếp", "T002", "20", "Toa 2" });
+		model.addRow(new Object[] { "TOA001", "Toa ngủ", "T001", "50", "Toa 1" });
+		model.addRow(new Object[] { "TOA002", "Toa ngồi", "T001", "80", "Toa 2" });
+		model.addRow(new Object[] { "TOA003", "Toa hàng hoá", "T002", "100", "Toa 1" });
+		model.addRow(new Object[] { "TOA004", "Toa nhà bếp", "T002", "20", "Toa 2" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);

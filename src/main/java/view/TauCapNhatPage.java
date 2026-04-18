@@ -63,7 +63,7 @@ public class TauCapNhatPage extends JPanel {
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
-		String[] columns = { "#", "Mã tàu", "Tên tàu", "Số toa", "Sức chứa", "Năm sản xuất" };
+		String[] columns = { "Mã tàu", "Tên tàu", "Số toa", "Sức chứa", "Năm sản xuất" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -71,10 +71,10 @@ public class TauCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { 1, "T001", "Tàu SE1", 8, "400 ghế", "2015" });
-		model.addRow(new Object[] { 2, "T002", "Tàu SE2", 8, "400 ghế", "2018" });
-		model.addRow(new Object[] { 3, "T003", "Tàu TN1", 6, "300 ghế", "2020" });
-		model.addRow(new Object[] { 4, "T004", "Tàu HP1", 10, "500 ghế", "2019" });
+		model.addRow(new Object[] { "T001", "Tàu SE1", 8, "400 ghế", "2015" });
+		model.addRow(new Object[] { "T002", "Tàu SE2", 8, "400 ghế", "2018" });
+		model.addRow(new Object[] { "T003", "Tàu TN1", 6, "300 ghế", "2020" });
+		model.addRow(new Object[] { "T004", "Tàu HP1", 10, "500 ghế", "2019" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);

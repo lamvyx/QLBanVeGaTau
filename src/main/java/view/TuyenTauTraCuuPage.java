@@ -82,7 +82,7 @@ public class TuyenTauTraCuuPage extends JPanel {
 			new EmptyBorder(12, 14, 12, 14)
 		));
 
-		String[] columns = { "#", "Mã tuyến", "Ga đi", "Ga đến", "Khoảng cách (km)", "Thao tác" };
+		String[] columns = { "Mã tuyến", "Ga đi", "Ga đến", "Khoảng cách (km)" };
 		model = new DefaultTableModel(columns, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -92,11 +92,11 @@ public class TuyenTauTraCuuPage extends JPanel {
 		};
 
 		// Sample data
-		model.addRow(new Object[] { 1, "TT001", "Sài Gòn", "Hà Nội", "1728", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 2, "TT002", "Sài Gòn", "Đà Nẵng", "962", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 3, "TT003", "Sài Gòn", "Nha Trang", "450", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 4, "TT004", "Hà Nội", "Hải Phòng", "120", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 5, "TT005", "Đà Nẵng", "Huế", "110", "👁 ✏️ 🗑" });
+		model.addRow(new Object[] { "TT001", "Sài Gòn", "Hà Nội", "1728" });
+		model.addRow(new Object[] { "TT002", "Sài Gòn", "Đà Nẵng", "962" });
+		model.addRow(new Object[] { "TT003", "Sài Gòn", "Nha Trang", "450" });
+		model.addRow(new Object[] { "TT004", "Hà Nội", "Hải Phòng", "120" });
+		model.addRow(new Object[] { "TT005", "Đà Nẵng", "Huế", "110" });
 
 		tableTuyenTau = new JTable(model);
 		tableTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));

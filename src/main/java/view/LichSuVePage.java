@@ -6,23 +6,25 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultCellEditor;
-import javax.swing.JComboBox;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableRowSorter;
 
 public class LichSuVePage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
 	private static final Color MAU_NEN = Color.decode("#F0F5F9");
 	private static final Color MAU_VIEN = Color.decode("#DCE3EC");
+	private TableRowSorter<DefaultTableModel> sorter;
 
 	public LichSuVePage() {
 		setLayout(new BorderLayout(0, 14));
@@ -46,27 +48,51 @@ public class LichSuVePage extends JPanel {
 		title.setForeground(Color.decode("#1F3F72"));
 		panel.add(title, BorderLayout.NORTH);
 
-		JPanel body = new JPanel(new BorderLayout());
+		JPanel body = new JPanel(new BorderLayout(10, 0));
 		body.setOpaque(false);
 		body.setBorder(new EmptyBorder(14, 0, 0, 0));
 
-		JComboBox<String> cboKhachHang = new JComboBox<>(new String[] {
-			"-- Tất cả khách hàng --",
-			"Nguyễn Thị Hoa - KH001",
-			"Trần Văn Đạt - KH002",
-			"Phạm Văn Cường - KH003",
-			"Hoàng Thị Dung - KH004"
-		});
-		cboKhachHang.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		cboKhachHang.setBackground(Color.WHITE);
-		cboKhachHang.setBorder(BorderFactory.createCompoundBorder(
+		JLabel lblSdt = new JLabel("Số điện thoại khách hàng:");
+		lblSdt.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		lblSdt.setForeground(Color.decode("#1F3F72"));
+		body.add(lblSdt, BorderLayout.WEST);
+
+		JTextField txtSdt = new JTextField();
+		txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		txtSdt.setPreferredSize(new Dimension(260, 36));
+		txtSdt.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(MAU_VIEN),
 			new EmptyBorder(8, 10, 8, 10)
 		));
-		cboKhachHang.setPreferredSize(new Dimension(260, 36));
 
-		body.add(cboKhachHang, BorderLayout.WEST);
+		JButton btnTimKiem = new JButton("Tra cứu");
+		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		btnTimKiem.setBackground(MAU_CHINH);
+		btnTimKiem.setForeground(Color.WHITE);
+		btnTimKiem.setFocusPainted(false);
+		btnTimKiem.setBorder(BorderFactory.createEmptyBorder(8, 16, 8, 16));
+
+		JPanel right = new JPanel(new BorderLayout(8, 0));
+		right.setOpaque(false);
+		right.add(txtSdt, BorderLayout.CENTER);
+		right.add(btnTimKiem, BorderLayout.EAST);
+
+		body.add(right, BorderLayout.CENTER);
 		panel.add(body, BorderLayout.CENTER);
+
+		btnTimKiem.addActionListener(e -> {
+			String sdt = txtSdt.getText().trim();
+			if (sdt.isEmpty()) {
+				if (sorter != null) {
+					sorter.setRowFilter(null);
+				}
+				return;
+			}
+			if (sorter != null) {
+				sorter.setRowFilter(RowFilter.regexFilter(java.util.regex.Pattern.quote(sdt), 1));
+			}
+		});
+		txtSdt.addActionListener(e -> btnTimKiem.doClick());
 		return panel;
 	}
 
@@ -78,28 +104,12 @@ public class LichSuVePage extends JPanel {
 			new EmptyBorder(16, 16, 16, 16)
 		));
 
-		JLabel title = new JLabel("Lịch sử vé (Tất cả)");
+		JLabel title = new JLabel("Lịch sử vé theo số điện thoại");
 		title.setFont(new Font("Segoe UI", Font.BOLD, 18));
 		title.setForeground(Color.decode("#1F3F72"));
 		panel.add(title, BorderLayout.NORTH);
 
-		JPanel searchWrap = new JPanel(new BorderLayout());
-		searchWrap.setOpaque(false);
-		searchWrap.setBorder(new EmptyBorder(8, 0, 0, 0));
-
-		JTextField txtSearch = new JTextField();
-		txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtSearch.setPreferredSize(new Dimension(380, 36));
-		txtSearch.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(MAU_VIEN),
-			new EmptyBorder(6, 10, 6, 10)
-		));
-		txtSearch.setToolTipText("Tìm kiếm...");
-		searchWrap.add(txtSearch, BorderLayout.WEST);
-
-		panel.add(searchWrap, BorderLayout.NORTH);
-
-		String[] columns = { "#", "Mã vé", "Tuyến đường", "Giờ khởi hành", "Chỗ ngồi", "Giá vé", "Trạng thái", "Ngày mua" };
+		String[] columns = { "Số ĐT", "Mã vé", "Tuyến đường", "Giờ khởi hành", "Chỗ ngồi", "Giá vé", "Trạng thái", "Ngày mua" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -107,12 +117,12 @@ public class LichSuVePage extends JPanel {
 			}
 		};
 
-		model.addRow(new Object[] { 1, "VE0001", "Sài Gòn - Hà Nội", "02/04/2026 19:00", "A05", "850.000 đ", "Hoạt động", "2026-03-20" });
-		model.addRow(new Object[] { 2, "VE0002", "Sài Gòn - Đà Nẵng", "02/04/2026 07:00", "B12", "477.000 đ", "Hoạt động", "2026-03-22" });
-		model.addRow(new Object[] { 3, "VE0003", "Sài Gòn - Nha Trang", "02/04/2026 06:00", "C08", "280.000 đ", "Đã dùng", "2026-03-25" });
-		model.addRow(new Object[] { 4, "VE0004", "Sài Gòn - Hà Nội", "05/04/2026 20:00", "VIP03", "1.350.000 đ", "Hoạt động", "2026-03-28" });
-		model.addRow(new Object[] { 5, "VE0005", "Sài Gòn - Hà Nội", "02/04/2026 19:00", "D15", "1.020.000 đ", "Đã trả", "2026-03-18" });
-		model.addRow(new Object[] { 6, "VE0006", "Sài Gòn - Cần Thơ", "03/04/2026 08:00", "E09", "340.000 đ", "Hoạt động", "2026-03-29" });
+		model.addRow(new Object[] { "0901234567", "VE0001", "Sài Gòn - Hà Nội", "02/04/2026 19:00", "A05", "850.000 đ", "Hoạt động", "2026-03-20" });
+		model.addRow(new Object[] { "0901234567", "VE0002", "Sài Gòn - Đà Nẵng", "02/04/2026 07:00", "B12", "477.000 đ", "Hoạt động", "2026-03-22" });
+		model.addRow(new Object[] { "0912345678", "VE0003", "Sài Gòn - Nha Trang", "02/04/2026 06:00", "C08", "280.000 đ", "Đã dùng", "2026-03-25" });
+		model.addRow(new Object[] { "0923456789", "VE0004", "Sài Gòn - Hà Nội", "05/04/2026 20:00", "VIP03", "1.350.000 đ", "Hoạt động", "2026-03-28" });
+		model.addRow(new Object[] { "0934567890", "VE0005", "Sài Gòn - Hà Nội", "02/04/2026 19:00", "D15", "1.020.000 đ", "Đã trả", "2026-03-18" });
+		model.addRow(new Object[] { "0945678901", "VE0006", "Sài Gòn - Cần Thơ", "03/04/2026 08:00", "E09", "340.000 đ", "Hoạt động", "2026-03-29" });
 
 		JTable table = new JTable(model) {
 			private static final long serialVersionUID = 1L;
@@ -125,6 +135,8 @@ public class LichSuVePage extends JPanel {
 				return super.getCellRenderer(row, column);
 			}
 		};
+		sorter = new TableRowSorter<>(model);
+		table.setRowSorter(sorter);
 		table.setRowHeight(38);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		table.setShowGrid(false);
@@ -136,7 +148,6 @@ public class LichSuVePage extends JPanel {
 		table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 13));
 		table.getTableHeader().setPreferredSize(new Dimension(0, 40));
 		table.setDefaultRenderer(Object.class, new TableStyleRenderer());
-		table.setDefaultEditor(Object.class, new DefaultCellEditor(new JTextField()));
 
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -161,14 +172,16 @@ public class LichSuVePage extends JPanel {
 				setBackground(Color.WHITE);
 			}
 
-			if (column == 1) {
-				setForeground(Color.decode("#0B5FFF"));
-				setFont(new Font("Segoe UI", Font.BOLD, 13));
-			} else if (column == 5) {
-				setForeground(Color.decode("#0A8F3C"));
-				setFont(new Font("Segoe UI", Font.BOLD, 13));
-			} else {
-				setForeground(Color.decode("#1E2D3D"));
+			switch (column) {
+				case 2 -> {
+					setForeground(Color.decode("#0B5FFF"));
+					setFont(new Font("Segoe UI", Font.BOLD, 13));
+				}
+				case 6 -> {
+					setForeground(Color.decode("#0A8F3C"));
+					setFont(new Font("Segoe UI", Font.BOLD, 13));
+				}
+				default -> setForeground(Color.decode("#1E2D3D"));
 			}
 			return c;
 		}

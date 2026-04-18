@@ -65,7 +65,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
-		String[] columns = { "#", "Mã chuyến", "Tàu", "Tuyến", "Giờ khởi hành", "Giá cơ bản" };
+		String[] columns = { "Mã chuyến", "Tàu", "Tuyến", "Giờ khởi hành", "Giá cơ bản" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -73,10 +73,10 @@ public class ChuyenTauCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { 1, "SE1-020426", "SE1", "Sài Gòn - Hà Nội", "19:00:00", "850.000 đ" });
-		model.addRow(new Object[] { 2, "SE1-030426", "SE1", "Sài Gòn - Hà Nội", "19:00:00", "850.000 đ" });
-		model.addRow(new Object[] { 3, "SE2-020426", "SE2", "Sài Gòn - Đà Nẵng", "07:00:00", "530.000 đ" });
-		model.addRow(new Object[] { 4, "TN1-020426", "TN1", "Sài Gòn - Nha Trang", "06:00:00", "280.000 đ" });
+		model.addRow(new Object[] { "SE1-020426", "SE1", "Sài Gòn - Hà Nội", "19:00:00", "850.000 đ" });
+		model.addRow(new Object[] { "SE1-030426", "SE1", "Sài Gòn - Hà Nội", "19:00:00", "850.000 đ" });
+		model.addRow(new Object[] { "SE2-020426", "SE2", "Sài Gòn - Đà Nẵng", "07:00:00", "530.000 đ" });
+		model.addRow(new Object[] { "TN1-020426", "TN1", "Sài Gòn - Nha Trang", "06:00:00", "280.000 đ" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
