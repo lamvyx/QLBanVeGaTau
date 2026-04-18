@@ -5,6 +5,7 @@ import java.time.LocalDate;
 public class NhanVien {
 	private String maNV;
 	private String tenNV;
+	private String email;
 	private String sdt;
 	private boolean gioiTinh;
 	private LocalDate ngaySinh;
@@ -17,10 +18,11 @@ public class NhanVien {
 	public NhanVien() {
 	}
 
-	public NhanVien(String maNV, String tenNV, String sdt, boolean gioiTinh, LocalDate ngaySinh,
+	public NhanVien(String maNV, String tenNV, String email, String sdt, boolean gioiTinh, LocalDate ngaySinh,
 			LocalDate ngayVaoLam, String chucVu, boolean trangThai, String username, String hinhAnh) {
 		this.maNV = maNV;
 		this.tenNV = tenNV;
+		this.email = email;
 		this.sdt = sdt;
 		this.gioiTinh = gioiTinh;
 		this.ngaySinh = ngaySinh;
@@ -35,6 +37,8 @@ public class NhanVien {
 	public void setMaNV(String maNV) { this.maNV = maNV; }
 	public String getTenNV() { return tenNV; }
 	public void setTenNV(String tenNV) { this.tenNV = tenNV; }
+	public String getEmail() { return email; }
+	public void setEmail(String email) { this.email = email; }
 	public String getSdt() { return sdt; }
 	public void setSdt(String sdt) { this.sdt = sdt; }
 	public boolean isGioiTinh() { return gioiTinh; }

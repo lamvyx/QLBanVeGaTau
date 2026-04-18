@@ -97,7 +97,7 @@ public class TauTraCuuPage extends JPanel {
 			new EmptyBorder(12, 14, 12, 14)
 		));
 
-		String[] columns = { "#", "Mã tàu", "Tên tàu", "Số toa", "Sức chứa", "Năm sản xuất", "Trạng thái", "Thao tác" };
+		String[] columns = { "Mã tàu", "Tên tàu", "Số toa", "Sức chứa", "Năm sản xuất", "Trạng thái" };
 		model = new DefaultTableModel(columns, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -107,11 +107,11 @@ public class TauTraCuuPage extends JPanel {
 		};
 
 		// Sample data
-		model.addRow(new Object[] { 1, "T001", "Tàu hỏa XP1", 8, 320, 2015, "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 2, "T002", "Tàu hỏa SB2", 10, 400, 2018, "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 3, "T003", "Tàu Sapa Express", 12, 480, 2019, "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 4, "T004", "Tàu Nightly", 8, 320, 2016, "Bảo trì", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 5, "T005", "Tàu Hỏa Thường", 6, 240, 2014, "Ngừng hoạt động", "👁 ✏️ 🗑" });
+		model.addRow(new Object[] { "T001", "Tàu hỏa XP1", 8, 320, 2015, "Hoạt động" });
+		model.addRow(new Object[] { "T002", "Tàu hỏa SB2", 10, 400, 2018, "Hoạt động" });
+		model.addRow(new Object[] { "T003", "Tàu Sapa Express", 12, 480, 2019, "Hoạt động" });
+		model.addRow(new Object[] { "T004", "Tàu Nightly", 8, 320, 2016, "Bảo trí" });
+		model.addRow(new Object[] { "T005", "Tàu Hỏa Thường", 6, 240, 2014, "NgẺ ng hoạt động" });
 
 		tableTau = new JTable(model);
 		tableTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));

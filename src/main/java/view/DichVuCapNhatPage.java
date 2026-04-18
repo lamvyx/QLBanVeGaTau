@@ -63,7 +63,7 @@ public class DichVuCapNhatPage extends JPanel {
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
-		String[] columns = { "#", "Mã DV", "Tên DV", "Giá DV", "Trạng thái" };
+		String[] columns = { "Mã DV", "Tên DV", "Giá DV", "Trạng thái" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -71,11 +71,11 @@ public class DichVuCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { 1, "DV001", "Ăn sáng", "50.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { 2, "DV002", "Ăn cơm trưa", "75.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { 3, "DV003", "Bảo hiểm", "100.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { 4, "DV004", "WiFi", "30.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { 5, "DV005", "Phòng VIP", "200.000 đ", "Hoạt động" });
+		model.addRow(new Object[] { "DV001", "Ăn sáng", "50.000 đ", "Hoạt động" });
+		model.addRow(new Object[] { "DV002", "Ăn cơm trưa", "75.000 đ", "Hoạt động" });
+		model.addRow(new Object[] { "DV003", "Bảo hiểm", "100.000 đ", "Hoạt động" });
+		model.addRow(new Object[] { "DV004", "WiFi", "30.000 đ", "Hoạt động" });
+		model.addRow(new Object[] { "DV005", "Phòng VIP", "200.000 đ", "Hoạt động" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);

@@ -9,6 +9,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.regex.Pattern;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -18,14 +19,17 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 public class KhachHangCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
 
 	private JTable table;
+	private TableRowSorter<DefaultTableModel> sorter;
 	private JPanel formPanel;
 	
 	private JTextField txtTen, txtSdt, txtCccd, txtEmail, txtDiaChi;
@@ -66,7 +70,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		));
 
 		// Tạo bảng
-		String[] columns = { "#", "Mã KH", "Tên khách hàng", "Số ĐT", "Email", "CCCD", "Loại KH" };
+		String[] columns = { "Mã KH", "Tên khách hàng", "Số ĐT", "Email", "CCCD", "Loại KH" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -74,13 +78,15 @@ public class KhachHangCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { 1, "KH001", "Trần Văn A", "0901234567", "tryvana@email.com", "012345678901", "Thường" });
-		model.addRow(new Object[] { 2, "KH002", "Nguyễn Thị B", "0912345678", "nguyenb@email.com", "012345678902", "VIP" });
-		model.addRow(new Object[] { 3, "KH003", "Phạm Văn C", "0923456789", "phamvan@email.com", "012345678903", "Thường" });
-		model.addRow(new Object[] { 4, "KH004", "Hoàng Thị D", "0934567890", "hoang.d@email.com", "012345678904", "Doanh nghiệp" });
-		model.addRow(new Object[] { 5, "KH005", "Võ Văn E", "0945678901", "vo.van.e@email.com", "012345678905", "VIP" });
+		model.addRow(new Object[] { "KH001", "Trần Văn A", "0901234567", "tryvana@email.com", "012345678901", "Thường" });
+		model.addRow(new Object[] { "KH002", "Nguyễn Thị B", "0912345678", "nguyenb@email.com", "012345678902", "VIP" });
+		model.addRow(new Object[] { "KH003", "Phạm Văn C", "0923456789", "phamvan@email.com", "012345678903", "Thường" });
+		model.addRow(new Object[] { "KH004", "Hoàng Thị D", "0934567890", "hoang.d@email.com", "012345678904", "Doanh nghiệp" });
+		model.addRow(new Object[] { "KH005", "Võ Văn E", "0945678901", "vo.van.e@email.com", "012345678905", "VIP" });
 
 		table = new JTable(model);
+		sorter = new TableRowSorter<>(model);
+		table.setRowSorter(sorter);
 		table.setRowHeight(50);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		table.getTableHeader().setBackground(MAU_CHINH);
@@ -111,11 +117,18 @@ public class KhachHangCapNhatPage extends JPanel {
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setBorder(BorderFactory.createLineBorder(Color.decode("#DCE3EC")));
 
+		JPanel searchPanel = taoSearchPanel();
+
 		// Form panel
 		formPanel = taoFormPanel();
 
 		// Split pane
-		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPane, formPanel);
+		JPanel topWrap = new JPanel(new BorderLayout(0, 12));
+		topWrap.setBackground(Color.WHITE);
+		topWrap.add(searchPanel, BorderLayout.NORTH);
+		topWrap.add(scrollPane, BorderLayout.CENTER);
+
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topWrap, formPanel);
 		splitPane.setDividerLocation(300);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
@@ -138,6 +151,51 @@ public class KhachHangCapNhatPage extends JPanel {
 		wrapper.add(lblHuongDan, BorderLayout.CENTER);
 
 		return wrapper;
+	}
+
+	private JPanel taoSearchPanel() {
+		JPanel panel = new JPanel(new BorderLayout(10, 0));
+		panel.setBackground(Color.WHITE);
+		panel.setBorder(new EmptyBorder(0, 0, 10, 0));
+
+		JLabel lbl = new JLabel("Tra cứu theo số điện thoại:");
+		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		lbl.setForeground(Color.decode("#2B4B74"));
+		panel.add(lbl, BorderLayout.WEST);
+
+		JPanel right = new JPanel(new BorderLayout(8, 0));
+		right.setOpaque(false);
+
+		JTextField txtSdtSearch = new JTextField();
+		txtSdtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		txtSdtSearch.setPreferredSize(new Dimension(260, 35));
+		txtSdtSearch.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(8, 8, 8, 8)
+		));
+		right.add(txtSdtSearch, BorderLayout.CENTER);
+
+		JButton btnTimKiem = new JButton("Tìm kiếm");
+		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		btnTimKiem.setBackground(MAU_CHINH);
+		btnTimKiem.setForeground(Color.WHITE);
+		btnTimKiem.setFocusPainted(false);
+		btnTimKiem.setBorder(new EmptyBorder(8, 16, 8, 16));
+		right.add(btnTimKiem, BorderLayout.EAST);
+
+		panel.add(right, BorderLayout.EAST);
+
+		btnTimKiem.addActionListener(e -> {
+			String sdt = txtSdtSearch.getText().trim();
+			if (sdt.isEmpty()) {
+				sorter.setRowFilter(null);
+				return;
+			}
+			sorter.setRowFilter(RowFilter.regexFilter(Pattern.quote(sdt), 3));
+		});
+
+		txtSdtSearch.addActionListener(e -> btnTimKiem.doClick());
+		return panel;
 	}
 
 	private void displayForm(int row) {

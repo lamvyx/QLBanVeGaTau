@@ -1,5 +1,6 @@
 package view;
 
+import connectDB.Database;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -9,6 +10,13 @@ import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.io.File;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -18,6 +26,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -31,7 +40,7 @@ public class NhanVienThemPage extends JPanel {
 
 	private JTextField txtMaNV;
 	private JTextField txtTen;
-	private JTextField txtUsername;
+	private JTextField txtEmail;
 	private JTextField txtSdt;
 	private JTextField txtNgaySinh;
 	private JTextField txtNgayVaoLam;
@@ -84,16 +93,17 @@ public class NhanVienThemPage extends JPanel {
 
 	private JSplitPane taoKhuVucDuLieu() {
 		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, taoCardAnh(), taoFormCard());
-		split.setResizeWeight(0.25);
+		split.setResizeWeight(0.12);
 		split.setBorder(BorderFactory.createEmptyBorder());
 		split.setOpaque(false);
-		split.setPreferredSize(new Dimension(10, 360));
+		split.setPreferredSize(new Dimension(10, 420));
+		split.setDividerSize(8);
 		return split;
 	}
 
 	private JPanel taoCardAnh() {
 		JPanel card = new JPanel(new BorderLayout(0, 10));
-		card.setMinimumSize(new Dimension(260, 260));
+		card.setMinimumSize(new Dimension(180, 260));
 		card.setBackground(AppTheme.CARD_BG);
 		card.setBorder(AppTheme.cardBorder());
 
@@ -144,7 +154,7 @@ public class NhanVienThemPage extends JPanel {
 		txtMaNV = new JTextField("NV-NEW");
 		txtMaNV.setEditable(false);
 		txtTen = new JTextField();
-		txtUsername = new JTextField();
+		txtEmail = new JTextField();
 		txtSdt = new JTextField();
 		txtNgaySinh = new JTextField("yyyy-mm-dd");
 		txtNgayVaoLam = new JTextField("yyyy-mm-dd");
@@ -154,7 +164,7 @@ public class NhanVienThemPage extends JPanel {
 
 		styleInput(txtMaNV);
 		styleInput(txtTen);
-		styleInput(txtUsername);
+		styleInput(txtEmail);
 		styleInput(txtSdt);
 		styleInput(txtNgaySinh);
 		styleInput(txtNgayVaoLam);
@@ -163,7 +173,7 @@ public class NhanVienThemPage extends JPanel {
 
 		themDong(form, gbc, 0, 0, "Mã nhân viên (auto)", txtMaNV);
 		themDong(form, gbc, 2, 0, "Họ và tên", txtTen);
-		themDong(form, gbc, 0, 1, "Tên tài khoản", txtUsername);
+		themDong(form, gbc, 0, 1, "Email", txtEmail);
 		themDong(form, gbc, 2, 1, "Số điện thoại", txtSdt);
 		themDong(form, gbc, 0, 2, "Giới tính", cbGioiTinh);
 		themDong(form, gbc, 2, 2, "Chức vụ", cbChucVu);
@@ -205,10 +215,121 @@ public class NhanVienThemPage extends JPanel {
 
 		JButton btnLuuMoi = new JButton("Lưu mới");
 		AppTheme.stylePrimaryButton(btnLuuMoi);
+		btnLuuMoi.addActionListener(e -> luuNhanVienMoi());
 
 		actions.add(btnLamMoi);
 		actions.add(btnLuuMoi);
 		return actions;
+	}
+
+	private void luuNhanVienMoi() {
+		String hoTen = txtTen.getText().trim();
+		String email = txtEmail.getText().trim();
+		String sdt = txtSdt.getText().trim();
+		String chucVu = String.valueOf(cbChucVu.getSelectedItem());
+		boolean gioiTinh = cbGioiTinh.getSelectedIndex() == 0;
+		boolean trangThai = rdDangLam.isSelected();
+
+		if (hoTen.isEmpty() || email.isEmpty()) {
+			JOptionPane.showMessageDialog(this, "Vui lòng nhập Họ tên và Email.");
+			return;
+		}
+
+		if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+			JOptionPane.showMessageDialog(this, "Email không hợp lệ.");
+			return;
+		}
+
+		LocalDate ngaySinh;
+		LocalDate ngayVaoLam;
+		try {
+			ngaySinh = LocalDate.parse(txtNgaySinh.getText().trim());
+			ngayVaoLam = LocalDate.parse(txtNgayVaoLam.getText().trim());
+		} catch (DateTimeParseException ex) {
+			JOptionPane.showMessageDialog(this, "Ngày sinh/Ngày vào làm phải theo định dạng yyyy-mm-dd.");
+			return;
+		}
+
+		try (Connection conn = Database.getConnection()) {
+			conn.setAutoCommit(false);
+			try {
+				String maNV = taoMaNhanVien(conn);
+				String username = maNV;
+
+				if (daTonTaiTaiKhoan(conn, username)) {
+					JOptionPane.showMessageDialog(this, "Mã nhân viên/tài khoản đã tồn tại, vui lòng thử lại.");
+					conn.rollback();
+					return;
+				}
+				String vaiTro = chucVu.toLowerCase().contains("quản lý") ? "ADMIN" : "NHAN_VIEN";
+
+				try (PreparedStatement psTaiKhoan = conn.prepareStatement(
+						"INSERT INTO TaiKhoan(username, [password], vaiTro) VALUES (?, ?, ?)")) {
+					psTaiKhoan.setString(1, username);
+					psTaiKhoan.setString(2, "123456");
+					psTaiKhoan.setString(3, vaiTro);
+					psTaiKhoan.executeUpdate();
+				}
+
+				try (PreparedStatement psNhanVien = conn.prepareStatement(
+						"""
+						INSERT INTO NhanVien(maNV, tenNV, sdt, gioiTinh, ngaySinh, ngayVaoLam, trangThai, email, chucVu, username)
+						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+						""")) {
+					psNhanVien.setString(1, maNV);
+					psNhanVien.setString(2, hoTen);
+					if (sdt.isBlank()) {
+						psNhanVien.setNull(3, java.sql.Types.VARCHAR);
+					} else {
+						psNhanVien.setString(3, sdt);
+					}
+					psNhanVien.setBoolean(4, gioiTinh);
+					psNhanVien.setDate(5, Date.valueOf(ngaySinh));
+					psNhanVien.setDate(6, Date.valueOf(ngayVaoLam));
+					psNhanVien.setBoolean(7, trangThai);
+					psNhanVien.setString(8, email);
+					psNhanVien.setString(9, chucVu);
+					psNhanVien.setString(10, username);
+					psNhanVien.executeUpdate();
+				}
+
+				conn.commit();
+				txtMaNV.setText(maNV);
+				JOptionPane.showMessageDialog(this,
+						"Thêm nhân viên thành công. Tài khoản đăng nhập là mã nhân viên: " + maNV
+								+ " (mật khẩu mặc định: 123456).");
+			} catch (SQLException ex) {
+				conn.rollback();
+				JOptionPane.showMessageDialog(this, "Không thể lưu nhân viên: " + ex.getMessage());
+			}
+		} catch (SQLException ex) {
+			JOptionPane.showMessageDialog(this, "Lỗi kết nối CSDL: " + ex.getMessage());
+		}
+	}
+
+	private boolean daTonTaiTaiKhoan(Connection conn, String username) throws SQLException {
+		try (PreparedStatement ps = conn.prepareStatement("SELECT 1 FROM TaiKhoan WHERE username = ?")) {
+			ps.setString(1, username);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next();
+			}
+		}
+	}
+
+	private String taoMaNhanVien(Connection conn) throws SQLException {
+		String sql = """
+				SELECT ISNULL(MAX(CAST(SUBSTRING(maNV, 3, LEN(maNV) - 2) AS INT)), 0) + 1 AS nextId
+				FROM NhanVien
+				WHERE maNV LIKE 'NV%'
+				""";
+		try (PreparedStatement ps = conn.prepareStatement(sql);
+				 ResultSet rs = ps.executeQuery()) {
+			int next = 1;
+			if (rs.next()) {
+				next = rs.getInt("nextId");
+			}
+			return String.format("NV%04d", next);
+		}
 	}
 
 	private void themDong(JPanel form, GridBagConstraints gbc, int x, int y, String labelText, java.awt.Component input) {
@@ -262,7 +383,7 @@ public class NhanVienThemPage extends JPanel {
 
 	private void lamMoiForm() {
 		txtTen.setText("");
-		txtUsername.setText("");
+		txtEmail.setText("");
 		txtSdt.setText("");
 		txtNgaySinh.setText("yyyy-mm-dd");
 		txtNgayVaoLam.setText("yyyy-mm-dd");
