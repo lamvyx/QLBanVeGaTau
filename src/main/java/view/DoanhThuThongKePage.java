@@ -12,6 +12,10 @@ public class DoanhThuThongKePage extends ThongKeBaoCaoBasePage {
 		super("Thống kê doanh thu");
 	}
 
+	public DoanhThuThongKePage(boolean chiThongKeTheoNgay) {
+		super("Thống kê doanh thu", chiThongKeTheoNgay);
+	}
+
 	@Override
 	protected JPanel createPeriodPanel(String periodKey) {
 		switch (periodKey) {

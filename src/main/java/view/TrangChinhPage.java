@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -116,8 +117,8 @@ public class TrangChinhPage extends JFrame {
 		JLabel name = new JLabel(taiKhoan.getHoTen());
 		name.setForeground(Color.WHITE);
 		name.setFont(AppTheme.font(Font.BOLD, 52));
-
-		JLabel date = new JLabel(LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+		
+		JLabel date = new JLabel(LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy", new Locale("vi", "VN"))));
 		date.setForeground(Color.decode("#9DD2FF"));
 		date.setFont(AppTheme.font(Font.PLAIN, 24));
 
@@ -168,14 +169,18 @@ public class TrangChinhPage extends JFrame {
 		popupMenu.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 
 		if ("Tàu".equals(menuName)) {
-			themMenuItem(popupMenu, "Thêm tàu", () -> moPage("Tàu", "Thêm tàu"));
-			themMenuItem(popupMenu, "Tra cứu tàu", () -> moPage("Tàu", "Tra cứu tàu"));
-			themMenuItem(popupMenu, "Cập nhật tàu", () -> moPage("Tàu", "Cập nhật"));
+			if (laQuanLy()) {
+				themMenuItem(popupMenu, "Thêm tàu", () -> moPage("Tàu", "Thêm tàu"));
+				themMenuItem(popupMenu, "Tra cứu tàu", () -> moPage("Tàu", "Tra cứu tàu"));
+				themMenuItem(popupMenu, "Cập nhật tàu", () -> moPage("Tàu", "Cập nhật"));
+			} else {
+				themMenuItem(popupMenu, "Tra cứu tàu", () -> moPage("Tàu", "Tra cứu tàu"));
+			}
 			popupMenu.addSeparator();
 
-			popupMenu.add(taoMenuConNhieuCap("Toa", new String[] { "Thêm toa", "Tra cứu toa", "Cập nhật" }));
-			popupMenu.add(taoMenuConNhieuCap("Tuyến tàu", new String[] { "Thêm tuyến", "Tra cứu tuyến", "Cập nhật" }));
-			popupMenu.add(taoMenuConNhieuCap("Chuyến tàu", new String[] { "Thêm chuyến", "Tra cứu chuyến", "Cập nhật" }));
+			popupMenu.add(taoMenuConNhieuCap("Toa", layMenuCon("Toa")));
+			popupMenu.add(taoMenuConNhieuCap("Tuyến tàu", layMenuCon("Tuyến tàu")));
+			popupMenu.add(taoMenuConNhieuCap("Chuyến tàu", layMenuCon("Chuyến tàu")));
 			return popupMenu;
 		}
 
@@ -221,20 +226,41 @@ public class TrangChinhPage extends JFrame {
 		case "Nhân viên":
 			return new String[] { "Thêm nhân viên", "Tra cứu nhân viên", "Cập nhật thông tin", "Lập hóa đơn" };
 		case "Khách hàng":
+			if (!laQuanLy()) {
+				return new String[] { "Tra cứu khách hàng", "Lịch sử vé" };
+			}
 			return new String[] { "Thêm khách hàng", "Tra cứu khách hàng", "Cập nhật thông tin", "Lịch sử vé" };
 		case "Vé":
 			return new String[] { "Bán vé", "Đổi vé", "Trả vé", "Kiểm tra chỗ trống", "In vé" };
 		case "Chuyến tàu":
+			if (!laQuanLy()) {
+				return new String[] { "Tra cứu chuyến" };
+			}
 			return new String[] { "Thêm chuyến", "Tra cứu chuyến", "Cập nhật" };
 		case "Tàu":
+			if (!laQuanLy()) {
+				return new String[] { "Tra cứu tàu" };
+			}
 			return new String[] { "Thêm tàu", "Tra cứu tàu", "Cập nhật" };
 		case "Toa":
+			if (!laQuanLy()) {
+				return new String[] { "Tra cứu toa" };
+			}
 			return new String[] { "Thêm toa", "Tra cứu toa", "Cập nhật" };
 		case "Tuyến tàu":
+			if (!laQuanLy()) {
+				return new String[] { "Tra cứu tuyến" };
+			}
 			return new String[] { "Thêm tuyến", "Tra cứu tuyến", "Cập nhật" };
 		case "Dịch vụ":
+			if (!laQuanLy()) {
+				return new String[] { "Tra cứu" };
+			}
 			return new String[] { "Thêm dịch vụ", "Tra cứu", "Cập nhật" };
 		case "Khuyến mãi":
+			if (!laQuanLy()) {
+				return new String[] { "Tra cứu" };
+			}
 			return new String[] { "Thêm khuyến mãi", "Tra cứu", "Cập nhật"};
 		case "Thống kê":
 			return new String[] { "Doanh thu", "Vé", "Khách hàng", "Chuyến tàu" };
@@ -374,15 +400,15 @@ public class TrangChinhPage extends JFrame {
 		if ("Thống kê".equals(menuName)) {
 			switch (menuCon) {
 			case "Doanh thu":
-				return new DoanhThuThongKePage();
+				return new DoanhThuThongKePage(!laQuanLy());
 			case "Vé":
-				return new VeThongKePage();
+				return new VeThongKePage(!laQuanLy());
 			case "Khách hàng":
-				return new KhachHangThongKePage();
+				return new KhachHangThongKePage(!laQuanLy());
 			case "Chuyến tàu":
-				return new ChuyenTauThongKePage();
+				return new ChuyenTauThongKePage(!laQuanLy());
 			default:
-				return new ThongKePage();
+				return new DoanhThuThongKePage(!laQuanLy());
 			}
 		}
 
@@ -427,14 +453,18 @@ public class TrangChinhPage extends JFrame {
 	}
 
 	private String[] layMenuTheoVaiTro() {
-		if ("QUAN_LY".equalsIgnoreCase(taiKhoan.getVaiTro())) {
+		if (laQuanLy()) {
 			return new String[] { "Trang chủ", "Nhân viên", "Khách hàng", "Vé", "Tàu", "Dịch vụ", "Khuyến mãi", "Thống kê" };
 		}
-		return new String[] { "Trang chủ", "Khách hàng", "Vé" };
+		return new String[] { "Trang chủ", "Khách hàng", "Vé", "Tàu", "Dịch vụ", "Khuyến mãi", "Thống kê" };
 	}
 
 	private String hienThiVaiTro() {
-		return "QUAN_LY".equalsIgnoreCase(taiKhoan.getVaiTro()) ? "Quản trị viên" : "Nhân viên";
+		return laQuanLy() ? "Quản trị viên" : "Nhân viên";
+	}
+
+	private boolean laQuanLy() {
+		return "QUAN_LY".equalsIgnoreCase(taiKhoan.getVaiTro()) || "ADMIN".equalsIgnoreCase(taiKhoan.getVaiTro());
 	}
 
 	private Image taiAnhBanner() {
