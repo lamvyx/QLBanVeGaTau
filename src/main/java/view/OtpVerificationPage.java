@@ -69,14 +69,14 @@ public class OtpVerificationPage extends JDialog {
 		card.setBorder(AppTheme.cardBorder());
 		card.setPreferredSize(new Dimension(500, 370));
 
-		JLabel title = new JLabel("Quên mật khẩu", SwingConstants.CENTER);
+		JLabel title = new JLabel("Quên mật khẩu");
 		title.setFont(AppTheme.font(Font.BOLD, 30));
-		title.setAlignmentX(CENTER_ALIGNMENT);
+		title.setAlignmentY(CENTER_ALIGNMENT);
 
-		JLabel subtitle = new JLabel("Nhập email để nhận mã OTP xác nhận", SwingConstants.CENTER);
+		JLabel subtitle = new JLabel("Nhập email để nhận mã OTP xác nhận");
 		subtitle.setFont(AppTheme.font(Font.PLAIN, 13));
 		subtitle.setForeground(new Color(98, 116, 142));
-		subtitle.setAlignmentX(CENTER_ALIGNMENT);
+		subtitle.setAlignmentY(CENTER_ALIGNMENT);
 
 		card.add(title);
 		card.add(Box.createVerticalStrut(6));
@@ -84,6 +84,7 @@ public class OtpVerificationPage extends JDialog {
 		card.add(Box.createVerticalStrut(18));
 
 		JLabel lblEmail = new JLabel("Địa chỉ Email");
+		lblEmail.setAlignmentX(CENTER_ALIGNMENT);
 		lblEmail.setFont(AppTheme.font(Font.BOLD, 14));
 		card.add(lblEmail);
 		card.add(Box.createVerticalStrut(8));
@@ -112,12 +113,13 @@ public class OtpVerificationPage extends JDialog {
 		card.add(Box.createVerticalStrut(18));
 		JLabel lblOtp = new JLabel("Mã OTP (6 số)");
 		lblOtp.setFont(AppTheme.font(Font.BOLD, 14));
+		lblOtp.setAlignmentX(CENTER_ALIGNMENT);
 		card.add(lblOtp);
-		card.add(Box.createVerticalStrut(8));
+		card.add(Box.createVerticalStrut(12));
 
 		JPanel otpRow = new JPanel(new GridLayout(1, 6, 10, 0));
 		otpRow.setOpaque(false);
-		otpRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 52));
+		otpRow.setMaximumSize(new Dimension(Integer.MAX_VALUE, 62));
 		for (int i = 0; i < otpFields.length; i++) {
 			otpFields[i] = buildOtpField(i);
 			otpRow.add(otpFields[i]);
