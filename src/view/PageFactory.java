@@ -1,9 +1,10 @@
 package view;
 
 import javax.swing.JPanel;
-
 import entity.TaiKhoan;
 import service.PhanQuyenService;
+
+
 
 public class PageFactory {
 	private final PhanQuyenService phanQuyenService;
