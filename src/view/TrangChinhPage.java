@@ -1,6 +1,5 @@
 package view;
 
-import entity.TaiKhoan;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -17,6 +16,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -29,6 +29,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
+import controller.TrangChinhController;
+import entity.TaiKhoan;
+import service.PhanQuyenService;
+
 public class TrangChinhPage extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private static final Color NAV_BG = Color.decode("#123562");
@@ -38,10 +42,17 @@ public class TrangChinhPage extends JFrame {
 			Path.of("src", "main", "resources", "Image", "arrow-down.png"), 12, 12);
 
 	private final TaiKhoan taiKhoan;
+	private final PhanQuyenService phanQuyenService;
+	private final TrangChinhController controller;
+	
 	private JPanel contentPanel;
 
 	public TrangChinhPage(TaiKhoan taiKhoan) {
 		this.taiKhoan = taiKhoan;
+
+		phanQuyenService = new PhanQuyenService();
+		controller = new TrangChinhController(taiKhoan);
+
 		setTitle("Trang chính - " + taiKhoan.getHoTen());
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setSize(1400, 720);
@@ -70,7 +81,7 @@ public class TrangChinhPage extends JFrame {
 		logo.setBorder(new EmptyBorder(0, 2, 0, 8));
 		left.add(logo);
 
-		for (String item : layMenuTheoVaiTro()) {
+		for (String item : phanQuyenService.layMenuTheoVaiTro(taiKhoan)) {
 			left.add(taoMenuButton(item, "Trang chủ".equals(item)));
 		}
 
@@ -84,7 +95,7 @@ public class TrangChinhPage extends JFrame {
 		lblAvatar.setPreferredSize(new Dimension(34, 34));
 		lblAvatar.setFont(AppTheme.font(Font.BOLD, 16));
 
-		JButton btnUser = new JButton(taiKhoan.getHoTen() + "  •  " + hienThiVaiTro());
+		JButton btnUser = new JButton(taiKhoan.getHoTen() + "  •  " + phanQuyenService.hienThiVaiTro(taiKhoan));
 		btnUser.setForeground(TEXT_LIGHT);
 		btnUser.setBackground(NAV_BG);
 		btnUser.setFont(AppTheme.font(Font.BOLD, 12));
@@ -169,7 +180,7 @@ public class TrangChinhPage extends JFrame {
 		popupMenu.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 
 		if ("Tàu".equals(menuName)) {
-			if (laQuanLy()) {
+			if (phanQuyenService.laQuanLy(taiKhoan)) {
 				themMenuItem(popupMenu, "Thêm tàu", () -> moPage("Tàu", "Thêm tàu"));
 				themMenuItem(popupMenu, "Tra cứu tàu", () -> moPage("Tàu", "Tra cứu tàu"));
 				themMenuItem(popupMenu, "Cập nhật tàu", () -> moPage("Tàu", "Cập nhật"));
@@ -178,13 +189,13 @@ public class TrangChinhPage extends JFrame {
 			}
 			popupMenu.addSeparator();
 
-			popupMenu.add(taoMenuConNhieuCap("Toa", layMenuCon("Toa")));
-			popupMenu.add(taoMenuConNhieuCap("Tuyến tàu", layMenuCon("Tuyến tàu")));
-			popupMenu.add(taoMenuConNhieuCap("Chuyến tàu", layMenuCon("Chuyến tàu")));
+			popupMenu.add(taoMenuConNhieuCap("Toa", phanQuyenService.layMenuCon("Toa", taiKhoan)));
+			popupMenu.add(taoMenuConNhieuCap("Tuyến tàu", phanQuyenService.layMenuCon("Tuyến tàu", taiKhoan)));
+			popupMenu.add(taoMenuConNhieuCap("Chuyến tàu", phanQuyenService.layMenuCon("Chuyến tàu", taiKhoan)));
 			return popupMenu;
 		}
 
-		for (String item : layMenuCon(menuName)) {
+		for (String item : phanQuyenService.layMenuCon(menuName, taiKhoan)) {
 			JMenuItem menuItem = new JMenuItem(item);
 			menuItem.setFont(AppTheme.font(Font.PLAIN, 13));
 			menuItem.addActionListener(e -> moPage(menuName, item));
@@ -214,228 +225,11 @@ public class TrangChinhPage extends JFrame {
 	}
 
 	private void moPage(String menuName, String menuCon) {
-		JPanel page = taoPageTheoMenu(menuName, menuCon);
+		JPanel page = controller.moPage(menuName, menuCon);
 		contentPanel.removeAll();
 		contentPanel.add(page, BorderLayout.CENTER);
 		contentPanel.revalidate();
 		contentPanel.repaint();
-	}
-
-	private String[] layMenuCon(String menuName) {
-		switch (menuName) {
-		case "Nhân viên":
-			return new String[] { "Thêm nhân viên", "Tra cứu nhân viên", "Cập nhật thông tin", "Lập hóa đơn" };
-		case "Khách hàng":
-			if (!laQuanLy()) {
-				return new String[] { "Tra cứu khách hàng", "Lịch sử vé" };
-			}
-			return new String[] { "Thêm khách hàng", "Tra cứu khách hàng", "Cập nhật thông tin", "Lịch sử vé" };
-		case "Vé":
-			return new String[] { "Bán vé", "Đổi vé", "Trả vé", "Kiểm tra chỗ trống", "In vé" };
-		case "Chuyến tàu":
-			if (!laQuanLy()) {
-				return new String[] { "Tra cứu chuyến" };
-			}
-			return new String[] { "Thêm chuyến", "Tra cứu chuyến", "Cập nhật" };
-		case "Tàu":
-			if (!laQuanLy()) {
-				return new String[] { "Tra cứu tàu" };
-			}
-			return new String[] { "Thêm tàu", "Tra cứu tàu", "Cập nhật" };
-		case "Toa":
-			if (!laQuanLy()) {
-				return new String[] { "Tra cứu toa" };
-			}
-			return new String[] { "Thêm toa", "Tra cứu toa", "Cập nhật" };
-		case "Tuyến tàu":
-			if (!laQuanLy()) {
-				return new String[] { "Tra cứu tuyến" };
-			}
-			return new String[] { "Thêm tuyến", "Tra cứu tuyến", "Cập nhật" };
-		case "Dịch vụ":
-			if (!laQuanLy()) {
-				return new String[] { "Tra cứu" };
-			}
-			return new String[] { "Thêm dịch vụ", "Tra cứu", "Cập nhật" };
-		case "Khuyến mãi":
-			if (!laQuanLy()) {
-				return new String[] { "Tra cứu" };
-			}
-			return new String[] { "Thêm khuyến mãi", "Tra cứu", "Cập nhật"};
-		case "Thống kê":
-			return new String[] { "Doanh thu", "Vé", "Khách hàng", "Chuyến tàu" };
-		default:
-			return new String[] { "Chức năng 1", "Chức năng 2" };
-		}
-	}
-
-	private JPanel taoPageTheoMenu(String menuName, String menuCon) {
-		if ("Nhân viên".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm nhân viên":
-				return new NhanVienThemPage();
-			case "Tra cứu nhân viên":
-				return new NhanVienTraCuuPage();
-			case "Cập nhật thông tin":
-				return new NhanVienCapNhatPage();
-			case "Lập hóa đơn":
-				return new LapHoaDonPage();
-			default:
-				return new NhanVienTraCuuPage();
-			}
-		}
-
-		if ("Khách hàng".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm khách hàng":
-				return new KhachHangThemPage();
-			case "Tra cứu khách hàng":
-				return new KhachHangTraCuuPage();
-			case "Cập nhật thông tin":
-				return new KhachHangCapNhatPage();
-			case "Lịch sử vé":
-				return new LichSuVePage();
-			default:
-				return new KhachHangPage();
-			}
-		}
-
-		if ("Vé".equals(menuName)) {
-			switch (menuCon) {
-			case "Bán vé":
-				return new VeTauPage("BAN_VE");
-			case "Đổi vé":
-				return new VeTauPage("DOI_VE");
-			case "Trả vé":
-				return new VeTauPage("TRA_VE");
-			case "Kiểm tra chỗ trống":
-				return new VeTauPage("KT_CHO");
-			case "In vé":
-				return new VeTauPage("IN_VE");
-			default:
-				return new VeTauPage();
-			}
-		}
-
-		if ("Chuyến tàu".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm chuyến":
-				return new ChuyenTauThemPage();
-			case "Tra cứu chuyến":
-				return new ChuyenTauTraCuuPage();
-			case "Cập nhật":
-				return new ChuyenTauCapNhatPage();
-			default:
-				return new ChuyenTauTraCuuPage();
-			}
-		}
-
-		if ("Tàu".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm tàu":
-				return new TauThemPage();
-			case "Tra cứu tàu":
-				return new TauTraCuuPage();
-			case "Cập nhật":
-				return new TauCapNhatPage();
-			default:
-				return new TauTraCuuPage();
-			}
-		}
-
-		if ("Toa".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm toa":
-				return new ToaThemPage();
-			case "Tra cứu toa":
-				return new ToaTraCuuPage();
-			case "Cập nhật":
-				return new ToaCapNhatPage();
-			default:
-				return new ToaTraCuuPage();
-			}
-		}
-
-		if ("Dịch vụ".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm dịch vụ":
-				return new DichVuThemPage();
-			case "Tra cứu":
-				return new DichVuTraCuuPage();
-			case "Cập nhật":
-				return new DichVuCapNhatPage();
-			default:
-				return new DichVuTraCuuPage();
-			}
-		}
-
-		if ("Khuyến mãi".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm khuyến mãi":
-				return new KhuyenMaiThemPage();
-			case "Tra cứu":
-				return new KhuyenMaiTraCuuPage();
-			case "Cập nhật":
-				return new KhuyenMaiCapNhatPage();
-			case "Áp dụng":
-				return new KhuyenMaiTraCuuPage();
-			default:
-				return new KhuyenMaiTraCuuPage();
-			}
-		}
-
-		if ("Tuyến tàu".equals(menuName)) {
-			switch (menuCon) {
-			case "Thêm tuyến":
-				return new TuyenTauThemPage();
-			case "Tra cứu tuyến":
-				return new TuyenTauTraCuuPage();
-			case "Cập nhật":
-				return new TuyenTauCapNhatPage();
-			default:
-				return new TuyenTauTraCuuPage();
-			}
-		}
-
-		if ("Thống kê".equals(menuName)) {
-			switch (menuCon) {
-			case "Doanh thu":
-				return new DoanhThuThongKePage(!laQuanLy());
-			case "Vé":
-				return new VeThongKePage(!laQuanLy());
-			case "Khách hàng":
-				return new KhachHangThongKePage(!laQuanLy());
-			case "Chuyến tàu":
-				return new ChuyenTauThongKePage(!laQuanLy());
-			default:
-				return new DoanhThuThongKePage(!laQuanLy());
-			}
-		}
-
-		switch (menuName) {
-		case "Nhân viên":
-			return new NhanVienPage();
-		case "Khách hàng":
-			return new KhachHangPage();
-		case "Vé":
-			return new VeTauPage();
-		case "Chuyến tàu":
-			return new ChuyenTauPage();
-		case "Tàu":
-			return new TauPage();
-		case "Toa":
-			return new ToaPage();
-		case "Tuyến tàu":
-			return new TuyenTauPage();
-		case "Dịch vụ":
-			return new DichVuPage();
-		case "Khuyến mãi":
-			return new KhuyenMaiPage();
-		case "Thống kê":
-			return new ThongKePage();
-		default:
-			return taoBannerChaoMung();
-		}
 	}
 
 	private void hienThiMenuNguoiDung(ActionEvent event) {
@@ -450,21 +244,6 @@ public class TrangChinhPage extends JFrame {
 		});
 		popupMenu.add(dangXuat);
 		popupMenu.show(source, 0, source.getHeight());
-	}
-
-	private String[] layMenuTheoVaiTro() {
-		if (laQuanLy()) {
-			return new String[] { "Trang chủ", "Nhân viên", "Khách hàng", "Vé", "Tàu", "Dịch vụ", "Khuyến mãi", "Thống kê" };
-		}
-		return new String[] { "Trang chủ", "Khách hàng", "Vé", "Tàu", "Dịch vụ", "Khuyến mãi", "Thống kê" };
-	}
-
-	private String hienThiVaiTro() {
-		return laQuanLy() ? "Quản trị viên" : "Nhân viên";
-	}
-
-	private boolean laQuanLy() {
-		return "QUAN_LY".equalsIgnoreCase(taiKhoan.getVaiTro()) || "ADMIN".equalsIgnoreCase(taiKhoan.getVaiTro());
 	}
 
 	private Image taiAnhBanner() {

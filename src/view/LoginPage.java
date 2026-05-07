@@ -323,6 +323,7 @@ public class LoginPage extends JFrame {
 	}
 
 	private void moTrangChinh(TaiKhoan taiKhoan) {
+		JOptionPane.showMessageDialog(this, "Đăng nhập thành công! Chào mừng " + taiKhoan.getTenDangNhap());
 		TrangChinhPage trangChinhPage = new TrangChinhPage(taiKhoan);
 		trangChinhPage.setVisible(true);
 		dispose();
@@ -371,11 +372,7 @@ public class LoginPage extends JFrame {
 
 	public static void main(String[] args) {
 		AppTheme.installGlobalStyles();
-		SwingUtilities.invokeLater(() -> {
-			if (BYPASS_LOGIN_FOR_TEST) {
-				new TrangChinhPage(new TaiKhoan("admin", "", "", "Admin", "QUAN_LY")).setVisible(true);
-				return;
-			}
+		SwingUtilities.invokeLater(() -> {	
 			new LoginPage().setVisible(true);
 		});
 	}
