@@ -57,4 +57,18 @@ public class TaiKhoanService {
 			throw new IllegalArgumentException("Mật khẩu phải chứa ít nhất một chữ số.");
 		}
 	}
+	
+	public String kiemTraTaiKhoanQuenMatKhau(String tenDangNhap) {
+	    if (tenDangNhap == null || tenDangNhap.trim().isEmpty()) {
+	        throw new IllegalArgumentException("Vui lòng nhập tên đăng nhập để tiếp tục");
+	    }
+
+	    String email = dao.layEmailTheoTaiKhoan(tenDangNhap);
+
+	    if (email == null) {
+	        throw new IllegalArgumentException("Tài khoản không tồn tại");
+	    }
+
+	    return email;
+	}
 }

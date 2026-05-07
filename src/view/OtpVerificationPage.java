@@ -176,21 +176,28 @@ public class OtpVerificationPage extends JDialog {
 	}
 
 	private void confirmOtp() {
-	    StringBuilder otpInput = new StringBuilder();
-	    for (JTextField field : otpFields) {
-	        otpInput.append(field.getText().trim());
-	    }
+	    try {
+	        StringBuilder otpInput = new StringBuilder();
 
-	    boolean isValid = otpService.verifyOtp(expectedEmail, otpInput.toString());
+	        for (JTextField field : otpFields) {
+	            otpInput.append(field.getText().trim());
+	        }
 
-	    if (!isValid) {
-	        JOptionPane.showMessageDialog(this, "OTP không đúng");
-	        return;
-	    }
+	        if (otpInput.toString().isBlank()) {
+	            JOptionPane.showMessageDialog(this, "Vui lòng nhập mã OTP");
+	            return;
+	        }
 
-	    dispose();
-	    if (onClose != null) {
-	        onClose.accept(true);
+	        otpService.verifyOtp(expectedEmail, otpInput.toString());
+
+	        dispose();
+
+	        if (onClose != null) {
+	            onClose.accept(true);
+	        }
+
+	    } catch (Exception ex) {
+	        JOptionPane.showMessageDialog(this, ex.getMessage());
 	    }
 	}
 }

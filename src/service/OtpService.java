@@ -31,19 +31,17 @@ public class OtpService {
 	}
 	
 	public boolean verifyOtp(String email, String inputOtp) {
-
         OtpData data = otpStore.get(email);
-
         if (data == null) {
-            return false;
+        	throw new IllegalArgumentException("OTP không tồn tại hoặc đã hết hạn.");
         }
-
+        
         long now = System.currentTimeMillis();
-
+        
         // Hết hạn
         if (now > data.expirationTime) {
             otpStore.remove(email);
-            return false;
+            throw new IllegalArgumentException("OTP đã hết hạn.");
         }
 
         // Đúng OTP

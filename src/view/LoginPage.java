@@ -329,24 +329,34 @@ public class LoginPage extends JFrame {
 	}
 
 	private void xuLyQuenMatKhau() {
-		String tenDangNhap = txtTenDangNhap.getText().trim();
-		String email = taiKhoanservice.layEmailTheoTaiKhoan(tenDangNhap);
-		
-		if (email == null) {
-			JOptionPane.showMessageDialog(this, "Tài khoản không tồn tại");
-			return;
-		}
+	    try {
+	        String tenDangNhap = txtTenDangNhap.getText().trim();
 
-		OtpVerificationPage otpPage = new OtpVerificationPage(this, email, verified -> {
-			if (Boolean.TRUE.equals(verified)) {
-				ResetPasswordPage resetPage = new ResetPasswordPage(this, tenDangNhap, taiKhoanDAO,
-						() -> JOptionPane.showMessageDialog(this, "Bạn có thể đăng nhập bằng mật khẩu mới."));
-				resetPage.setVisible(true);
-			}
-		});
-		otpPage.setVisible(true);
+	        String email = taiKhoanservice.kiemTraTaiKhoanQuenMatKhau(tenDangNhap);
+
+	        OtpVerificationPage otpPage = new OtpVerificationPage(this, email, verified -> {
+	            if (Boolean.TRUE.equals(verified)) {
+	                ResetPasswordPage resetPage = new ResetPasswordPage(
+	                    this,
+	                    tenDangNhap,
+	                    taiKhoanDAO,
+	                    () -> JOptionPane.showMessageDialog(
+	                        this,
+	                        "Bạn có thể đăng nhập bằng mật khẩu mới."
+	                    )
+	                );
+
+	                resetPage.setVisible(true);
+	            }
+	        });
+
+	        otpPage.setVisible(true);
+
+	    } catch (IllegalArgumentException e) {
+	        JOptionPane.showMessageDialog(this, e.getMessage());
+	    }
 	}
-
+	
 	private void togglePasswordVisibility() {
 		if (isPasswordVisible) {
 			// Ẩn mật khẩu: quay lại echo character mặc định
