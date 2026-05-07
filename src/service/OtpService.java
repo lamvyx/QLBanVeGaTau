@@ -10,22 +10,23 @@ import jakarta.mail.internet.*;
 import java.util.Properties;
 
 public class OtpService {
-	
-	private static final long OTP_EXPIRE_MS = 2 * 60 * 1000; 	  // Thời hạn OTP (2 phút)
-	private static final long RESEND_COOLDOWN_MS = 1 * 60 * 1000; // Thời gian chờ để gửi lại OTP (30 giây)
-	
 	// Lưu OTP tạm thời trong bộ nhớ (email -> OtpData)
 	private Map<String, OtpData> otpStore = new ConcurrentHashMap<>(); 
+	private static final long OTP_EXPIRE_MS = 2 * 60 * 1000; 	  // Thời hạn OTP (2 phút)
+	private static final long RESEND_COOLDOWN_MS = 1 * 60 * 1000; // Thời gian chờ để gửi lại OTP (60 giây)
+	private static final int MAX_FAILED_ATTEMPTS = 5; // Giới hạn 5 lần nhập sai
+	
 	
 	private static class OtpData{
 		String otp;
 		long expirationTime;
 		long lastSentTime;
-		
+		int failedAttempts = 0; 
 		public OtpData(String otp, long expirationTime, long lastSentTime) {
 			this.otp = otp;
 			this.expirationTime = expirationTime;
 			this.lastSentTime = lastSentTime;
+			this.failedAttempts = 0;
 		}
 	}
 	
@@ -49,13 +50,22 @@ public class OtpService {
         if (data.otp.equals(inputOtp)) {
             otpStore.remove(email);
             return true;
+        }else {
+        	//  Nhập sai
+            data.failedAttempts++;
+            
+            if (data.failedAttempts >= MAX_FAILED_ATTEMPTS) {
+                otpStore.remove(email); // Quá số lần thử, hủy mã OTP
+                throw new RuntimeException("Bạn đã nhập sai quá " + MAX_FAILED_ATTEMPTS + " lần. Vui lòng yêu cầu mã mới.");
+            }
+            
+            int remaining = MAX_FAILED_ATTEMPTS - data.failedAttempts;
+            throw new IllegalArgumentException("Mã OTP không đúng. Bạn còn " + remaining + " lần thử.");
         }
-
-        return false;
     }
 	
 	private void sendEmail(String toEmail, String otp) throws Exception {
-	    final String fromEmail = "nhommtvcn@gmail.com";      // email gửi
+	    final String fromEmail = "nhommtvcn@gmail.com";      	// email gửi
 	    final String appPassword = "smpx cswm qigb ajlh";       // app password
 
 	    Properties props = new Properties();

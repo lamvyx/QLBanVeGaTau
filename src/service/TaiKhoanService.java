@@ -42,4 +42,13 @@ public class TaiKhoanService {
 
         return dao.layEmailTheoTaiKhoan(tenDangNhap);
     }
+	
+	public boolean doiMatKhau(String tenDangNhap, String matKhauMoi) {
+
+	    if (matKhauMoi == null || matKhauMoi.trim().isEmpty()) {
+	        throw new IllegalArgumentException("Mật khẩu mới không được rỗng");
+	    }
+
+	    return dao.doiMatKhau(tenDangNhap, matKhauMoi);
+	}
 }

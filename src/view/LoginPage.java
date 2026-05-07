@@ -2,6 +2,8 @@ package view;
 
 import dao.TaiKhoan_DAO;
 import entity.TaiKhoan;
+import service.TaiKhoanService;
+
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -33,6 +35,7 @@ public class LoginPage extends JFrame {
 	private static final Color MAU_LABEL = AppTheme.TEXT_MUTED;
 	private static final Color MAU_BORDER = AppTheme.BORDER;
 	private final TaiKhoan_DAO taiKhoanDAO = new TaiKhoan_DAO();
+	private final TaiKhoanService taiKhoanservice = new TaiKhoanService();
 	private final JTextField txtTenDangNhap = new JTextField(20);
 	private final JPasswordField txtMatKhau = new JPasswordField(20);
 	private boolean isPasswordVisible = false;
@@ -299,21 +302,24 @@ public class LoginPage extends JFrame {
 
 		return null;
 	}
-
+	
+	// Xử lý đăng nhập
 	private void xuLyDangNhap() {
-		if (BYPASS_LOGIN_FOR_TEST) {
-			moTrangChinh(new TaiKhoan("admin", "", "", "Admin", "QUAN_LY"));
-			return;
-		}
+	    try {
+	        String tenDangNhap = txtTenDangNhap.getText();
+	        String matKhau = new String(txtMatKhau.getPassword());
 
-		String tenDangNhap = txtTenDangNhap.getText().trim();
-		String matKhau = new String(txtMatKhau.getPassword()).trim();
-		TaiKhoan taiKhoan = taiKhoanDAO.timTaiKhoanDangNhap(tenDangNhap, matKhau);
-		if (taiKhoan != null) {
-			moTrangChinh(taiKhoan);
-			return;
-		}
-		JOptionPane.showMessageDialog(this, "Sai tên đăng nhập hoặc mật khẩu");
+	        TaiKhoan taiKhoan = taiKhoanservice.dangNhap(tenDangNhap, matKhau);
+
+	        if (taiKhoan != null) {
+	            moTrangChinh(taiKhoan);
+	        } else {
+	            JOptionPane.showMessageDialog(this, "Sai tài khoản hoặc mật khẩu");
+	        }
+
+	    } catch (IllegalArgumentException e) {
+	        JOptionPane.showMessageDialog(this, e.getMessage());
+	    }
 	}
 
 	private void moTrangChinh(TaiKhoan taiKhoan) {
@@ -324,12 +330,13 @@ public class LoginPage extends JFrame {
 
 	private void xuLyQuenMatKhau() {
 		String tenDangNhap = txtTenDangNhap.getText().trim();
+		
 		if (tenDangNhap.isEmpty()) {
 			JOptionPane.showMessageDialog(this, "Nhập tên đăng nhập trước");
 			return;
 		}
 
-		String email = taiKhoanDAO.layEmailTheoTaiKhoan(tenDangNhap);
+		String email = taiKhoanservice.layEmailTheoTaiKhoan(tenDangNhap);
 		if (email == null) {
 			JOptionPane.showMessageDialog(this, "Tài khoản không tồn tại");
 			return;

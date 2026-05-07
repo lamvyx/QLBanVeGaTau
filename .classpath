@@ -8,5 +8,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="resources"/>
 	<classpathentry kind="lib" path="Q:/DOWNLOAD2/PTUD/Main/QLBanVeGaTau/lib/mssql-jdbc-13.4.0.jre11.jar"/>
+	<classpathentry kind="lib" path="Q:/DOWNLOAD2/Nhanh2/QLBanVeGaTau/lib/jakarta.activation-2.0.1.jar"/>
+	<classpathentry kind="lib" path="Q:/DOWNLOAD2/Nhanh2/QLBanVeGaTau/lib/jakarta.mail-2.0.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

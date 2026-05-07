@@ -10,6 +10,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.security.SecureRandom;
 import java.util.function.Consumer;
+
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -23,6 +24,8 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
+import service.OtpService;
+
 public class OtpVerificationPage extends JDialog {
 	private static final long serialVersionUID = 1L;
 	private static final Color NEUTRAL_BG = Color.decode("#F0F5F9");
@@ -32,7 +35,9 @@ public class OtpVerificationPage extends JDialog {
 	private final JTextField[] otpFields = new JTextField[6];
 	private final Consumer<Boolean> onClose;
 	private String currentOtp;
-
+	
+	private OtpService otpService = new OtpService();
+	
 	public OtpVerificationPage(JFrame parent, String expectedEmail, Consumer<Boolean> onClose) {
 		super(parent, "Quên mật khẩu", true);
 		this.expectedEmail = expectedEmail;
@@ -157,40 +162,40 @@ public class OtpVerificationPage extends JDialog {
 		return field;
 	}
 
-	private void sendOtp() {
-		String inputEmail = txtEmail.getText().trim();
-		if (inputEmail.isEmpty()) {
-			JOptionPane.showMessageDialog(this, "Vui lòng nhập email.");
-			return;
-		}
-		if (!inputEmail.equalsIgnoreCase(expectedEmail)) {
-			JOptionPane.showMessageDialog(this, "Email không trùng với tài khoản.");
-			return;
-		}
-
-		currentOtp = String.valueOf(100000 + new SecureRandom().nextInt(900000));
-		JOptionPane.showMessageDialog(this, "OTP đã gửi. (Demo: " + currentOtp + ")");
+	public void sendOtp() {
+	    try {
+	        String inputEmail = txtEmail.getText().trim();
+	        
+	        // Gọi service xử lý cả việc validate và gửi OTP
+	        otpService.sendOtpWithValidation(inputEmail, expectedEmail);
+	        
+	        JOptionPane.showMessageDialog(this, "OTP đã gửi đến email của bạn. Vui lòng kiểm tra hộp thư.");
+	        
+	    } catch (IllegalArgumentException ex) {
+	        // Hiển thị thông báo lỗi từ Service 
+	        JOptionPane.showMessageDialog(this, ex.getMessage());
+	    } catch (Exception ex) {
+	        // Xử lý các lỗi hệ thống 
+	        JOptionPane.showMessageDialog(this, "Có lỗi xảy ra: " + ex.getMessage());
+	    }
 	}
 
 	private void confirmOtp() {
-		if (currentOtp == null) {
-			JOptionPane.showMessageDialog(this, "Hãy gửi OTP trước.");
-			return;
-		}
+	    StringBuilder otpInput = new StringBuilder();
+	    for (JTextField field : otpFields) {
+	        otpInput.append(field.getText().trim());
+	    }
 
-		StringBuilder otpInput = new StringBuilder();
-		for (JTextField field : otpFields) {
-			otpInput.append(field.getText().trim());
-		}
+	    boolean isValid = otpService.verifyOtp(expectedEmail, otpInput.toString());
 
-		if (!currentOtp.equals(otpInput.toString())) {
-			JOptionPane.showMessageDialog(this, "OTP không đúng.");
-			return;
-		}
+	    if (!isValid) {
+	        JOptionPane.showMessageDialog(this, "OTP không đúng");
+	        return;
+	    }
 
-		dispose();
-		if (onClose != null) {
-			onClose.accept(true);
-		}
+	    dispose();
+	    if (onClose != null) {
+	        onClose.accept(true);
+	    }
 	}
 }
