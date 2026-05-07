@@ -35,20 +35,26 @@ public class TaiKhoanService {
             throw new IllegalArgumentException("Tên đăng nhập không được rỗng");
         }
 
-        // Nếu là tài khoản admin, trả về email mặc định
-        if ("admin".equalsIgnoreCase(tenDangNhap.trim())) {
-            return "admin@local";
-        }
-
         return dao.layEmailTheoTaiKhoan(tenDangNhap);
     }
 	
 	public boolean doiMatKhau(String tenDangNhap, String matKhauMoi) {
-
-	    if (matKhauMoi == null || matKhauMoi.trim().isEmpty()) {
-	        throw new IllegalArgumentException("Mật khẩu mới không được rỗng");
-	    }
-
+		validateMatKhau(matKhauMoi);
 	    return dao.doiMatKhau(tenDangNhap, matKhauMoi);
+	}
+	
+	public void validateMatKhau(String matKhau) {
+		if(matKhau.length() < 8) {
+			throw new IllegalArgumentException("Mật khẩu phải có ít nhất 8 ký tự.");
+		}
+		if(!matKhau.matches(".*[A-Z].*")) {
+			throw new IllegalArgumentException("Mật khẩu phải chứa ít nhất một chữ cái viết hoa.");
+		}
+		if(!matKhau.matches(".*[a-z].*")) {
+			throw new IllegalArgumentException("Mật khẩu phải chứa ít nhất một chữ cái viết thường.");
+		}
+		if(!matKhau.matches(".*\\d.*")) {
+			throw new IllegalArgumentException("Mật khẩu phải chứa ít nhất một chữ số.");
+		}
 	}
 }

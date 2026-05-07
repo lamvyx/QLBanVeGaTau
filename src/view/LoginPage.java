@@ -330,13 +330,8 @@ public class LoginPage extends JFrame {
 
 	private void xuLyQuenMatKhau() {
 		String tenDangNhap = txtTenDangNhap.getText().trim();
-		
-		if (tenDangNhap.isEmpty()) {
-			JOptionPane.showMessageDialog(this, "Nhập tên đăng nhập trước");
-			return;
-		}
-
 		String email = taiKhoanservice.layEmailTheoTaiKhoan(tenDangNhap);
+		
 		if (email == null) {
 			JOptionPane.showMessageDialog(this, "Tài khoản không tồn tại");
 			return;

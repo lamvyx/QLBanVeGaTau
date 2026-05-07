@@ -87,11 +87,28 @@ tra tài khoản - Xử lý logic liên quan đến tài khoản
 cần
 
 ------------------------------------------------------------------------
+## Tóm lại:
+- Thêm: TaiKhoanService, OtpService (để tách phần xử lý nghiệp vụ khỏi TaiKhoan_DAO và OtpVerificationPage)
+- Cập nhật: 
+    - TaiKhoan_DAO chỉ xử lý liên kết database
+    - OtpVerificationPage, LoginPage chỉ hiển thị và gọi xử lý từ service
 
--   Không viết logic trong `View`
--   Không để `DAO` xử lý nghiệp vụ
--   Luôn đi qua `Service`
--   GUI phức tạp → xử lý ở `Controller`
+## Trong đó:
+- TaiKhoanService xử lý:
+    - đăng nhập
+    - lấy email
+    - đổi mật khẩu
+    - kiểm tra tài khoản
+    - khóa tài khoản
+    - Kiểm tra độ mạnh của Mật khẩu (Validation)
+    - cập nhật thông tin tài khoản
 
--   À còn thêm 2 thư viện để gửi OTP qua GMAIL
--   Tóm lại: Tách code phần đăng nhập + OTP để dễ học với xử lý
+- OtpService xử lý:
+    - Tạo mã OTP bảo mật
+    - Quản lý lưu trữ tạm thời
+    - Xác thực Email đầu vào
+    - Kiểm soát thời gian gửi lại (Cooldown)
+    - Cấu hình và gửi Email
+    - Xác minh mã OTP (Verification)
+    - Quản lý thời gian hết hạn (Expiration)
+    - Cơ chế chống tấn công Brute-force

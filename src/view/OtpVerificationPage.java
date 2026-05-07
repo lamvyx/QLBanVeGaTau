@@ -34,7 +34,6 @@ public class OtpVerificationPage extends JDialog {
 	private final JTextField txtEmail = new JTextField(22);
 	private final JTextField[] otpFields = new JTextField[6];
 	private final Consumer<Boolean> onClose;
-	private String currentOtp;
 	
 	private OtpService otpService = new OtpService();
 	
@@ -166,16 +165,12 @@ public class OtpVerificationPage extends JDialog {
 	    try {
 	        String inputEmail = txtEmail.getText().trim();
 	        
-	        // Gọi service xử lý cả việc validate và gửi OTP
 	        otpService.sendOtpWithValidation(inputEmail, expectedEmail);
-	        
 	        JOptionPane.showMessageDialog(this, "OTP đã gửi đến email của bạn. Vui lòng kiểm tra hộp thư.");
 	        
-	    } catch (IllegalArgumentException ex) {
-	        // Hiển thị thông báo lỗi từ Service 
+	    } catch (IllegalArgumentException ex) {   
 	        JOptionPane.showMessageDialog(this, ex.getMessage());
-	    } catch (Exception ex) {
-	        // Xử lý các lỗi hệ thống 
+	    } catch (Exception ex) {	        
 	        JOptionPane.showMessageDialog(this, "Có lỗi xảy ra: " + ex.getMessage());
 	    }
 	}
