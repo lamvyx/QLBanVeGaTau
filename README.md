@@ -19,8 +19,7 @@ phối luồng xử lý - Gọi đến `service`
 
 ### 🔹 Luồng xử lý mới
 
-Controller (GUI logic) -> Service (Business logic) -> DAO (Database) -> View (Hiển thị)
-
+View (GUI) -> Controller -> Service -> DAO -> Database
 ------------------------------------------------------------------------
 
 ## 2. Các class mới được thêm
