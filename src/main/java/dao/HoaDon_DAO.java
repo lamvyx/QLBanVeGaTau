@@ -274,7 +274,7 @@ public class HoaDon_DAO {
 				return danhSach;
 			}
 			String keyword = tuKhoa == null ? "" : tuKhoa.trim();
-			String sql = "SELECT maHD, maNV, maKH, maKM, thoiGian FROM HoaDon WHERE maHD LIKE ? OR maKH LIKE ? OR maNV LIKE ? ORDER BY thoiGian DESC";
+			String sql = "SELECT maHD, maNV, maKH, maKM, thoiGian, trangThaiThanhToan, ngayThanhToan FROM HoaDon WHERE maHD LIKE ? OR maKH LIKE ? OR maNV LIKE ? ORDER BY thoiGian DESC";
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				String pattern = "%" + keyword + "%";
 				ps.setString(1, pattern);
@@ -284,8 +284,12 @@ public class HoaDon_DAO {
 					while (rs.next()) {
 						Timestamp ts = rs.getTimestamp("thoiGian");
 						LocalDateTime thoiGian = ts != null ? ts.toLocalDateTime() : rs.getDate("thoiGian").toLocalDate().atStartOfDay();
-						danhSach.add(new HoaDon(rs.getString("maHD"), rs.getString("maNV"), rs.getString("maKH"),
-								thoiGian, BigDecimal.ZERO, BigDecimal.ZERO, rs.getString("maKM")));
+						HoaDon hd = new HoaDon(rs.getString("maHD"), rs.getString("maNV"), rs.getString("maKH"),
+								thoiGian, BigDecimal.ZERO, BigDecimal.ZERO, rs.getString("maKM"));
+						hd.setTrangThaiThanhToan(rs.getBoolean("trangThaiThanhToan"));
+						Date ntt = rs.getDate("ngayThanhToan");
+						if (ntt != null) hd.setNgayThanhToan(ntt.toLocalDate());
+						danhSach.add(hd);
 					}
 				}
 			}
@@ -332,5 +336,65 @@ public class HoaDon_DAO {
 			System.err.println("[HoaDon_DAO] Lỗi lấy tổng doanh thu: " + e.getMessage());
 		}
 		return BigDecimal.ZERO;
+	}
+
+	public List<ChiTietHoaDonItem> layChiTietHoaDon(String maHD) {
+		List<ChiTietHoaDonItem> danhSach = new ArrayList<>();
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) return danhSach;
+			String sql = "SELECT maCTHD, maHD, maVeTau, maDV, soLuong, donGia FROM ChiTietHoaDon WHERE maHD = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maHD);
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						danhSach.add(new ChiTietHoaDonItem(
+							rs.getString("maCTHD"),
+							rs.getString("maHD"),
+							rs.getString("maVeTau"),
+							rs.getString("maDV"),
+							rs.getInt("soLuong"),
+							BigDecimal.valueOf(rs.getDouble("donGia"))
+						));
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[HoaDon_DAO] Lỗi lấy chi tiết hóa đơn: " + e.getMessage());
+		}
+		return danhSach;
+	}
+	public boolean updateTrangThaiThanhToan(String maHD, boolean daThanhToan) {
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) return false;
+			String sql = "UPDATE HoaDon SET trangThaiThanhToan = ?, ngayThanhToan = ? WHERE maHD = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setBoolean(1, daThanhToan);
+				ps.setDate(2, daThanhToan ? Date.valueOf(LocalDate.now()) : null);
+				ps.setString(3, maHD);
+				return ps.executeUpdate() > 0;
+			}
+		} catch (Exception e) {
+			System.err.println("[HoaDon_DAO] Lỗi cập nhật trạng thái thanh toán: " + e.getMessage());
+			return false;
+		}
+	}
+
+	public boolean kiemTraThanhToan(String maHD) {
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) return false;
+			String sql = "SELECT trangThaiThanhToan FROM HoaDon WHERE maHD = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maHD);
+				try (ResultSet rs = ps.executeQuery()) {
+					if (rs.next()) return rs.getBoolean(1);
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[HoaDon_DAO] Lỗi kiểm tra thanh toán: " + e.getMessage());
+		}
+		return false;
 	}
 }

@@ -159,4 +159,27 @@ public class DichVu_DAO {
 			return false;
 		}
 	}
+
+	public boolean themDichVu(DichVu dv) {
+		if (dv == null || dv.getMaDV() == null || dv.getMaDV().isBlank()) {
+			return false;
+		}
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) {
+				return false;
+			}
+			String sql = "INSERT INTO DichVu (maDV, tenDV, giaTien, trangThai) VALUES (?, ?, ?, ?)";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, dv.getMaDV());
+				ps.setString(2, dv.getTenDV());
+				ps.setBigDecimal(3, dv.getGiaDV());
+				ps.setBoolean(4, dv.isTrangThai());
+				return ps.executeUpdate() > 0;
+			}
+		} catch (SQLException e) {
+			System.err.println("Không thể thêm dịch vụ " + dv.getMaDV() + ": " + e.getMessage());
+			return false;
+		}
+	}
 }

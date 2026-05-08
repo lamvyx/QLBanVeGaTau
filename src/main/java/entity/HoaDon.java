@@ -1,6 +1,7 @@
 package entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class HoaDon {
@@ -11,6 +12,8 @@ public class HoaDon {
 	private BigDecimal vat;
 	private BigDecimal tongTien;
 	private String maKM;
+	private boolean trangThaiThanhToan;
+	private LocalDate ngayThanhToan;
 
 	public HoaDon() {
 	}
@@ -40,4 +43,8 @@ public class HoaDon {
 	public void setTongTien(BigDecimal tongTien) { this.tongTien = tongTien; }
 	public String getMaKM() { return maKM; }
 	public void setMaKM(String maKM) { this.maKM = maKM; }
+	public boolean isTrangThaiThanhToan() { return trangThaiThanhToan; }
+	public void setTrangThaiThanhToan(boolean trangThaiThanhToan) { this.trangThaiThanhToan = trangThaiThanhToan; }
+	public LocalDate getNgayThanhToan() { return ngayThanhToan; }
+	public void setNgayThanhToan(LocalDate ngayThanhToan) { this.ngayThanhToan = ngayThanhToan; }
 }

@@ -1,9 +1,12 @@
 package view;
 
+import controller.ToaController;
+import entity.Toa;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -22,6 +25,7 @@ public class ToaTraCuuPage extends JPanel {
 	private JComboBox<String> cbSapXep;
 	private JTable tableToa;
 	private DefaultTableModel model;
+	private final ToaController toaController = new ToaController();
 
 	public ToaTraCuuPage() {
 		setLayout(new BorderLayout());
@@ -31,6 +35,7 @@ public class ToaTraCuuPage extends JPanel {
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoSearchPanel(), BorderLayout.WEST);
 		add(taoTablePanel(), BorderLayout.CENTER);
+		taiDuLieuBang();
 	}
 
 	private JPanel taoHeader() {
@@ -107,14 +112,6 @@ public class ToaTraCuuPage extends JPanel {
 			}
 		};
 
-		// Sample data
-		model.addRow(new Object[] { 1, "A1", "Ghế ngồi", "T001", 40, "Thứ 1", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 2, "A2", "Ghế ngồi", "T001", 40, "Thứ 2", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 3, "B1", "Giường nằm", "T002", 32, "Thứ 3", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 4, "C1", "Giường nằm khoang VIP", "T003", 16, "Thứ 1", "Bảo trì", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 5, "D1", "Toa hàng", "T001", 0, "Thứ 8", "Hoạt động", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 6, "A3", "Ghế ngồi", "T002", 40, "Thứ 3", "Hoạt động", "👁 ✏️ 🗑" });
-
 		tableToa = new JTable(model);
 		tableToa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		tableToa.setRowHeight(28);
@@ -130,5 +127,24 @@ public class ToaTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) return;
+		model.setRowCount(0);
+		List<Toa> ds = toaController.timKiemToa(null);
+		int stt = 1;
+		for (Toa toa : ds) {
+			model.addRow(new Object[] { 
+				stt++, 
+				toa.getMaToa(), 
+				toa.getLoaiToa(), 
+				toa.getMaTau(), 
+				toa.getSoGhe(), 
+				toa.getViTriToa(), 
+				toa.isTrangThai() ? "Hoạt động" : "Ngừng hoạt động", 
+				"👁 ✏️ 🗑" 
+			});
+		}
 	}
 }

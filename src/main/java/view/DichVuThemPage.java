@@ -1,5 +1,6 @@
 package view;
 
+import controller.DichVuController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,18 +8,22 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.math.BigDecimal;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import service.DichVuService.KetQuaXuLy;
 
 public class DichVuThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
 	
 	private JTextField txtMaDV, txtTenDV, txtGiaDV;
+	private final DichVuController dichVuController = new DichVuController();
 
 	public DichVuThemPage() {
 		setLayout(new BorderLayout());
@@ -131,8 +136,9 @@ public class DichVuThemPage extends JPanel {
 		btnThem.setFocusPainted(false);
 		btnThem.setBorder(new EmptyBorder(8, 24, 8, 24));
 		btnThem.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnThem.addActionListener(e -> xuLyThemDichVu());
 		buttonPanel.add(btnThem);
-
+ 
 		JButton btnLamMoi = new JButton("Làm mới");
 		btnLamMoi.setBackground(Color.WHITE);
 		btnLamMoi.setForeground(Color.decode("#2B4B74"));
@@ -140,15 +146,40 @@ public class DichVuThemPage extends JPanel {
 		btnLamMoi.setFocusPainted(false);
 		btnLamMoi.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnLamMoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnLamMoi.addActionListener(e -> lamMoiForm());
 		buttonPanel.add(btnLamMoi);
-
+ 
 		formContainer.add(buttonPanel, gbc);
-
+ 
 		JPanel scrollWrapper = new JPanel(new BorderLayout());
 		scrollWrapper.setBackground(Color.WHITE);
 		scrollWrapper.add(formContainer, BorderLayout.NORTH);
-
+ 
 		wrapper.add(scrollWrapper, BorderLayout.CENTER);
 		return wrapper;
+	}
+
+	private void xuLyThemDichVu() {
+		try {
+			String maDV = txtMaDV.getText().trim();
+			String tenDV = txtTenDV.getText().trim();
+			BigDecimal giaDV = new BigDecimal(txtGiaDV.getText().trim());
+			
+			KetQuaXuLy ketQua = dichVuController.themDichVu(maDV, tenDV, giaDV, true);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao);
+			if (ketQua.thanhCong) {
+				lamMoiForm();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Giá dịch vụ phải là số tiền hợp lệ");
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+		}
+	}
+
+	private void lamMoiForm() {
+		txtMaDV.setText("");
+		txtTenDV.setText("");
+		txtGiaDV.setText("0");
 	}
 }

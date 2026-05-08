@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DonDoiTra_DAO {
 	public DonDoiTra_DAO() {
@@ -130,5 +132,28 @@ public class DonDoiTra_DAO {
 			System.err.println("[DonDoiTra_DAO] Lỗi xác nhận đơn đổi trả: " + e.getMessage());
 			return false;
 		}
+	}
+	public List<DonDoiTra> layTatCaDon() {
+		List<DonDoiTra> danhSach = new ArrayList<>();
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) {
+				return danhSach;
+			}
+			String sql = "SELECT maDon, maVeCu, maVeMoi, loaiDon, trangThai, ghiChu, thoiGianTao, thoiGianXacNhan FROM DonDoiTra ORDER BY thoiGianTao DESC";
+			try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+				while (rs.next()) {
+					Timestamp tao = rs.getTimestamp("thoiGianTao");
+					Timestamp xacNhan = rs.getTimestamp("thoiGianXacNhan");
+					danhSach.add(new DonDoiTra(rs.getString("maDon"), rs.getString("maVeCu"), rs.getString("maVeMoi"),
+							rs.getString("loaiDon"), rs.getString("trangThai"), rs.getString("ghiChu"),
+							tao != null ? tao.toLocalDateTime() : null,
+							xacNhan != null ? xacNhan.toLocalDateTime() : null));
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[DonDoiTra_DAO] Lỗi lấy danh sách đơn đổi trả: " + e.getMessage());
+		}
+		return danhSach;
 	}
 }

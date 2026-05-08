@@ -33,6 +33,18 @@ public class HoaDonController {
 		return hoaDonService.layTongDoanhThu();
 	}
 
+	public List<ChiTietHoaDonItem> layChiTietHoaDon(String maHD) {
+		return hoaDonService.layChiTietHoaDon(chuanHoa(maHD));
+	}
+
+	public boolean updateTrangThaiThanhToan(String maHD, boolean daThanhToan) {
+		return hoaDonService.updateTrangThaiThanhToan(chuanHoa(maHD), daThanhToan);
+	}
+
+	public boolean kiemTraThanhToan(String maHD) {
+		return hoaDonService.kiemTraThanhToan(chuanHoa(maHD));
+	}
+
 	private String chuanHoa(String s) {
 		return s == null ? null : s.trim();
 	}

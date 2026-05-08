@@ -8,14 +8,20 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -23,8 +29,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import service.ChuyenTauService.KetQuaXuLy;
@@ -38,8 +46,10 @@ public class ChuyenTauCapNhatPage extends JPanel {
 	private DefaultTableModel model;
 	private final ChuyenTauController chuyenTauController = new ChuyenTauController();
 	private static final DateTimeFormatter DATE_TIME_INPUT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+	private static final ImageIcon ICON_LICH = taiAnhIcon("/Image/icon_lich.png", 14, 14);
 	
-	private JTextField txtMaChuyenTau, txtGioKhoiHanh, txtGiaCoban;
+	private JTextField txtMaChuyenTau, txtGiaCoban;
+	private JSpinner spnGioKhoiHanh;
 	private JComboBox<String> cbTau, cbTuyenTau;
 	private JButton btnCapNhat, btnXoa, btnHuy;
 
@@ -141,6 +151,99 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		return wrapper;
 	}
 
+	private JSpinner taoDateTimePicker() {
+		JSpinner spinner = new JSpinner(new SpinnerDateModel());
+		JSpinner.DateEditor editor = new JSpinner.DateEditor(spinner, "dd/MM/yyyy HH:mm");
+		spinner.setEditor(editor);
+		spinner.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		spinner.setPreferredSize(new Dimension(200, 30));
+		spinner.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(2, 2, 2, 2)
+		));
+		return spinner;
+	}
+
+	private JPanel taoPanelChonNgayNhanh(JSpinner spn) {
+		JPanel wrap = new JPanel(new BorderLayout(5, 0));
+		wrap.setBackground(Color.WHITE);
+		wrap.add(spn, BorderLayout.CENTER);
+		
+		JPanel buttons = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 2, 0));
+		buttons.setBackground(Color.WHITE);
+		
+		JButton btnCalendar = new JButton(ICON_LICH);
+		btnCalendar.setToolTipText("Chọn từ lịch");
+		btnCalendar.setFocusPainted(false);
+		btnCalendar.setPreferredSize(new Dimension(28, 30));
+		btnCalendar.addActionListener(e -> {
+			LocalDate current = layLocalDateTimeTuSpinner(spn).toLocalDate();
+			CalendarDatePicker picker = new CalendarDatePicker(current, date -> {
+				LocalDateTime time = layLocalDateTimeTuSpinner(spn);
+				spn.setValue(Date.from(date.atTime(time.toLocalTime()).atZone(ZoneId.systemDefault()).toInstant()));
+			});
+			picker.showPopup(btnCalendar, 0, btnCalendar.getHeight());
+		});
+		buttons.add(btnCalendar);
+
+		JButton btnNow = new JButton("Nay");
+		btnNow.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		btnNow.setMargin(new Insets(2, 5, 2, 5));
+		btnNow.addActionListener(e -> spn.setValue(new Date()));
+		
+		JButton btnTomorrow = new JButton("Mai");
+		btnTomorrow.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		btnTomorrow.setMargin(new Insets(2, 5, 2, 5));
+		btnTomorrow.addActionListener(e -> {
+			Calendar cal = Calendar.getInstance();
+			cal.add(Calendar.DAY_OF_YEAR, 1);
+			spn.setValue(cal.getTime());
+		});
+
+		JButton btnPlus1h = new JButton("+1h");
+		btnPlus1h.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		btnPlus1h.setMargin(new Insets(2, 5, 2, 5));
+		btnPlus1h.addActionListener(e -> {
+			Calendar cal = Calendar.getInstance();
+			cal.setTime((Date) spn.getValue());
+			cal.add(Calendar.HOUR_OF_DAY, 1);
+			spn.setValue(cal.getTime());
+		});
+
+		JButton btnPlus3h = new JButton("+3h");
+		btnPlus3h.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		btnPlus3h.setMargin(new Insets(2, 5, 2, 5));
+		btnPlus3h.addActionListener(e -> {
+			Calendar cal = Calendar.getInstance();
+			cal.setTime((Date) spn.getValue());
+			cal.add(Calendar.HOUR_OF_DAY, 3);
+			spn.setValue(cal.getTime());
+		});
+		
+		buttons.add(btnNow);
+		buttons.add(btnTomorrow);
+		buttons.add(btnPlus1h);
+		buttons.add(btnPlus3h);
+		wrap.add(buttons, BorderLayout.EAST);
+		return wrap;
+	}
+
+	private static ImageIcon taiAnhIcon(String path, int w, int h) {
+		try {
+			java.net.URL url = ChuyenTauCapNhatPage.class.getResource(path);
+			if (url != null) {
+				Image img = new ImageIcon(url).getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
+				return new ImageIcon(img);
+			}
+		} catch (Exception e) {}
+		return null;
+	}
+
+	private LocalDateTime layLocalDateTimeTuSpinner(JSpinner spn) {
+		Date date = (Date) spn.getValue();
+		return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+	}
+
 	private void displayForm(int row) {
 		formPanel.removeAll();
 		formPanel.setLayout(new BorderLayout());
@@ -216,14 +319,12 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtGioKhoiHanh = new JTextField(table.getValueAt(row, 4).toString());
-		txtGioKhoiHanh.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtGioKhoiHanh.setPreferredSize(new Dimension(200, 30));
-		txtGioKhoiHanh.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 6, 6, 6)
-		));
-		formContainer.add(txtGioKhoiHanh, gbc);
+		spnGioKhoiHanh = taoDateTimePicker();
+		try {
+			String val = table.getValueAt(row, 4).toString();
+			spnGioKhoiHanh.setValue(Date.from(LocalDateTime.parse(val, DATE_TIME_INPUT).atZone(ZoneId.systemDefault()).toInstant()));
+		} catch (Exception e) {}
+		formContainer.add(taoPanelChonNgayNhanh(spnGioKhoiHanh), gbc);
 
 		// Giá cơ bản
 		gbc.gridx = 0;
@@ -311,7 +412,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 			return;
 		}
 		try {
-			LocalDateTime ngayGio = LocalDateTime.parse(txtGioKhoiHanh.getText().trim(), DATE_TIME_INPUT);
+			LocalDateTime ngayGio = layLocalDateTimeTuSpinner(spnGioKhoiHanh);
 			KetQuaXuLy ketQua = chuyenTauController.capNhatChuyenTau(txtMaChuyenTau.getText(),
 					String.valueOf(cbTau.getSelectedItem()), String.valueOf(cbTuyenTau.getSelectedItem()), ngayGio, true);
 			JOptionPane.showMessageDialog(this, ketQua.thongBao);

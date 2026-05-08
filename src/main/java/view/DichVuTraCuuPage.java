@@ -1,13 +1,15 @@
 package view;
 
-import dao.DichVu_DAO;
+import controller.DichVuController;
 import entity.DichVu;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.math.BigDecimal;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -23,6 +25,7 @@ public class DichVuTraCuuPage extends JPanel {
 	private JTextField txtTimKiem;
 	private JTable tableDichVu;
 	private DefaultTableModel model;
+	private final DichVuController dichVuController = new DichVuController();
 
 	public DichVuTraCuuPage() {
 		setLayout(new BorderLayout());
@@ -32,15 +35,15 @@ public class DichVuTraCuuPage extends JPanel {
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoSearchPanel(), BorderLayout.WEST);
 		add(taoTablePanel(), BorderLayout.CENTER);
+		taiDuLieuBang();
 	}
 
 	private JPanel taoHeader() {
 		JPanel header = new JPanel(new BorderLayout());
 		header.setBackground(Color.WHITE);
 		header.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(12, 14, 12, 14)
-		));
+				BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
+				new EmptyBorder(12, 14, 12, 14)));
 
 		JLabel title = new JLabel("Tra cứu dịch vụ");
 		title.setFont(new Font("Segoe UI", Font.BOLD, 24));
@@ -55,9 +58,8 @@ public class DichVuTraCuuPage extends JPanel {
 		searchPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 10));
 		searchPanel.setBackground(Color.WHITE);
 		searchPanel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(12, 14, 12, 14)
-		));
+				BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
+				new EmptyBorder(12, 14, 12, 14)));
 		searchPanel.setPreferredSize(new Dimension(250, 200));
 
 		JLabel lblTimKiem = new JLabel("Tìm kiếm:");
@@ -68,11 +70,18 @@ public class DichVuTraCuuPage extends JPanel {
 		txtTimKiem.setPreferredSize(new Dimension(200, 32));
 		txtTimKiem.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtTimKiem.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 8, 6, 8)
-		));
-		txtTimKiem.setText("Tìm kiếm...");
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)));
+		txtTimKiem.setText("");
+		txtTimKiem.addActionListener(e -> taiDuLieuBang());
 		searchPanel.add(txtTimKiem);
+
+		JButton btnTimKiem = new JButton("Tìm kiếm");
+		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		btnTimKiem.setBackground(MAU_CHINH);
+		btnTimKiem.setForeground(Color.WHITE);
+		btnTimKiem.addActionListener(e -> taiDuLieuBang());
+		searchPanel.add(btnTimKiem);
 
 		return searchPanel;
 	}
@@ -81,35 +90,18 @@ public class DichVuTraCuuPage extends JPanel {
 		JPanel tablePanel = new JPanel(new BorderLayout());
 		tablePanel.setBackground(Color.WHITE);
 		tablePanel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(12, 14, 12, 14)
-		));
+				BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
+				new EmptyBorder(12, 14, 12, 14)));
 
 		String[] columns = { "#", "Mã dịch vụ", "Tên dịch vụ", "Giá (VND)", "Trạng thái", "Thao tác" };
 		model = new DefaultTableModel(columns, 0) {
 			private static final long serialVersionUID = 1L;
+
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-
-		// Lấy dữ liệu từ database
-		DichVu_DAO dao = new DichVu_DAO();
-		List<DichVu> danhSachDichVu = dao.layTatCaDichVu();
-		
-		// Thêm dữ liệu vào bảng
-		for (int i = 0; i < danhSachDichVu.size(); i++) {
-			DichVu dv = danhSachDichVu.get(i);
-			model.addRow(new Object[] { 
-				i + 1,
-				dv.getMaDV(),
-				dv.getTenDV(),
-				dv.getGiaDV().toString(),
-				dv.isTrangThai() ? "Hoạt động" : "Không hoạt động",
-				"👁 ✏️ 🗑"
-			});
-		}
 
 		tableDichVu = new JTable(model);
 		tableDichVu.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -126,5 +118,26 @@ public class DichVuTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null)
+			return;
+		model.setRowCount(0);
+		String keyword = txtTimKiem.getText().trim();
+		List<DichVu> ds = dichVuController.timKiemDichVu(null, keyword);
+		int stt = 1;
+		for (DichVu dv : ds) {
+			BigDecimal gia = dv.getGiaDV();
+			String giaStr = (gia != null) ? String.format("%,.0f VND", gia) : "0 VND";
+			model.addRow(new Object[] {
+					stt++,
+					dv.getMaDV(),
+					dv.getTenDV(),
+					giaStr,
+					dv.isTrangThai() ? "Hoạt động" : "Không hoạt động",
+					"👁 ✏️ 🗑"
+			});
+		}
 	}
 }

@@ -3,10 +3,13 @@ package view;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.util.List;
 import javax.swing.JPanel;
+import controller.ThongKeController;
 
 public class ChuyenTauThongKePage extends ThongKeBaoCaoBasePage {
 	private static final long serialVersionUID = 1L;
+	private final ThongKeController thongKeController = new ThongKeController();
 
 	public ChuyenTauThongKePage() {
 		super("Thống kê chuyến tàu");
@@ -28,12 +31,22 @@ public class ChuyenTauThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createDayPanel() {
+		List<Object[]> occupancy = thongKeController.getTripOccupancy();
+		int totalTrips = occupancy.size();
+		int totalBooked = 0;
+		int totalSeats = 0;
+		for (Object[] o : occupancy) {
+			totalBooked += (int) o[1];
+			totalSeats += (int) o[2];
+		}
+		double avgFill = totalSeats == 0 ? 0 : (totalBooked * 100.0 / totalSeats);
+
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			spec("Chuyến hôm nay", "18", "03/04/2026", MAU_CHINH),
-			spec("Đúng giờ", "16", "89%", new Color(34, 197, 94)),
-			spec("Trễ", "2", "11%", new Color(245, 158, 11)),
+			spec("Tổng chuyến", String.valueOf(totalTrips), "Hệ thống", MAU_CHINH),
+			spec("Đúng giờ", "---", "đang cập nhật", new Color(34, 197, 94)),
+			spec("Lấp đầy trung bình", String.format("%.1f%%", avgFill), "Toàn hệ thống", new Color(245, 158, 11)),
 			spec("Hủy", "0", "0%", new Color(239, 68, 68))
 		}), BorderLayout.NORTH);
 

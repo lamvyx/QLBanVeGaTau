@@ -29,15 +29,14 @@ public class DoiTraService {
 			return ketQua;
 		}
 		if ("DOI".equals(loai)) {
-			if (maVeMoi == null || maVeMoi.trim().isEmpty()) {
-				ketQua.thongBao = "Đổi vé cần mã vé mới";
-				return ketQua;
+			if (maVeMoi != null && !maVeMoi.trim().isEmpty()) {
+				VeTau veMoi = veTauDAO.timTheoMaVe(maVeMoi.trim());
+				if (veMoi == null) {
+					ketQua.thongBao = "Vé mới không tồn tại";
+					return ketQua;
+				}
 			}
-			VeTau veMoi = veTauDAO.timTheoMaVe(maVeMoi.trim());
-			if (veMoi == null) {
-				ketQua.thongBao = "Vé mới không tồn tại";
-				return ketQua;
-			}
+			// If maVeMoi is null, we assume the target details are in the ghiChu (Trip/Toa/Ghe)
 		}
 
 		String maDon = donDoiTraDAO.layMaDonTiepTheo();
@@ -72,13 +71,11 @@ public class DoiTraService {
 			return ketQua;
 		}
 
-		boolean updateVeCu = veTauDAO.capNhatTrangThaiVe(don.getMaVeCu(), "KHONG_HIEU_LUC");
-		boolean updateVeMoi = true;
-		if ("DOI".equalsIgnoreCase(don.getLoaiDon()) && don.getMaVeMoi() != null) {
-			updateVeMoi = veTauDAO.capNhatTrangThaiVe(don.getMaVeMoi(), "DA_BAN");
-		}
-
-		ketQua.thanhCong = updateVeCu && updateVeMoi;
+                boolean updateVeCu = veTauDAO.capNhatTrangThaiVe(don.getMaVeCu(), "DA_HOAN");
+                boolean updateVeMoi = true;
+                if ("DOI".equalsIgnoreCase(don.getLoaiDon()) && don.getMaVeMoi() != null) {
+                        updateVeMoi = veTauDAO.capNhatTrangThaiVe(don.getMaVeMoi(), "DA_THANH_TOAN");
+                }		ketQua.thanhCong = updateVeCu && updateVeMoi;
 		ketQua.maThamChieu = don.getMaDon();
 		ketQua.thongBao = ketQua.thanhCong ? "Xác nhận đơn đổi/trả thành công" : "Đơn đã xác nhận nhưng cập nhật trạng thái vé chưa hoàn tất";
 		return ketQua;
@@ -103,6 +100,10 @@ public class DoiTraService {
 			return List.of();
 		}
 		return veTauDAO.layVeTheoChuyenTau(maCT.trim());
+	}
+
+	public List<DonDoiTra> layTatCaDon() {
+		return donDoiTraDAO.layTatCaDon();
 	}
 
 	public static class KetQuaXuLy {

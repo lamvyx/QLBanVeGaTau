@@ -101,6 +101,28 @@ public class Toa_DAO {
 		}
 	}
 
+	public boolean themToa(Toa toa) {
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null || toa == null) {
+				return false;
+			}
+			String sql = "INSERT INTO Toa (maToa, loaiToa, soGhe, viTriToa, trangThai, maTau) VALUES (?, ?, ?, ?, ?, ?)";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, toa.getMaToa());
+				ps.setString(2, toa.getLoaiToa());
+				ps.setInt(3, toa.getSoGhe());
+				ps.setString(4, toa.getViTriToa());
+				ps.setBoolean(5, toa.isTrangThai());
+				ps.setString(6, toa.getMaTau());
+				return ps.executeUpdate() > 0;
+			}
+		} catch (SQLException e) {
+			System.err.println("[Toa_DAO] Lỗi thêm toa: " + e.getMessage());
+			return false;
+		}
+	}
+
 	public List<String> layDanhSachMaTau() {
 		List<String> ds = new ArrayList<>();
 		try {

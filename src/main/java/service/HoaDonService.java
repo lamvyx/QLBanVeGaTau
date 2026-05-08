@@ -147,6 +147,21 @@ public class HoaDonService {
 		return hoaDonDAO.layTongDoanhThu();
 	}
 
+	public List<ChiTietHoaDonItem> layChiTietHoaDon(String maHD) {
+		if (maHD == null || maHD.isBlank()) return new ArrayList<>();
+		return hoaDonDAO.layChiTietHoaDon(maHD.trim());
+	}
+
+	public boolean updateTrangThaiThanhToan(String maHD, boolean daThanhToan) {
+		if (maHD == null || maHD.isBlank()) return false;
+		return hoaDonDAO.updateTrangThaiThanhToan(maHD.trim(), daThanhToan);
+	}
+
+	public boolean kiemTraThanhToan(String maHD) {
+		if (maHD == null || maHD.isBlank()) return false;
+		return hoaDonDAO.kiemTraThanhToan(maHD.trim());
+	}
+
 	public static class KetQuaLapHoaDon {
 		public boolean thanhCong;
 		public String thongBao;

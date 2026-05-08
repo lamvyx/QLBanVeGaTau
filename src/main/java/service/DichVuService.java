@@ -29,6 +29,34 @@ public class DichVuService {
 		return filtered;
 	}
 
+	public KetQuaXuLy themDichVu(String maDV, String tenDV, BigDecimal giaDV, boolean trangThai) {
+		KetQuaXuLy ketQua = new KetQuaXuLy();
+		if (maDV == null || maDV.isBlank()) {
+			ketQua.thongBao = "Mã dịch vụ không được để trống";
+			return ketQua;
+		}
+		if (tenDV == null || tenDV.isBlank()) {
+			ketQua.thongBao = "Tên dịch vụ không được để trống";
+			return ketQua;
+		}
+		if (giaDV == null || giaDV.compareTo(BigDecimal.ZERO) < 0) {
+			ketQua.thongBao = "Giá dịch vụ phải >= 0";
+			return ketQua;
+		}
+
+		if (dichVuDAO.timDichVuTheoMa(maDV.trim()) != null) {
+			ketQua.thongBao = "Mã dịch vụ đã tồn tại";
+			return ketQua;
+		}
+
+		DichVu dv = new DichVu(maDV.trim(), tenDV.trim(), trangThai, giaDV);
+		boolean ok = dichVuDAO.themDichVu(dv);
+		ketQua.thanhCong = ok;
+		ketQua.maThamChieu = maDV.trim();
+		ketQua.thongBao = ok ? "Thêm dịch vụ thành công" : "Không thể thêm dịch vụ vào CSDL";
+		return ketQua;
+	}
+
 	public KetQuaXuLy capNhatDichVu(String maDV, String tenDV, BigDecimal giaDV, boolean trangThai) {
 		KetQuaXuLy ketQua = new KetQuaXuLy();
 		if (maDV == null || maDV.isBlank()) {

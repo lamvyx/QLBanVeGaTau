@@ -14,6 +14,10 @@ public class KhuyenMaiController {
 		return khuyenMaiService.timKiemKhuyenMai(chuanHoaRongThanhNull(maKM), chuanHoaRongThanhNull(tenKM));
 	}
 
+	public KetQuaXuLy themKhuyenMai(String maKM, String tenKM, BigDecimal tyLeKM, LocalDate ngayBD, LocalDate ngayKT) {
+		return khuyenMaiService.themKhuyenMai(chuanHoa(maKM), chuanHoa(tenKM), tyLeKM, ngayBD, ngayKT);
+	}
+
 	public KetQuaXuLy capNhatKhuyenMai(String maKM, String tenKM, BigDecimal tyLeKM, LocalDate ngayBD,
 			LocalDate ngayKT) {
 		return khuyenMaiService.capNhatKhuyenMai(chuanHoa(maKM), chuanHoa(tenKM), tyLeKM, ngayBD, ngayKT);

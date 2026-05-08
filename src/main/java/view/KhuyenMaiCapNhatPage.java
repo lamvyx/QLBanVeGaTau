@@ -4,10 +4,12 @@ import controller.KhuyenMaiController;
 import entity.KhuyenMai;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -17,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -208,23 +211,22 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		));
 		formContainer.add(txtTyLeKM, gbc);
 
-		// Ngày bắt đầu
-		gbc.gridx = 0;
-		gbc.gridy = 3;
-		lbl = new JLabel("Ngày bắt đầu *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
 		gbc.gridx = 1;
+		JPanel pnlNgayBD = new JPanel(new BorderLayout(5, 0));
+		pnlNgayBD.setBackground(Color.WHITE);
 		txtNgayBD = new JTextField(table.getValueAt(row, 4).toString());
 		txtNgayBD.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtNgayBD.setPreferredSize(new Dimension(200, 30));
+		txtNgayBD.setPreferredSize(new Dimension(160, 30));
 		txtNgayBD.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 6, 6, 6)
 		));
-		formContainer.add(txtNgayBD, gbc);
+		txtNgayBD.setEditable(false);
+		pnlNgayBD.add(txtNgayBD, BorderLayout.CENTER);
+		
+		JButton btnLichBD = taoNutLich(date -> txtNgayBD.setText(date.format(DATE_FORMAT)));
+		pnlNgayBD.add(btnLichBD, BorderLayout.EAST);
+		formContainer.add(pnlNgayBD, gbc);
 
 		// Ngày kết thúc
 		gbc.gridx = 0;
@@ -235,14 +237,21 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
+		JPanel pnlNgayKT = new JPanel(new BorderLayout(5, 0));
+		pnlNgayKT.setBackground(Color.WHITE);
 		txtNgayKT = new JTextField(table.getValueAt(row, 5).toString());
 		txtNgayKT.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtNgayKT.setPreferredSize(new Dimension(200, 30));
+		txtNgayKT.setPreferredSize(new Dimension(160, 30));
 		txtNgayKT.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 6, 6, 6)
 		));
-		formContainer.add(txtNgayKT, gbc);
+		txtNgayKT.setEditable(false);
+		pnlNgayKT.add(txtNgayKT, BorderLayout.CENTER);
+		
+		JButton btnLichKT = taoNutLich(date -> txtNgayKT.setText(date.format(DATE_FORMAT)));
+		pnlNgayKT.add(btnLichKT, BorderLayout.EAST);
+		formContainer.add(pnlNgayKT, gbc);
 
 		// Buttons
 		gbc.gridx = 0;
@@ -291,6 +300,28 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private JButton taoNutLich(java.util.function.Consumer<LocalDate> target) {
+		JButton btn = new JButton();
+		try {
+			ImageIcon icon = new ImageIcon(getClass().getResource("/Image/icon_lich.png"));
+			Image img = icon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+			btn.setIcon(new ImageIcon(img));
+		} catch (Exception e) {
+			btn.setText("📅");
+		}
+		btn.setPreferredSize(new Dimension(30, 30));
+		btn.setBackground(Color.WHITE);
+		btn.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
+		btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		btn.setFocusPainted(false);
+		
+		btn.addActionListener(e -> {
+			CalendarDatePicker picker = new CalendarDatePicker(LocalDate.now(), target);
+			picker.showPopup(btn, 0, btn.getHeight());
+		});
+		return btn;
 	}
 
 	private void taiDuLieuBang() {

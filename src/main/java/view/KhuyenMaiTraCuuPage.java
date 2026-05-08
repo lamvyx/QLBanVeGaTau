@@ -1,10 +1,16 @@
 package view;
 
+import controller.KhuyenMaiController;
+import entity.KhuyenMai;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -22,6 +28,8 @@ public class KhuyenMaiTraCuuPage extends JPanel {
 	private JComboBox<String> cbSapXep;
 	private JTable tableKhuyenMai;
 	private DefaultTableModel model;
+	private final KhuyenMaiController khuyenMaiController = new KhuyenMaiController();
+	private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	public KhuyenMaiTraCuuPage() {
 		setLayout(new BorderLayout());
@@ -31,6 +39,7 @@ public class KhuyenMaiTraCuuPage extends JPanel {
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoSearchPanel(), BorderLayout.WEST);
 		add(taoTablePanel(), BorderLayout.CENTER);
+		taiDuLieuBang();
 	}
 
 	private JPanel taoHeader() {
@@ -84,7 +93,15 @@ public class KhuyenMaiTraCuuPage extends JPanel {
 		cbSapXep.addItem("Kết thúc");
 		cbSapXep.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		cbSapXep.setPreferredSize(new Dimension(200, 32));
+		cbSapXep.addActionListener(e -> taiDuLieuBang());
 		searchPanel.add(cbSapXep);
+
+		JButton btnTimKiem = new JButton("Tìm kiếm");
+		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		btnTimKiem.setBackground(MAU_CHINH);
+		btnTimKiem.setForeground(Color.WHITE);
+		btnTimKiem.addActionListener(e -> taiDuLieuBang());
+		searchPanel.add(btnTimKiem);
 
 		return searchPanel;
 	}
@@ -106,13 +123,6 @@ public class KhuyenMaiTraCuuPage extends JPanel {
 			}
 		};
 
-		// Sample data
-		model.addRow(new Object[] { 1, "KM001", "Giảm giá Tết", 10, "01/01/2026", "05/01/2026", "Kết thúc", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 2, "KM002", "Giảm giá Tháng 4", 5, "01/04/2026", "30/04/2026", "Đang chạy", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 3, "KM003", "Giảm giá Hè", 15, "01/06/2026", "31/08/2026", "Sắp diễn ra", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 4, "KM004", "Khuyến mãi nhóm", 8, "10/04/2026", "20/04/2026", "Đang chạy", "👁 ✏️ 🗑" });
-		model.addRow(new Object[] { 5, "KM005", "Giảm giá VIP", 20, "15/05/2026", "15/06/2026", "Sắp diễn ra", "👁 ✏️ 🗑" });
-
 		tableKhuyenMai = new JTable(model);
 		tableKhuyenMai.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		tableKhuyenMai.setRowHeight(28);
@@ -128,5 +138,41 @@ public class KhuyenMaiTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) return;
+		model.setRowCount(0);
+		String keyword = txtTimKiem.getText().trim();
+		if (keyword.equals("Tìm kiếm...")) keyword = "";
+		
+		List<KhuyenMai> ds = khuyenMaiController.timKiemKhuyenMai(null, keyword);
+		String filter = (String) cbSapXep.getSelectedItem();
+		LocalDate today = LocalDate.now();
+		
+		int stt = 1;
+		for (KhuyenMai km : ds) {
+			String trangThai = "";
+			if (today.isBefore(km.getNgayBD())) {
+				trangThai = "Sắp diễn ra";
+			} else if (today.isAfter(km.getNgayKT())) {
+				trangThai = "Kết thúc";
+			} else {
+				trangThai = "Đang chạy";
+			}
+			
+			if (filter.equals("Tất cả") || filter.equals(trangThai)) {
+				model.addRow(new Object[] { 
+					stt++,
+					km.getMaKM(),
+					km.getTenKM(),
+					km.getTyLeKM(),
+					km.getNgayBD().format(dtf),
+					km.getNgayKT().format(dtf),
+					trangThai,
+					"👁 ✏️ 🗑"
+				});
+			}
+		}
 	}
 }

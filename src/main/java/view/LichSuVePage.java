@@ -1,12 +1,15 @@
 package view;
 
+import dao.VeTau_DAO;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -23,49 +26,68 @@ public class LichSuVePage extends JPanel {
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
 	private static final Color MAU_NEN = Color.decode("#F0F5F9");
 	private static final Color MAU_VIEN = Color.decode("#DCE3EC");
+	private final DefaultTableModel model;
+	private final JTextField txtMaKH = new JTextField();
+	private final VeTau_DAO veTauDAO = new VeTau_DAO();
 
 	public LichSuVePage() {
 		setLayout(new BorderLayout(0, 14));
 		setBackground(MAU_NEN);
 		setBorder(new EmptyBorder(14, 14, 14, 14));
 
+		String[] columns = { "#", "Mã vé", "Tuyến đường", "Giờ khởi hành", "Chỗ ngồi", "Giá vé", "Trạng thái",
+				"Ngày mua" };
+		model = new DefaultTableModel(columns, 0) {
+			@Override
+			public boolean isCellEditable(int r, int c) {
+				return false;
+			}
+		};
+
 		add(taoKhoiChonKhachHang(), BorderLayout.NORTH);
 		add(taoKhoiLichSuVe(), BorderLayout.CENTER);
+		taiDuLieu(null);
+	}
+
+	private void taiDuLieu(String maKH) {
+		model.setRowCount(0);
+		List<Object[]> dsVe = veTauDAO.layLichSuVe(maKH);
+		for (Object[] row : dsVe) {
+			model.addRow(row);
+		}
 	}
 
 	private JPanel taoKhoiChonKhachHang() {
 		JPanel panel = new JPanel(new BorderLayout());
 		panel.setBackground(Color.WHITE);
 		panel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(MAU_VIEN),
-			new EmptyBorder(16, 16, 16, 16)
-		));
+				BorderFactory.createLineBorder(MAU_VIEN),
+				new EmptyBorder(16, 16, 16, 16)));
 
-		JLabel title = new JLabel("Chọn khách hàng");
+		JLabel title = new JLabel("Lọc theo mã khách hàng");
 		title.setFont(new Font("Segoe UI", Font.BOLD, 18));
 		title.setForeground(Color.decode("#1F3F72"));
 		panel.add(title, BorderLayout.NORTH);
 
-		JPanel body = new JPanel(new BorderLayout());
+		JPanel body = new JPanel(new BorderLayout(10, 0));
 		body.setOpaque(false);
 		body.setBorder(new EmptyBorder(14, 0, 0, 0));
 
-		JComboBox<String> cboKhachHang = new JComboBox<>(new String[] {
-			"-- Tất cả khách hàng --",
-			"Nguyễn Thị Hoa - KH001",
-			"Trần Văn Đạt - KH002",
-			"Phạm Văn Cường - KH003",
-			"Hoàng Thị Dung - KH004"
-		});
-		cboKhachHang.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		cboKhachHang.setBackground(Color.WHITE);
-		cboKhachHang.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(MAU_VIEN),
-			new EmptyBorder(8, 10, 8, 10)
-		));
-		cboKhachHang.setPreferredSize(new Dimension(260, 36));
+		txtMaKH.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		txtMaKH.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(MAU_VIEN),
+				new EmptyBorder(8, 10, 8, 10)));
+		txtMaKH.setPreferredSize(new Dimension(260, 36));
 
-		body.add(cboKhachHang, BorderLayout.WEST);
+		JButton btnLoc = new JButton("Lọc");
+		btnLoc.setBackground(MAU_CHINH);
+		btnLoc.setForeground(Color.WHITE);
+		btnLoc.setFocusPainted(false);
+		btnLoc.setPreferredSize(new Dimension(80, 36));
+		btnLoc.addActionListener(e -> taiDuLieu(txtMaKH.getText()));
+
+		body.add(txtMaKH, BorderLayout.WEST);
+		body.add(btnLoc, BorderLayout.CENTER);
 		panel.add(body, BorderLayout.CENTER);
 		return panel;
 	}
@@ -74,9 +96,8 @@ public class LichSuVePage extends JPanel {
 		JPanel panel = new JPanel(new BorderLayout(0, 12));
 		panel.setBackground(Color.WHITE);
 		panel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(MAU_VIEN),
-			new EmptyBorder(16, 16, 16, 16)
-		));
+				BorderFactory.createLineBorder(MAU_VIEN),
+				new EmptyBorder(16, 16, 16, 16)));
 
 		JLabel title = new JLabel("Lịch sử vé (Tất cả)");
 		title.setFont(new Font("Segoe UI", Font.BOLD, 18));
@@ -91,28 +112,12 @@ public class LichSuVePage extends JPanel {
 		txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtSearch.setPreferredSize(new Dimension(380, 36));
 		txtSearch.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(MAU_VIEN),
-			new EmptyBorder(6, 10, 6, 10)
-		));
+				BorderFactory.createLineBorder(MAU_VIEN),
+				new EmptyBorder(6, 10, 6, 10)));
 		txtSearch.setToolTipText("Tìm kiếm...");
 		searchWrap.add(txtSearch, BorderLayout.WEST);
 
 		panel.add(searchWrap, BorderLayout.NORTH);
-
-		String[] columns = { "#", "Mã vé", "Tuyến đường", "Giờ khởi hành", "Chỗ ngồi", "Giá vé", "Trạng thái", "Ngày mua" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
-			@Override
-			public boolean isCellEditable(int row, int column) {
-				return false;
-			}
-		};
-
-		model.addRow(new Object[] { 1, "VE0001", "Sài Gòn - Hà Nội", "02/04/2026 19:00", "A05", "850.000 đ", "Hoạt động", "2026-03-20" });
-		model.addRow(new Object[] { 2, "VE0002", "Sài Gòn - Đà Nẵng", "02/04/2026 07:00", "B12", "477.000 đ", "Hoạt động", "2026-03-22" });
-		model.addRow(new Object[] { 3, "VE0003", "Sài Gòn - Nha Trang", "02/04/2026 06:00", "C08", "280.000 đ", "Đã dùng", "2026-03-25" });
-		model.addRow(new Object[] { 4, "VE0004", "Sài Gòn - Hà Nội", "05/04/2026 20:00", "VIP03", "1.350.000 đ", "Hoạt động", "2026-03-28" });
-		model.addRow(new Object[] { 5, "VE0005", "Sài Gòn - Hà Nội", "02/04/2026 19:00", "D15", "1.020.000 đ", "Đã trả", "2026-03-18" });
-		model.addRow(new Object[] { 6, "VE0006", "Sài Gòn - Cần Thơ", "03/04/2026 08:00", "E09", "340.000 đ", "Hoạt động", "2026-03-29" });
 
 		JTable table = new JTable(model) {
 			private static final long serialVersionUID = 1L;
@@ -150,7 +155,8 @@ public class LichSuVePage extends JPanel {
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
 			Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 			setFont(new Font("Segoe UI", Font.PLAIN, 13));
 			setBorder(new EmptyBorder(0, 10, 0, 10));
@@ -178,7 +184,8 @@ public class LichSuVePage extends JPanel {
 		private static final long serialVersionUID = 1L;
 
 		@Override
-		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+		public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
 			JLabel label = new JLabel(String.valueOf(value), JLabel.CENTER);
 			label.setOpaque(true);
 			label.setFont(new Font("Segoe UI", Font.BOLD, 13));

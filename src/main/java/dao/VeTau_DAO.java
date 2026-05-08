@@ -146,4 +146,45 @@ public class VeTau_DAO {
 		}
 		return dsGhe;
 	}
+	public List<Object[]> layLichSuVe(String maKH) {
+		List<Object[]> danhSach = new ArrayList<>();
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) return danhSach;
+			
+			String sqlSimple = "SELECT vt.maVeTau, tt.maGaDi, tt.maGaDen, ct.ngayKhoiHanh, vt.maToa, vt.giaVe, vt.trangThai " +
+			                   "FROM VeTau vt " +
+			                   "JOIN ChuyenTau ct ON vt.maCT = ct.maCT " +
+			                   "JOIN TuyenTau tt ON ct.maTuyenTau = tt.maTT ";
+			
+			if (maKH != null && !maKH.trim().isEmpty()) {
+				sqlSimple += " WHERE vt.maKH = ?";
+			}
+			sqlSimple += " ORDER BY vt.maVeTau DESC";
+
+			try (PreparedStatement ps = conn.prepareStatement(sqlSimple)) {
+				if (maKH != null && !maKH.trim().isEmpty()) {
+					ps.setString(1, maKH.trim());
+				}
+				try (ResultSet rs = ps.executeQuery()) {
+					int i = 1;
+					while (rs.next()) {
+						danhSach.add(new Object[] {
+							i++,
+							rs.getString("maVeTau"),
+							rs.getString("maGaDi") + " - " + rs.getString("maGaDen"),
+							rs.getTimestamp("ngayKhoiHanh").toLocalDateTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
+							rs.getString("maToa"),
+							rs.getDouble("giaVe"),
+							rs.getString("trangThai"),
+							"Vừa xong"
+						});
+					}
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("[VeTau_DAO] Lỗi lấy lịch sử vé: " + e.getMessage());
+		}
+		return danhSach;
+	}
 }

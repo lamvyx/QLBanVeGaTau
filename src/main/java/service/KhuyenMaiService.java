@@ -29,6 +29,42 @@ public class KhuyenMaiService {
 		return filtered;
 	}
 
+	public KetQuaXuLy themKhuyenMai(String maKM, String tenKM, BigDecimal tyLeKM, LocalDate ngayBD, LocalDate ngayKT) {
+		KetQuaXuLy ketQua = new KetQuaXuLy();
+		if (maKM == null || maKM.isBlank()) {
+			ketQua.thongBao = "Mã khuyến mãi không được để trống";
+			return ketQua;
+		}
+		if (tenKM == null || tenKM.isBlank()) {
+			ketQua.thongBao = "Tên khuyến mãi không được để trống";
+			return ketQua;
+		}
+		if (tyLeKM == null || tyLeKM.compareTo(BigDecimal.ZERO) < 0 || tyLeKM.compareTo(new BigDecimal("100")) > 0) {
+			ketQua.thongBao = "Tỷ lệ khuyến mãi phải từ 0 đến 100";
+			return ketQua;
+		}
+		if (ngayBD == null || ngayKT == null) {
+			ketQua.thongBao = "Ngày bắt đầu/kết thúc không hợp lệ";
+			return ketQua;
+		}
+		if (ngayKT.isBefore(ngayBD)) {
+			ketQua.thongBao = "Ngày kết thúc phải >= ngày bắt đầu";
+			return ketQua;
+		}
+
+		if (khuyenMaiDAO.timKhuyenMaiTheoMa(maKM.trim()) != null) {
+			ketQua.thongBao = "Mã khuyến mãi đã tồn tại";
+			return ketQua;
+		}
+
+		KhuyenMai km = new KhuyenMai(maKM.trim(), tenKM.trim(), tyLeKM, ngayBD, ngayKT);
+		boolean ok = khuyenMaiDAO.themKhuyenMai(km);
+		ketQua.thanhCong = ok;
+		ketQua.maThamChieu = maKM.trim();
+		ketQua.thongBao = ok ? "Thêm khuyến mãi thành công" : "Không thể thêm khuyến mãi vào CSDL";
+		return ketQua;
+	}
+
 	public KetQuaXuLy capNhatKhuyenMai(String maKM, String tenKM, BigDecimal tyLeKM, LocalDate ngayBD, LocalDate ngayKT) {
 		KetQuaXuLy ketQua = new KetQuaXuLy();
 		if (maKM == null || maKM.isBlank()) {

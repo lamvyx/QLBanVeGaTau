@@ -20,6 +20,38 @@ public class ToaService {
 		return new ArrayList<>(toaDAO.layDanhSachMaTau());
 	}
 
+	public KetQuaXuLy themToa(String maToa, String maTau, String loaiToa, int soGhe, String viTriToa, boolean trangThai) {
+		KetQuaXuLy ketQua = new KetQuaXuLy();
+		if (maToa == null || maToa.isBlank()) {
+			ketQua.thongBao = "Mã toa không được để trống";
+			return ketQua;
+		}
+		if (maTau == null || maTau.isBlank()) {
+			ketQua.thongBao = "Mã tàu không được để trống";
+			return ketQua;
+		}
+		if (loaiToa == null || loaiToa.isBlank()) {
+			ketQua.thongBao = "Loại toa không được để trống";
+			return ketQua;
+		}
+		if (soGhe <= 0) {
+			ketQua.thongBao = "Số ghế phải lớn hơn 0";
+			return ketQua;
+		}
+
+		if (toaDAO.timTheoMa(maToa.trim()) != null) {
+			ketQua.thongBao = "Mã toa đã tồn tại";
+			return ketQua;
+		}
+
+		Toa toa = new Toa(maToa.trim(), loaiToa.trim(), soGhe, viTriToa == null ? null : viTriToa.trim(), trangThai, maTau.trim());
+		boolean ok = toaDAO.themToa(toa);
+		ketQua.thanhCong = ok;
+		ketQua.maThamChieu = maToa.trim();
+		ketQua.thongBao = ok ? "Thêm toa thành công" : "Không thể thêm toa vào CSDL";
+		return ketQua;
+	}
+
 	public KetQuaXuLy capNhatToa(String maToa, String maTau, String loaiToa, int soGhe, String viTriToa, boolean trangThai) {
 		KetQuaXuLy ketQua = new KetQuaXuLy();
 		if (maToa == null || maToa.isBlank()) {

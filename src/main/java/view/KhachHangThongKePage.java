@@ -4,10 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.List;
 import javax.swing.JPanel;
+import controller.ThongKeController;
 
 public class KhachHangThongKePage extends ThongKeBaoCaoBasePage {
 	private static final long serialVersionUID = 1L;
+	private final ThongKeController thongKeController = new ThongKeController();
 
 	public KhachHangThongKePage() {
 		super("Thống kê khách hàng");
@@ -107,15 +110,26 @@ public class KhachHangThongKePage extends ThongKeBaoCaoBasePage {
 			spec("KH có điểm", "1.024", "55%", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
+		List<Object[]> topKH = thongKeController.getTopCustomers(5);
+		String[] labels = new String[5];
+		int[] values = new int[5];
+		for (int i = 0; i < 5; i++) {
+			if (i < topKH.size()) {
+				labels[i] = (String) topKH.get(i)[0];
+				values[i] = (int) ((Double) topKH.get(i)[1] / 1000); // Scale to 'k' units or points
+			} else {
+				labels[i] = "---";
+				values[i] = 0;
+			}
+		}
+
 		JPanel charts = new JPanel(new GridLayout(2, 1, 12, 12));
 		charts.setOpaque(false);
 		charts.add(createChartCard("Khách hàng mới theo tháng", new BarChartPanel(
 			new long[] { 44L, 38L, 62L, 70L, 55L, 82L, 91L, 88L, 76L, 69L, 80L, 108L },
 			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
 			new Color(139, 92, 246), 120L)));
-		charts.add(createChartCard("Top khách hàng", new RankingPanel(
-			new String[] { "Phạm Quốc Hùng", "Trần Văn Bình", "Hoàng Minh Tuấn", "Đặng Văn Nam", "Nguyễn Thị Lan" },
-			new int[] { 3200, 2100, 1250, 950, 800 }, new Color(245, 158, 11))));
+		charts.add(createChartCard("Top khách hàng (Doanh thu kđ)", new RankingPanel(labels, values, new Color(245, 158, 11))));
 		wrap.add(charts, BorderLayout.CENTER);
 		return wrap;
 	}

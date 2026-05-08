@@ -191,4 +191,28 @@ public class KhuyenMai_DAO {
 			return false;
 		}
 	}
+
+	public boolean themKhuyenMai(KhuyenMai km) {
+		if (km == null || km.getMaKM() == null || km.getMaKM().isBlank()) {
+			return false;
+		}
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) {
+				return false;
+			}
+			String sql = "INSERT INTO KhuyenMai (maKM, tenKM, tyLeKM, ngayBD, ngayKT) VALUES (?, ?, ?, ?, ?)";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, km.getMaKM());
+				ps.setString(2, km.getTenKM());
+				ps.setBigDecimal(3, km.getTyLeKM());
+				ps.setDate(4, Date.valueOf(km.getNgayBD()));
+				ps.setDate(5, Date.valueOf(km.getNgayKT()));
+				return ps.executeUpdate() > 0;
+			}
+		} catch (SQLException e) {
+			LOGGER.log(Level.WARNING, "Lỗi thêm khuyến mãi " + km.getMaKM(), e);
+			return false;
+		}
+	}
 }

@@ -13,6 +13,10 @@ public class DichVuController {
 		return dichVuService.timKiemDichVu(chuanHoaRongThanhNull(maDV), chuanHoaRongThanhNull(tenDV));
 	}
 
+	public KetQuaXuLy themDichVu(String maDV, String tenDV, BigDecimal giaDV, boolean trangThai) {
+		return dichVuService.themDichVu(chuanHoa(maDV), chuanHoa(tenDV), giaDV, trangThai);
+	}
+
 	public KetQuaXuLy capNhatDichVu(String maDV, String tenDV, BigDecimal giaDV, boolean trangThai) {
 		return dichVuService.capNhatDichVu(chuanHoa(maDV), chuanHoa(tenDV), giaDV, trangThai);
 	}

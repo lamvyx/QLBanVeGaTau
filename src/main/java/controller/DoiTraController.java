@@ -30,6 +30,10 @@ public class DoiTraController {
 		return doiTraService.layVeTheoChuyenTau(chuanHoa(maCT));
 	}
 
+	public List<DonDoiTra> layTatCaDon() {
+		return doiTraService.layTatCaDon();
+	}
+
 	private String chuanHoa(String s) {
 		return s == null ? null : s.trim();
 	}

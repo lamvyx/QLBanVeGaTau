@@ -31,14 +31,14 @@ public class DoanhThuThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createDayPanel() {
-		BigDecimal doanhThu = thongKeController.thongKeDoanhThu();
+		BigDecimal doanhThu = thongKeController.getRevenueByPeriod("day");
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			 spec("Tổng doanh thu", money(doanhThu.longValue()), "Từ dữ liệu hóa đơn", MAU_CHINH),
-			 spec("Số vé bán", "1.284", "vé", new Color(34, 197, 94)),
-			 spec("Giá trị TB/vé", money(76800L), "mỗi vé", new Color(245, 158, 11)),
-			 spec("Tăng trưởng so với hôm qua", "+8.4%", "đang tăng", new Color(139, 92, 246))
+			 spec("Tổng doanh thu", money(doanhThu.longValue()), "Hôm nay", MAU_CHINH),
+			 spec("Số vé bán", "---", "Trong ngày", new Color(34, 197, 94)),
+			 spec("Giá trị TB/vé", "---", "mỗi vé", new Color(245, 158, 11)),
+			 spec("Tình trạng", "Hoạt động", "đang cập nhật", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(1, 2, 12, 12));
@@ -56,13 +56,14 @@ public class DoanhThuThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createMonthPanel() {
+		BigDecimal doanhThu = thongKeController.getRevenueByPeriod("month");
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			 spec("Tổng doanh thu tháng", money(20320000000L), "Năm 2026", MAU_CHINH),
-			 spec("Trung bình/ngày", money(677333333L), "30 ngày", new Color(34, 197, 94)),
-			 spec("Tổng vé bán ra", "23.820", "vé", new Color(245, 158, 11)),
-			 spec("Tháng cao nhất", money(2350000000L), "Tháng 12", new Color(139, 92, 246))
+			 spec("Tổng doanh thu tháng", money(doanhThu.longValue()), "Tháng này", MAU_CHINH),
+			 spec("Trung bình/ngày", money(doanhThu.longValue() / 30), "Ước tính", new Color(34, 197, 94)),
+			 spec("Tổng vé bán ra", "---", "vé", new Color(245, 158, 11)),
+			 spec("Trạng thái", "Ổn định", "Hệ thống", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(2, 1, 12, 12));
@@ -103,13 +104,14 @@ public class DoanhThuThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createYearPanel() {
+		BigDecimal doanhThu = thongKeController.getRevenueByPeriod("year");
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			 spec("Tổng doanh thu năm", money(20320000000L), "Năm 2026", MAU_CHINH),
-			 spec("Tăng trưởng năm", "+18.2%", "so với 2025", new Color(34, 197, 94)),
-			 spec("Tổng vé bán", "23.820", "vé", new Color(245, 158, 11)),
-			 spec("Tháng cao nhất", "Tháng 12", money(2350000000L), new Color(139, 92, 246))
+			 spec("Tổng doanh thu năm", money(doanhThu.longValue()), "Năm hiện tại", MAU_CHINH),
+			 spec("Tăng trưởng", "---", "so với năm trước", new Color(34, 197, 94)),
+			 spec("Tổng vé bán", "---", "vé", new Color(245, 158, 11)),
+			 spec("Trạng thái", "Ổn định", "Toàn hệ thống", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(2, 1, 12, 12));

@@ -16,6 +16,10 @@ public class ToaController {
 		return toaService.layDanhSachMaTau();
 	}
 
+	public KetQuaXuLy themToa(String maToa, String maTau, String loaiToa, int soGhe, String viTriToa, boolean trangThai) {
+		return toaService.themToa(chuanHoa(maToa), chuanHoa(maTau), chuanHoa(loaiToa), soGhe, chuanHoa(viTriToa), trangThai);
+	}
+
 	public KetQuaXuLy capNhatToa(String maToa, String maTau, String loaiToa, int soGhe, String viTriToa, boolean trangThai) {
 		return toaService.capNhatToa(chuanHoa(maToa), chuanHoa(maTau), chuanHoa(loaiToa), soGhe, chuanHoa(viTriToa), trangThai);
 	}

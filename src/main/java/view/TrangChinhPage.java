@@ -18,6 +18,7 @@ import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 import javax.swing.BorderFactory;
@@ -227,6 +228,7 @@ public class TrangChinhPage extends JFrame {
 			menu.add(taoMenuNhanVien());
 			menu.add(taoMenuKhachHang());
 			menu.add(taoMenuVeTau());
+			menu.add(taoMenuHoaDon());
 			menu.add(taoMenuChuyenTau());
 			menu.add(taoMenuTau());
 			menu.add(taoMenuToa());
@@ -239,6 +241,7 @@ public class TrangChinhPage extends JFrame {
 
 		menu.add(taoMenuKhachHang());
 		menu.add(taoMenuVeTau());
+		menu.add(taoMenuHoaDon());
 		return menu;
 	}
 
@@ -253,17 +256,23 @@ public class TrangChinhPage extends JFrame {
 		return new MenuGroup("Khách hàng", List.of(
 				new MenuAction("Thêm khách hàng", KhachHangThemPage::new),
 				new MenuAction("Tra cứu khách hàng", KhachHangTraCuuPage::new),
-				new MenuAction("Cập nhật thông tin", KhachHangCapNhatPage::new),
-				new MenuAction("Lịch sử vé", LichSuVePage::new)));
+				new MenuAction("Cập nhật thông tin", KhachHangCapNhatPage::new)));
 	}
 
 	private MenuGroup taoMenuVeTau() {
-		return new MenuGroup("Vé", List.of(
+		return new MenuGroup("Vé", Arrays.<MenuAction>asList(
 				new MenuAction("Bán vé", BanVePage::new),
 				new MenuAction("Đổi vé", DoiVePage::new),
 				new MenuAction("Trả vé", TraVePage::new),
+				new MenuAction("Lịch sử vé", LichSuVePage::new),
+				new MenuAction("Lịch sử đổi/trả", () -> new DonDoiTraTraCuuPage()),
 				new MenuAction("Kiểm tra chỗ trống", KiemTraChoTrongPage::new),
 				new MenuAction("In vé", InVePage::new)));
+	}
+
+	private MenuGroup taoMenuHoaDon() {
+		return new MenuGroup("Hóa đơn", List.of(
+				new MenuAction("Tra cứu hóa đơn", HoaDonTraCuuPage::new)));
 	}
 
 	private MenuGroup taoMenuChuyenTau() {

@@ -330,9 +330,10 @@ public class BanVePage extends JPanel {
 
 		JPanel gridWrap = new JPanel(new BorderLayout());
 		gridWrap.setOpaque(false);
+		gridWrap.setPreferredSize(new Dimension(0, 320)); // Cố định chiều cao để kích hoạt scroll
 		seatGridContainer = gridWrap;
 		gridWrap.add(createSeatGrid(), BorderLayout.CENTER);
-		wrap.add(gridWrap, BorderLayout.SOUTH);
+		wrap.add(gridWrap, BorderLayout.CENTER);
 		return wrap;
 	}
 

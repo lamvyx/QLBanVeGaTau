@@ -1,5 +1,8 @@
 package view;
 
+import controller.TauController;
+import controller.ToaController;
+import entity.Tau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,13 +10,16 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import service.ToaService.KetQuaXuLy;
 
 public class ToaThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -21,6 +27,8 @@ public class ToaThemPage extends JPanel {
 	
 	private JTextField txtMaToa, txtSoGhe, txtViTriToa;
 	private JComboBox<String> cbLoaiToa, cbMaTau, cbTrangThai;
+	private final ToaController toaController = new ToaController();
+	private final TauController tauController = new TauController();
 
 	public ToaThemPage() {
 		setLayout(new BorderLayout());
@@ -29,6 +37,8 @@ public class ToaThemPage extends JPanel {
 
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoForm(), BorderLayout.CENTER);
+		
+		taiDuLieuTau();
 	}
 
 	private JPanel taoHeader() {
@@ -109,10 +119,6 @@ public class ToaThemPage extends JPanel {
 
 		gbc.gridx = 1;
 		cbMaTau = new JComboBox<>();
-		cbMaTau.addItem("-- Chọn tàu --");
-		cbMaTau.addItem("T001 - Tàu hỏa XP1");
-		cbMaTau.addItem("T002 - Tàu hỏa SB2");
-		cbMaTau.addItem("T003 - Tàu Sapa Express");
 		cbMaTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		cbMaTau.setPreferredSize(new Dimension(250, 35));
 		formContainer.add(cbMaTau, gbc);
@@ -188,8 +194,9 @@ public class ToaThemPage extends JPanel {
 		btnThem.setFocusPainted(false);
 		btnThem.setBorder(new EmptyBorder(8, 24, 8, 24));
 		btnThem.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnThem.addActionListener(e -> xuLyThemToa());
 		buttonPanel.add(btnThem);
-
+ 
 		JButton btnLamMoi = new JButton("Làm mới");
 		btnLamMoi.setBackground(Color.WHITE);
 		btnLamMoi.setForeground(Color.decode("#2B4B74"));
@@ -197,15 +204,66 @@ public class ToaThemPage extends JPanel {
 		btnLamMoi.setFocusPainted(false);
 		btnLamMoi.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnLamMoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnLamMoi.addActionListener(e -> lamMoiForm());
 		buttonPanel.add(btnLamMoi);
-
+ 
 		formContainer.add(buttonPanel, gbc);
-
+ 
 		JPanel scrollWrapper = new JPanel(new BorderLayout());
 		scrollWrapper.setBackground(Color.WHITE);
 		scrollWrapper.add(formContainer, BorderLayout.NORTH);
-
+ 
 		wrapper.add(scrollWrapper, BorderLayout.CENTER);
 		return wrapper;
+	}
+
+	private void taiDuLieuTau() {
+		cbMaTau.removeAllItems();
+		cbMaTau.addItem("-- Chọn tàu --");
+		List<Tau> dsTau = tauController.timKiemTau(null, null);
+		for (Tau t : dsTau) {
+			cbMaTau.addItem(t.getMaTau() + " - " + t.getTenTau());
+		}
+	}
+
+	private void xuLyThemToa() {
+		try {
+			String maToa = txtMaToa.getText().trim();
+			String loaiToa = (String) cbLoaiToa.getSelectedItem();
+			String selectionTau = (String) cbMaTau.getSelectedItem();
+			
+			if (loaiToa.startsWith("--")) {
+				JOptionPane.showMessageDialog(this, "Vui lòng chọn loại toa");
+				return;
+			}
+			if (selectionTau.startsWith("--")) {
+				JOptionPane.showMessageDialog(this, "Vui lòng chọn tàu");
+				return;
+			}
+			
+			String maTau = selectionTau.split(" - ")[0].trim();
+			int soGhe = Integer.parseInt(txtSoGhe.getText().trim());
+			String viTri = txtViTriToa.getText().trim();
+			boolean trangThai = cbTrangThai.getSelectedIndex() == 0; // Hoạt động
+			
+			KetQuaXuLy ketQua = toaController.themToa(maToa, maTau, loaiToa, soGhe, viTri, trangThai);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao);
+			if (ketQua.thanhCong) {
+				lamMoiForm();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Số ghế phải là số nguyên");
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+		}
+	}
+
+	private void lamMoiForm() {
+		txtMaToa.setText("");
+		cbLoaiToa.setSelectedIndex(0);
+		cbMaTau.setSelectedIndex(0);
+		txtSoGhe.setText("0");
+		txtViTriToa.setText("Thứ 1");
+		cbTrangThai.setSelectedIndex(0);
 	}
 }
