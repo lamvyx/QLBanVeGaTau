@@ -1,10 +1,15 @@
 package view;
 
+import dao.KhuyenMai_DAO;
+import entity.KhuyenMai;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +22,8 @@ import javax.swing.table.DefaultTableModel;
 public class KhuyenMaiPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final DateTimeFormatter FORMAT_NGAY = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private final KhuyenMai_DAO khuyenMaiDAO = new KhuyenMai_DAO();
 
 	public KhuyenMaiPage() {
 		setLayout(new BorderLayout());
@@ -66,8 +73,7 @@ public class KhuyenMaiPage extends JPanel {
 		String[] columns = { "Mã KM", "Tên khuyến mãi", "Mức giảm", "Ngày bắt đầu", "Ngày kết thúc", "Trạng thái" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-		model.addRow(new Object[] { "KM001", "Mua 1 được 1", "50%", "2024-01-01", "2024-12-31", "Hoạt động" });
-		model.addRow(new Object[] { "KM002", "Giảm 20%", "20%", "2024-02-01", "2024-02-28", "Hoạt động" });
+		napDuLieuKhuyenMai(model);
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,5 +86,27 @@ public class KhuyenMaiPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void napDuLieuKhuyenMai(DefaultTableModel model) {
+		// Nạp khuyến mãi từ SQL để các màn quản lý không bị lệch dữ liệu.
+		List<KhuyenMai> dsKhuyenMai = khuyenMaiDAO.layTatCa();
+		for (KhuyenMai khuyenMai : dsKhuyenMai) {
+			model.addRow(new Object[] {
+				khuyenMai.getMaKM(),
+				khuyenMai.getTenKM(),
+				formatPhanTram(khuyenMai.getTyLeKM()),
+				khuyenMai.getNgayBD() == null ? "" : FORMAT_NGAY.format(khuyenMai.getNgayBD()),
+				khuyenMai.getNgayKT() == null ? "" : FORMAT_NGAY.format(khuyenMai.getNgayKT()),
+				"Hoạt động"
+			});
+		}
+	}
+
+	private String formatPhanTram(BigDecimal tyLeKM) {
+		if (tyLeKM == null) {
+			return "0%";
+		}
+		return tyLeKM.stripTrailingZeros().toPlainString() + "%";
 	}
 }

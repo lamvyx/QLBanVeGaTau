@@ -515,7 +515,27 @@ public class BanVePage extends JPanel {
 		addLabelField(wrap, gbc, 0, 0, "Chuyến tàu *", createChuyenCombo());
 		addLabelField(wrap, gbc, 1, 0, "Toa tàu *", createToaCombo());
 		addLabelField(wrap, gbc, 0, 1, "Mã khuyến mãi", createPromotionField());
+
+		// Quick seat check button (merge functionality from KiemTraChoTrongPage)
+		JButton btnKiemTraCho = new JButton("Kiểm tra chỗ");
+		AppTheme.styleSecondaryButton(btnKiemTraCho);
+		btnKiemTraCho.addActionListener(e -> kiemTraChoTrong());
+		gbc.gridx = 1;
+		gbc.gridy = 2;
+		wrap.add(btnKiemTraCho, gbc);
 		return wrap;
+	}
+
+	private void kiemTraChoTrong() {
+		// Ensure current selection is applied
+		capNhatChuyenTauDangChon();
+		capNhatDanhSachToaTheoChuyen();
+		// bookedSeats and selectedSoGhe should be up-to-date
+		int total = selectedSoGhe;
+		int booked = bookedSeats.size();
+		int available = Math.max(0, total - booked);
+		String msg = String.format("Toa: %s\nTổng ghế: %d\nĐã đặt: %d\nCòn trống: %d", selectedToa, total, booked, available);
+		JOptionPane.showMessageDialog(this, msg, "Kết quả kiểm tra chỗ", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	private void addLabelField(JPanel parent, GridBagConstraints gbc, int column, int row, String label, java.awt.Component field) {
@@ -1409,13 +1429,18 @@ public class BanVePage extends JPanel {
 			selectedNgayLap = LocalDateTime.now().format(TICKET_TIME_FORMAT);
 			refreshSuccessCard();
 			hienThiCard(successCard);
-			JOptionPane.showMessageDialog(
+			int printConfirm = JOptionPane.showConfirmDialog(
 				this,
-				"Đã lưu " + allMaVes.size() + " vé nháp.\nMã vé: " + String.join(", ", allMaVes)
-						+ "\nBạn có thể sang màn Lập hóa đơn để chốt.",
+				"Đã lưu " + allMaVes.size() + " vé nháp.\nMã vé: " + String.join(", ", allMaVes) + "\n\nBạn có muốn in vé ngay không?",
 				"Lưu vé nháp thành công",
-				JOptionPane.INFORMATION_MESSAGE
+				JOptionPane.YES_NO_OPTION
 			);
+			if (printConfirm == JOptionPane.YES_OPTION) {
+				// Mô phỏng in vé
+				JOptionPane.showMessageDialog(this, "Đã in " + allMaVes.size() + " vé.\nMã vé: " + String.join(", ", allMaVes), "In vé thành công", JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				JOptionPane.showMessageDialog(this, "Bạn có thể sang màn Lập hóa đơn để chốt.", "Tiếp tục", JOptionPane.INFORMATION_MESSAGE);
+			}
 		} catch (Exception ex) {
 			JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage(), "Không thể lưu vé nháp", JOptionPane.WARNING_MESSAGE);
 		}
@@ -1486,14 +1511,20 @@ public class BanVePage extends JPanel {
 			selectedNgayLap = LocalDateTime.now().format(TICKET_TIME_FORMAT);
 			refreshSuccessCard();
 			hienThiCard(successCard);
-			JOptionPane.showMessageDialog(
+			int printConfirm = JOptionPane.showConfirmDialog(
 				this,
 				"Đã lưu " + veNhap.size() + " vé nháp.\nMã vé: " + String.join(", ", maVes)
 						+ (isDatKhuHoiHopLe() ? "\nChuyến về gợi ý: " + selectedChuyenKhuHoi : "")
-						+ "\nBạn có thể sang màn Lập hóa đơn để chốt.",
+						+ "\n\nBạn có muốn in vé ngay không?",
 				"Lưu vé nháp thành công",
-				JOptionPane.INFORMATION_MESSAGE
+				JOptionPane.YES_NO_OPTION
 			);
+			if (printConfirm == JOptionPane.YES_OPTION) {
+				// Mô phỏng in vé
+				JOptionPane.showMessageDialog(this, "Đã in " + veNhap.size() + " vé.\nMã vé: " + String.join(", ", maVes), "In vé thành công", JOptionPane.INFORMATION_MESSAGE);
+			} else {
+				JOptionPane.showMessageDialog(this, "Bạn có thể sang màn Lập hóa đơn để chốt.", "Tiếp tục", JOptionPane.INFORMATION_MESSAGE);
+			}
 		} catch (IllegalArgumentException ex) {
 			JOptionPane.showMessageDialog(this, ex.getMessage(), "Không thể lưu vé nháp", JOptionPane.WARNING_MESSAGE);
 		}

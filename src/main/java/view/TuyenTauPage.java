@@ -1,10 +1,13 @@
 package view;
 
+import dao.TuyenTau_DAO;
+import entity.TuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +20,7 @@ import javax.swing.table.DefaultTableModel;
 public class TuyenTauPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final TuyenTau_DAO tuyenTauDAO = new TuyenTau_DAO();
 
 	public TuyenTauPage() {
 		setLayout(new BorderLayout());
@@ -66,8 +70,7 @@ public class TuyenTauPage extends JPanel {
 		String[] columns = { "Mã tuyến", "Từ", "Đến", "Khoảng cách", "Thời gian", "Trạng thái" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-		model.addRow(new Object[] { "TT1", "TP.HCM", "Hà Nội", "1728 km", "30 giờ", "Hoạt động" });
-		model.addRow(new Object[] { "TT2", "TP.HCM", "Hải Phòng", "1820 km", "36 giờ", "Hoạt động" });
+		napDuLieuTuyenTau(model);
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,5 +83,20 @@ public class TuyenTauPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void napDuLieuTuyenTau(DefaultTableModel model) {
+		// Đọc danh sách tuyến từ SQL để tra cứu và quản lý phản ánh dữ liệu thật.
+		List<TuyenTau> dsTuyenTau = tuyenTauDAO.layTatCa();
+		for (TuyenTau tuyenTau : dsTuyenTau) {
+			model.addRow(new Object[] {
+				tuyenTau.getMaTT(),
+				tuyenTau.getMaGaDi(),
+				tuyenTau.getMaGaDen(),
+				String.format("%.0f km", tuyenTau.getKhoangCach()),
+				"",
+				"Hoạt động"
+			});
+		}
 	}
 }

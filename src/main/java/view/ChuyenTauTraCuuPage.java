@@ -1,9 +1,13 @@
 package view;
 
+import dao.ChuyenTau_DAO;
+import entity.ChuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -17,6 +21,9 @@ import javax.swing.table.DefaultTableModel;
 public class ChuyenTauTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final DateTimeFormatter FORMAT_NGAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+	private static final DateTimeFormatter FORMAT_GIO = DateTimeFormatter.ofPattern("HH:mm");
+	private final ChuyenTau_DAO chuyenTauDAO = new ChuyenTau_DAO();
 
 	private JTextField txtTimKiem;
 	private JComboBox<String> cbSapXep;
@@ -106,13 +113,7 @@ public class ChuyenTauTraCuuPage extends JPanel {
 			}
 		};
 
-		// Sample data
-		model.addRow(new Object[] { "SE1-020426", "SE1", "Sài Gòn - Hà Nội", "19:00:00 2/4/2026", "01:00:00 4/4/2026", "112/196", "850.000 đ", "Lên lịch" });
-		model.addRow(new Object[] { "SE1-030426", "SE1", "Sài Gòn - Hà Nội", "19:00:00 3/4/2026", "01:00:00 5/4/2026", "145/196", "850.000 đ", "Lên lịch" });
-		model.addRow(new Object[] { "SE2-020426", "SE2", "Sài Gòn - Đà Nẵng", "07:00:00 2/4/2026", "23:00:00 2/4/2026", "56/76", "530.000 đ", "Đang chạy" });
-		model.addRow(new Object[] { "TN1-020426", "TN1", "Sài Gòn - Nha Trang", "06:00:00 2/4/2026", "13:00:00 2/4/2026", "0/96", "280.000 đ", "Hoàn thành" });
-		model.addRow(new Object[] { "SG1-020426", "SG1", "Sài Gòn - Hà Nội", "20:00:00 5/4/2026", "02:00:00 7/4/2026", "12/16", "1.500.000 đ", "Lên lịch" });
-		model.addRow(new Object[] { "SE2-030426", "SE2", "Sài Gòn - Nha Trang", "08:00:00 3/4/2026", "15:00:00 3/4/2026", "48/76", "280.000 đ", "Lên lịch" });
+		napDuLieuChuyenTau();
 
 		tableChuyenTau = new JTable(model);
 		tableChuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -129,5 +130,22 @@ public class ChuyenTauTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void napDuLieuChuyenTau() {
+		// Chuyến tàu phải bám dữ liệu thật vì là nguồn của bán vé và hóa đơn.
+		List<ChuyenTau> dsChuyenTau = chuyenTauDAO.layTatCa();
+		for (ChuyenTau chuyenTau : dsChuyenTau) {
+			model.addRow(new Object[] {
+				chuyenTau.getMaCT(),
+				chuyenTau.getMaTau(),
+				chuyenTau.getMaTuyenTau(),
+				chuyenTau.getNgayKhoiHanh() == null ? "" : FORMAT_NGAY.format(chuyenTau.getNgayKhoiHanh().toLocalDate()),
+				chuyenTau.getGioKhoiHanh() == null ? "" : FORMAT_GIO.format(chuyenTau.getGioKhoiHanh().toLocalTime()),
+				chuyenTau.isTrangThai() ? "Đang chạy" : "Ngừng",
+				"",
+				chuyenTau.isTrangThai() ? "Lên lịch" : "Hoàn thành"
+			});
+		}
 	}
 }

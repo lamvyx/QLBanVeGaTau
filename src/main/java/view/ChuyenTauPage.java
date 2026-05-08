@@ -1,10 +1,14 @@
 package view;
 
+import dao.ChuyenTau_DAO;
+import entity.ChuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +21,9 @@ import javax.swing.table.DefaultTableModel;
 public class ChuyenTauPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final DateTimeFormatter FORMAT_NGAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+	private static final DateTimeFormatter FORMAT_GIO = DateTimeFormatter.ofPattern("HH:mm");
+	private final ChuyenTau_DAO chuyenTauDAO = new ChuyenTau_DAO();
 
 	public ChuyenTauPage() {
 		setLayout(new BorderLayout());
@@ -63,11 +70,10 @@ public class ChuyenTauPage extends JPanel {
 		content.setBackground(Color.decode("#F0F5F9"));
 		content.setBorder(new EmptyBorder(12, 16, 12, 16));
 
-		String[] columns = { "Mã chuyến", "Tuyến", "Tàu", "Khởi hành", "Đến nơi", "Thời gian", "Trạng thái" };
+		String[] columns = { "Mã chuyến", "Tàu", "Tuyến", "Ngày khởi hành", "Giờ khởi hành", "Trạng thái" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-		model.addRow(new Object[] { "SE01", "SG->HN", "T001", "07:00", "12:30", "5h30m", "Đang chạy" });
-		model.addRow(new Object[] { "SE02", "SG->HN", "T002", "13:00", "18:30", "5h30m", "Chậm" });
+		napDuLieuChuyenTau(model);
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,5 +86,20 @@ public class ChuyenTauPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void napDuLieuChuyenTau(DefaultTableModel model) {
+		// Chuyến tàu phải bám dữ liệu thật vì đây là nguồn cho bán vé và lịch sử vé.
+		List<ChuyenTau> dsChuyenTau = chuyenTauDAO.layTatCa();
+		for (ChuyenTau chuyenTau : dsChuyenTau) {
+			model.addRow(new Object[] {
+				chuyenTau.getMaCT(),
+				chuyenTau.getMaTau(),
+				chuyenTau.getMaTuyenTau(),
+				chuyenTau.getNgayKhoiHanh() == null ? "" : FORMAT_NGAY.format(chuyenTau.getNgayKhoiHanh().toLocalDate()),
+				chuyenTau.getGioKhoiHanh() == null ? "" : FORMAT_GIO.format(chuyenTau.getGioKhoiHanh().toLocalTime()),
+				chuyenTau.isTrangThai() ? "Đang chạy" : "Ngừng"
+			});
+		}
 	}
 }

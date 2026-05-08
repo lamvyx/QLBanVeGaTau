@@ -1,5 +1,7 @@
 package view;
 
+import dao.TuyenTau_DAO;
+import entity.TuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,6 +11,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -23,6 +26,7 @@ import javax.swing.table.DefaultTableModel;
 public class TuyenTauCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final TuyenTau_DAO tuyenTauDAO = new TuyenTau_DAO();
 
 	private JTable table;
 	private JPanel formPanel;
@@ -72,11 +76,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { "TT001", "Sài Gòn", "Hà Nội", "1728" });
-		model.addRow(new Object[] { "TT002", "Sài Gòn", "Đà Nẵng", "962" });
-		model.addRow(new Object[] { "TT003", "Sài Gòn", "Nha Trang", "450" });
-		model.addRow(new Object[] { "TT004", "Hà Nội", "Hải Phòng", "120" });
-		model.addRow(new Object[] { "TT005", "Đà Nẵng", "Huế", "110" });
+		napDuLieuTuyenTau(model);
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -160,7 +160,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaTT = new JTextField(table.getValueAt(row, 1).toString());
+		txtMaTT = new JTextField(table.getValueAt(row, 0).toString());
 		txtMaTT.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtMaTT.setPreferredSize(new Dimension(200, 30));
 		txtMaTT.setBorder(BorderFactory.createCompoundBorder(
@@ -181,7 +181,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaGaDi = new JTextField(table.getValueAt(row, 2).toString());
+		txtMaGaDi = new JTextField(table.getValueAt(row, 1).toString());
 		txtMaGaDi.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtMaGaDi.setPreferredSize(new Dimension(200, 30));
 		txtMaGaDi.setBorder(BorderFactory.createCompoundBorder(
@@ -201,7 +201,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaGaDen = new JTextField(table.getValueAt(row, 3).toString());
+		txtMaGaDen = new JTextField(table.getValueAt(row, 2).toString());
 		txtMaGaDen.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtMaGaDen.setPreferredSize(new Dimension(200, 30));
 		txtMaGaDen.setBorder(BorderFactory.createCompoundBorder(
@@ -221,7 +221,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtKhoangCach = new JTextField(table.getValueAt(row, 4).toString());
+		txtKhoangCach = new JTextField(table.getValueAt(row, 3).toString());
 		txtKhoangCach.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtKhoangCach.setPreferredSize(new Dimension(200, 30));
 		txtKhoangCach.setBorder(BorderFactory.createCompoundBorder(
@@ -274,5 +274,18 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void napDuLieuTuyenTau(DefaultTableModel model) {
+		// Tuyến tàu lấy từ SQL để cập nhật đúng dữ liệu thực của hệ thống.
+		List<TuyenTau> dsTuyenTau = tuyenTauDAO.layTatCa();
+		for (TuyenTau tuyenTau : dsTuyenTau) {
+			model.addRow(new Object[] {
+				tuyenTau.getMaTT(),
+				tuyenTau.getMaGaDi(),
+				tuyenTau.getMaGaDen(),
+				String.format("%.0f", tuyenTau.getKhoangCach())
+			});
+		}
 	}
 }

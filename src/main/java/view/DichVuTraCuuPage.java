@@ -1,9 +1,15 @@
 package view;
 
+import dao.DichVu_DAO;
+import entity.DichVu;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -16,6 +22,7 @@ import javax.swing.table.DefaultTableModel;
 public class DichVuTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final DichVu_DAO dichVuDAO = new DichVu_DAO();
 
 	private JTextField txtTimKiem;
 	private JTable tableDichVu;
@@ -91,12 +98,7 @@ public class DichVuTraCuuPage extends JPanel {
 			}
 		};
 
-		// Sample data
-		model.addRow(new Object[] { "DV001", "Vé ngồi tiêu chuẩn", "0", "Hoạt động" });
-		model.addRow(new Object[] { "DV002", "Vé nằm thường", "0", "Hoạt động" });
-		model.addRow(new Object[] { "DV003", "Vé nằm VIP", "0", "Hoạt động" });
-		model.addRow(new Object[] { "DV004", "Bảo hiểm hành khách", "50000", "Hoạt động" });
-		model.addRow(new Object[] { "DV005", "Suất ăn nhẹ", "30000", "Hoạt động" });
+		napDuLieuDichVu();
 
 		tableDichVu = new JTable(model);
 		tableDichVu.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -113,5 +115,25 @@ public class DichVuTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void napDuLieuDichVu() {
+		List<DichVu> dsDichVu = dichVuDAO.layTatCa();
+		for (DichVu dichVu : dsDichVu) {
+			model.addRow(new Object[] {
+				dichVu.getMaDV(),
+				dichVu.getTenDV(),
+				formatTien(dichVu.getGiaDV()),
+				dichVu.isTrangThai() ? "Hoạt động" : "Ngừng"
+			});
+		}
+	}
+
+	private String formatTien(BigDecimal giaTien) {
+		if (giaTien == null) {
+			return "0";
+		}
+		NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+		return formatter.format(giaTien);
 	}
 }

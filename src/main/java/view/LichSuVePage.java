@@ -1,10 +1,18 @@
 package view;
 
+import dao.KhachHang_DAO;
+import dao.VeTau_DAO;
+import entity.KhachHang;
+import entity.VeTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -24,6 +32,8 @@ public class LichSuVePage extends JPanel {
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
 	private static final Color MAU_NEN = Color.decode("#F0F5F9");
 	private static final Color MAU_VIEN = Color.decode("#DCE3EC");
+	private final KhachHang_DAO khachHangDAO = new KhachHang_DAO();
+	private final VeTau_DAO veTauDAO = new VeTau_DAO();
 	private TableRowSorter<DefaultTableModel> sorter;
 
 	public LichSuVePage() {
@@ -82,14 +92,12 @@ public class LichSuVePage extends JPanel {
 
 		btnTimKiem.addActionListener(e -> {
 			String sdt = txtSdt.getText().trim();
-			if (sdt.isEmpty()) {
-				if (sorter != null) {
-					sorter.setRowFilter(null);
-				}
-				return;
-			}
 			if (sorter != null) {
-				sorter.setRowFilter(RowFilter.regexFilter(java.util.regex.Pattern.quote(sdt), 1));
+				if (sdt.isEmpty()) {
+					sorter.setRowFilter(null);
+				} else {
+					sorter.setRowFilter(RowFilter.regexFilter(java.util.regex.Pattern.quote(sdt), 0));
+				}
 			}
 		});
 		txtSdt.addActionListener(e -> btnTimKiem.doClick());
@@ -109,7 +117,7 @@ public class LichSuVePage extends JPanel {
 		title.setForeground(Color.decode("#1F3F72"));
 		panel.add(title, BorderLayout.NORTH);
 
-		String[] columns = { "Số ĐT", "Mã vé", "Tuyến đường", "Giờ khởi hành", "Chỗ ngồi", "Giá vé", "Trạng thái", "Ngày mua" };
+		String[] columns = { "Số ĐT", "Mã vé", "Mã chuyến", "Mã toa", "Giá vé", "Trạng thái", "Ngày mua" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -117,12 +125,7 @@ public class LichSuVePage extends JPanel {
 			}
 		};
 
-		model.addRow(new Object[] { "0901234567", "VE0001", "Sài Gòn - Hà Nội", "02/04/2026 19:00", "A05", "850.000 đ", "Hoạt động", "2026-03-20" });
-		model.addRow(new Object[] { "0901234567", "VE0002", "Sài Gòn - Đà Nẵng", "02/04/2026 07:00", "B12", "477.000 đ", "Hoạt động", "2026-03-22" });
-		model.addRow(new Object[] { "0912345678", "VE0003", "Sài Gòn - Nha Trang", "02/04/2026 06:00", "C08", "280.000 đ", "Đã dùng", "2026-03-25" });
-		model.addRow(new Object[] { "0923456789", "VE0004", "Sài Gòn - Hà Nội", "05/04/2026 20:00", "VIP03", "1.350.000 đ", "Hoạt động", "2026-03-28" });
-		model.addRow(new Object[] { "0934567890", "VE0005", "Sài Gòn - Hà Nội", "02/04/2026 19:00", "D15", "1.020.000 đ", "Đã trả", "2026-03-18" });
-		model.addRow(new Object[] { "0945678901", "VE0006", "Sài Gòn - Cần Thơ", "03/04/2026 08:00", "E09", "340.000 đ", "Hoạt động", "2026-03-29" });
+		napDuLieuLichSuVe(model);
 
 		JTable table = new JTable(model) {
 			private static final long serialVersionUID = 1L;
@@ -155,6 +158,33 @@ public class LichSuVePage extends JPanel {
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		return panel;
+	}
+
+	private void napDuLieuLichSuVe(DefaultTableModel model) {
+		// Lịch sử vé được ghép từ khách hàng + vé tàu để phản ánh dữ liệu SQL thật.
+		List<KhachHang> dsKhachHang = khachHangDAO.layTatCa();
+		for (KhachHang khachHang : dsKhachHang) {
+			List<VeTau> dsVe = veTauDAO.layTheoKhachHang(khachHang.getMaKH());
+			for (VeTau veTau : dsVe) {
+				model.addRow(new Object[] {
+					khachHang.getSdt(),
+					veTau.getMaVeTau(),
+					veTau.getMaChuyenTau(),
+					veTau.getMaToa() + " - " + veTau.getViTriGhe(),
+					formatTien(veTau.getGiaVe()),
+					veTau.getTrangThai(),
+					""
+				});
+			}
+		}
+	}
+
+	private String formatTien(BigDecimal giaVe) {
+		if (giaVe == null) {
+			return "0";
+		}
+		NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+		return formatter.format(giaVe);
 	}
 
 	private static class TableStyleRenderer extends DefaultTableCellRenderer {

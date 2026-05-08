@@ -1,5 +1,7 @@
 package view;
 
+import dao.Tau_DAO;
+import entity.Tau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,6 +11,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -23,6 +26,7 @@ import javax.swing.table.DefaultTableModel;
 public class TauCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final Tau_DAO tauDAO = new Tau_DAO();
 
 	private JTable table;
 	private JPanel formPanel;
@@ -71,10 +75,7 @@ public class TauCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { "T001", "Tàu SE1", 8, "400 ghế", "2015" });
-		model.addRow(new Object[] { "T002", "Tàu SE2", 8, "400 ghế", "2018" });
-		model.addRow(new Object[] { "T003", "Tàu TN1", 6, "300 ghế", "2020" });
-		model.addRow(new Object[] { "T004", "Tàu HP1", 10, "500 ghế", "2019" });
+		napDuLieuTau(model);
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -154,7 +155,7 @@ public class TauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaTau = new JTextField(table.getValueAt(row, 1).toString());
+		txtMaTau = new JTextField(table.getValueAt(row, 0).toString());
 		txtMaTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtMaTau.setPreferredSize(new Dimension(200, 30));
 		txtMaTau.setBorder(BorderFactory.createCompoundBorder(
@@ -173,7 +174,7 @@ public class TauCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtTenTau = new JTextField(table.getValueAt(row, 2).toString());
+		txtTenTau = new JTextField(table.getValueAt(row, 1).toString());
 		txtTenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtTenTau.setPreferredSize(new Dimension(200, 30));
 		txtTenTau.setBorder(BorderFactory.createCompoundBorder(
@@ -191,7 +192,7 @@ public class TauCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtSoToa = new JTextField(table.getValueAt(row, 3).toString());
+		txtSoToa = new JTextField(table.getValueAt(row, 2).toString());
 		txtSoToa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtSoToa.setPreferredSize(new Dimension(200, 30));
 		txtSoToa.setBorder(BorderFactory.createCompoundBorder(
@@ -209,7 +210,7 @@ public class TauCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtSucChua = new JTextField(table.getValueAt(row, 4).toString());
+		txtSucChua = new JTextField(table.getValueAt(row, 3).toString());
 		txtSucChua.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtSucChua.setPreferredSize(new Dimension(200, 30));
 		txtSucChua.setBorder(BorderFactory.createCompoundBorder(
@@ -227,7 +228,7 @@ public class TauCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtNamSX = new JTextField(table.getValueAt(row, 5).toString());
+		txtNamSX = new JTextField(table.getValueAt(row, 4).toString());
 		txtNamSX.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtNamSX.setPreferredSize(new Dimension(200, 30));
 		txtNamSX.setBorder(BorderFactory.createCompoundBorder(
@@ -280,5 +281,20 @@ public class TauCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void napDuLieuTau(DefaultTableModel model) {
+		// Bảng tàu lấy từ SQL; cột phụ được suy diễn để giữ form cũ vẫn dùng được.
+		List<Tau> dsTau = tauDAO.layTatCa();
+		for (Tau tau : dsTau) {
+			int sucChua = tau.getSoLuongToa() * 40;
+			model.addRow(new Object[] {
+				tau.getMaTau(),
+				tau.getTenTau(),
+				tau.getSoLuongToa(),
+				sucChua + " ghế",
+				""
+			});
+		}
 	}
 }

@@ -1,9 +1,12 @@
 package view;
 
+import dao.Toa_DAO;
+import entity.Toa;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -17,6 +20,7 @@ import javax.swing.table.DefaultTableModel;
 public class ToaTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final Toa_DAO toaDAO = new Toa_DAO();
 
 	private JTextField txtTimKiem;
 	private JComboBox<String> cbSapXep;
@@ -107,13 +111,7 @@ public class ToaTraCuuPage extends JPanel {
 			}
 		};
 
-		// Sample data
-		model.addRow(new Object[] { "A1", "Ghế ngồi", "T001", 40, "Thứ 1", "Hoạt động" });
-		model.addRow(new Object[] { "A2", "Ghế ngồi", "T001", 40, "Thứ 2", "Hoạt động" });
-		model.addRow(new Object[] { "B1", "Giường nằm", "T002", 32, "Thứ 3", "Hoạt động" });
-		model.addRow(new Object[] { "C1", "Giường nằm khoang VIP", "T003", 16, "Thứ 1", "Bảo trí" });
-		model.addRow(new Object[] { "D1", "Toa hàng", "T001", 0, "Thứ 8", "Hoạt động" });
-		model.addRow(new Object[] { "A3", "Ghế ngồi", "T002", 40, "Thứ 3", "Hoạt động" });
+		napDuLieuToa();
 
 		tableToa = new JTable(model);
 		tableToa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -130,5 +128,20 @@ public class ToaTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void napDuLieuToa() {
+		// Lấy toa thật từ SQL để tra cứu đồng bộ với quản lý chuyến/tàu.
+		List<Toa> dsToa = toaDAO.layTatCa();
+		for (Toa toa : dsToa) {
+			model.addRow(new Object[] {
+				toa.getMaToa(),
+				toa.getLoaiToa(),
+				toa.getMaTau(),
+				toa.getSoGhe(),
+				toa.getViTriToa(),
+				toa.isTrangThai() ? "Hoạt động" : "Ngừng"
+			});
+		}
 	}
 }

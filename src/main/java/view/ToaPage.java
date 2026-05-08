@@ -1,10 +1,13 @@
 package view;
 
+import dao.Toa_DAO;
+import entity.Toa;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +20,7 @@ import javax.swing.table.DefaultTableModel;
 public class ToaPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final Toa_DAO toaDAO = new Toa_DAO();
 
 	public ToaPage() {
 		setLayout(new BorderLayout());
@@ -66,8 +70,7 @@ public class ToaPage extends JPanel {
 		String[] columns = { "Mã toa", "Tàu", "Loại", "Số ghế", "Trạng thái" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-		model.addRow(new Object[] { "A", "T001", "Ghế ngồi", "40", "Hoạt động" });
-		model.addRow(new Object[] { "B", "T001", "Giường nằm", "30", "Hoạt động" });
+		napDuLieuToa(model);
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,5 +83,19 @@ public class ToaPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void napDuLieuToa(DefaultTableModel model) {
+		// Đọc toa thật từ SQL để bảng quản lý khớp dữ liệu hiện tại.
+		List<Toa> dsToa = toaDAO.layTatCa();
+		for (Toa toa : dsToa) {
+			model.addRow(new Object[] {
+				toa.getMaToa(),
+				toa.getMaTau(),
+				toa.getLoaiToa(),
+				toa.getSoGhe(),
+				toa.isTrangThai() ? "Hoạt động" : "Ngừng"
+			});
+		}
 	}
 }

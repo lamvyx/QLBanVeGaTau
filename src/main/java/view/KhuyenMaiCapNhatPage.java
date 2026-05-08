@@ -1,5 +1,7 @@
 package view;
 
+import dao.KhuyenMai_DAO;
+import entity.KhuyenMai;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,6 +11,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -23,6 +28,8 @@ import javax.swing.table.DefaultTableModel;
 public class KhuyenMaiCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final DateTimeFormatter FORMAT_NGAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+	private final KhuyenMai_DAO khuyenMaiDAO = new KhuyenMai_DAO();
 
 	private JTable table;
 	private JPanel formPanel;
@@ -71,11 +78,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { "KM001", "Hè 2024", "10%", "01/06/2024", "31/08/2024", "Đang chạy" });
-		model.addRow(new Object[] { "KM002", "Thu 2024", "15%", "01/09/2024", "30/11/2024", "Sắp diễn ra" });
-		model.addRow(new Object[] { "KM003", "Tết 2024", "20%", "01/01/2024", "31/01/2024", "Kết thúc" });
-		model.addRow(new Object[] { "KM004", "Sinh nhật công ty", "5%", "01/04/2024", "30/04/2024", "Kết thúc" });
-		model.addRow(new Object[] { "KM005", "Black Friday", "25%", "01/11/2024", "30/11/2024", "Sắp diễn ra" });
+		napDuLieuKhuyenMai(model);
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -155,7 +158,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaKM = new JTextField(table.getValueAt(row, 1).toString());
+		txtMaKM = new JTextField(table.getValueAt(row, 0).toString());
 		txtMaKM.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtMaKM.setPreferredSize(new Dimension(200, 30));
 		txtMaKM.setBorder(BorderFactory.createCompoundBorder(
@@ -174,7 +177,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtTenKM = new JTextField(table.getValueAt(row, 2).toString());
+		txtTenKM = new JTextField(table.getValueAt(row, 1).toString());
 		txtTenKM.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtTenKM.setPreferredSize(new Dimension(200, 30));
 		txtTenKM.setBorder(BorderFactory.createCompoundBorder(
@@ -192,7 +195,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtTyLeKM = new JTextField(table.getValueAt(row, 3).toString());
+		txtTyLeKM = new JTextField(table.getValueAt(row, 2).toString());
 		txtTyLeKM.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtTyLeKM.setPreferredSize(new Dimension(200, 30));
 		txtTyLeKM.setBorder(BorderFactory.createCompoundBorder(
@@ -210,7 +213,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtNgayBD = new JTextField(table.getValueAt(row, 4).toString());
+		txtNgayBD = new JTextField(table.getValueAt(row, 3).toString());
 		txtNgayBD.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtNgayBD.setPreferredSize(new Dimension(200, 30));
 		txtNgayBD.setBorder(BorderFactory.createCompoundBorder(
@@ -228,7 +231,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtNgayKT = new JTextField(table.getValueAt(row, 5).toString());
+		txtNgayKT = new JTextField(table.getValueAt(row, 4).toString());
 		txtNgayKT.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtNgayKT.setPreferredSize(new Dimension(200, 30));
 		txtNgayKT.setBorder(BorderFactory.createCompoundBorder(
@@ -281,5 +284,41 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void napDuLieuKhuyenMai(DefaultTableModel model) {
+		// Khuyến mãi cập nhật lấy từ SQL để sửa đúng bản ghi hiện tại.
+		List<KhuyenMai> dsKhuyenMai = khuyenMaiDAO.layTatCa();
+		for (KhuyenMai khuyenMai : dsKhuyenMai) {
+			model.addRow(new Object[] {
+				khuyenMai.getMaKM(),
+				khuyenMai.getTenKM(),
+				formatTyLe(khuyenMai.getTyLeKM()),
+				khuyenMai.getNgayBD() == null ? "" : FORMAT_NGAY.format(khuyenMai.getNgayBD()),
+				khuyenMai.getNgayKT() == null ? "" : FORMAT_NGAY.format(khuyenMai.getNgayKT()),
+				tinhTrang(khuyenMai)
+			});
+		}
+	}
+
+	private String formatTyLe(java.math.BigDecimal tyLeKM) {
+		if (tyLeKM == null) {
+			return "0";
+		}
+		return tyLeKM.stripTrailingZeros().toPlainString() + "%";
+	}
+
+	private String tinhTrang(KhuyenMai khuyenMai) {
+		LocalDate homNay = LocalDate.now();
+		if (khuyenMai.getNgayBD() == null || khuyenMai.getNgayKT() == null) {
+			return "";
+		}
+		if (homNay.isBefore(khuyenMai.getNgayBD())) {
+			return "Sắp diễn ra";
+		}
+		if (homNay.isAfter(khuyenMai.getNgayKT())) {
+			return "Kết thúc";
+		}
+		return "Đang chạy";
 	}
 }

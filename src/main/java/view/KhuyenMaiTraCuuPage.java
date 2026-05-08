@@ -1,9 +1,14 @@
 package view;
 
+import dao.KhuyenMai_DAO;
+import entity.KhuyenMai;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.math.BigDecimal;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -17,6 +22,8 @@ import javax.swing.table.DefaultTableModel;
 public class KhuyenMaiTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final DateTimeFormatter FORMAT_NGAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+	private final KhuyenMai_DAO khuyenMaiDAO = new KhuyenMai_DAO();
 
 	private JTextField txtTimKiem;
 	private JComboBox<String> cbSapXep;
@@ -107,11 +114,7 @@ public class KhuyenMaiTraCuuPage extends JPanel {
 		};
 
 		// Sample data
-		model.addRow(new Object[] { "KM001", "Giảm giá Tết", 10, "01/01/2026", "05/01/2026", "Kết thúc" });
-		model.addRow(new Object[] { "KM002", "Giảm giá Tháng 4", 5, "01/04/2026", "30/04/2026", "Đang chạy" });
-		model.addRow(new Object[] { "KM003", "Giảm giá Hè", 15, "01/06/2026", "31/08/2026", "Sắp diễn ra" });
-		model.addRow(new Object[] { "KM004", "Khuyến mãi nhóm", 8, "10/04/2026", "20/04/2026", "Đang chạy" });
-		model.addRow(new Object[] { "KM005", "Giảm giá VIP", 20, "15/05/2026", "15/06/2026", "Sắp diễn ra" });
+		napDuLieuKhuyenMai(model);
 
 		tableKhuyenMai = new JTable(model);
 		tableKhuyenMai.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -128,5 +131,41 @@ public class KhuyenMaiTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void napDuLieuKhuyenMai(DefaultTableModel model) {
+		// Lấy khuyến mãi thật từ SQL để tra cứu không bị lệch dữ liệu.
+		List<KhuyenMai> dsKhuyenMai = khuyenMaiDAO.layTatCa();
+		for (KhuyenMai khuyenMai : dsKhuyenMai) {
+			model.addRow(new Object[] {
+				khuyenMai.getMaKM(),
+				khuyenMai.getTenKM(),
+				formatTyLe(khuyenMai.getTyLeKM()),
+				khuyenMai.getNgayBD() == null ? "" : FORMAT_NGAY.format(khuyenMai.getNgayBD()),
+				khuyenMai.getNgayKT() == null ? "" : FORMAT_NGAY.format(khuyenMai.getNgayKT()),
+				tinhTrang(khuyenMai)
+			});
+		}
+	}
+
+	private String formatTyLe(BigDecimal tyLeKM) {
+		if (tyLeKM == null) {
+			return "0";
+		}
+		return tyLeKM.stripTrailingZeros().toPlainString();
+	}
+
+	private String tinhTrang(KhuyenMai khuyenMai) {
+		if (khuyenMai.getNgayBD() == null || khuyenMai.getNgayKT() == null) {
+			return "";
+		}
+		java.time.LocalDate homNay = java.time.LocalDate.now();
+		if (homNay.isBefore(khuyenMai.getNgayBD())) {
+			return "Sắp diễn ra";
+		}
+		if (homNay.isAfter(khuyenMai.getNgayKT())) {
+			return "Kết thúc";
+		}
+		return "Đang chạy";
 	}
 }

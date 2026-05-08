@@ -1,10 +1,16 @@
 package view;
 
+import dao.DichVu_DAO;
+import entity.DichVu;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +23,7 @@ import javax.swing.table.DefaultTableModel;
 public class DichVuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final DichVu_DAO dichVuDAO = new DichVu_DAO();
 
 	public DichVuPage() {
 		setLayout(new BorderLayout());
@@ -66,8 +73,7 @@ public class DichVuPage extends JPanel {
 		String[] columns = { "Mã DV", "Tên dịch vụ", "Mô tả", "Giá", "Trạng thái" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-		model.addRow(new Object[] { "DV001", "Suất ăn", "Bữa ăn trong chuyến", "50000", "Hoạt động" });
-		model.addRow(new Object[] { "DV002", "Nước uống", "Nước khoáng", "10000", "Hoạt động" });
+		napDuLieuDichVu(model);
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,5 +86,28 @@ public class DichVuPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void napDuLieuDichVu(DefaultTableModel model) {
+		// Dịch vụ được lấy từ SQL thay cho dữ liệu demo.
+		List<DichVu> dsDichVu = dichVuDAO.layTatCa();
+		for (DichVu dichVu : dsDichVu) {
+			model.addRow(new Object[] {
+				dichVu.getMaDV(),
+				dichVu.getTenDV(),
+				"",
+				formatTien(dichVu.getGiaDV()),
+				dichVu.isTrangThai() ? "Hoạt động" : "Ngừng"
+			});
+		}
+	}
+
+	private String formatTien(BigDecimal giaTien) {
+		if (giaTien == null) {
+			return "0";
+		}
+		NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+		formatter.setGroupingUsed(true);
+		return formatter.format(giaTien);
 	}
 }

@@ -231,7 +231,7 @@ public class TrangChinhPage extends JFrame {
 			}
 			return new String[] { "Thêm khách hàng", "Tra cứu khách hàng", "Cập nhật thông tin", "Lịch sử vé" };
 		case "Vé":
-			return new String[] { "Bán vé", "Đổi vé", "Trả vé", "Kiểm tra chỗ trống", "In vé" };
+			return new String[] { "Bán vé", "Đổi vé", "Trả vé", "In vé" };
 		case "Chuyến tàu":
 			if (!laQuanLy()) {
 				return new String[] { "Tra cứu chuyến" };
@@ -308,8 +308,6 @@ public class TrangChinhPage extends JFrame {
 				return new VeTauPage("DOI_VE");
 			case "Trả vé":
 				return new VeTauPage("TRA_VE");
-			case "Kiểm tra chỗ trống":
-				return new VeTauPage("KT_CHO");
 			case "In vé":
 				return new VeTauPage("IN_VE");
 			default:

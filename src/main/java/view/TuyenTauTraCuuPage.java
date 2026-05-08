@@ -1,9 +1,12 @@
 package view;
 
+import dao.TuyenTau_DAO;
+import entity.TuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -16,6 +19,7 @@ import javax.swing.table.DefaultTableModel;
 public class TuyenTauTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final TuyenTau_DAO tuyenTauDAO = new TuyenTau_DAO();
 
 	private JTextField txtTimKiem;
 	private JTable tableTuyenTau;
@@ -91,12 +95,7 @@ public class TuyenTauTraCuuPage extends JPanel {
 			}
 		};
 
-		// Sample data
-		model.addRow(new Object[] { "TT001", "Sài Gòn", "Hà Nội", "1728" });
-		model.addRow(new Object[] { "TT002", "Sài Gòn", "Đà Nẵng", "962" });
-		model.addRow(new Object[] { "TT003", "Sài Gòn", "Nha Trang", "450" });
-		model.addRow(new Object[] { "TT004", "Hà Nội", "Hải Phòng", "120" });
-		model.addRow(new Object[] { "TT005", "Đà Nẵng", "Huế", "110" });
+		napDuLieuTuyenTau();
 
 		tableTuyenTau = new JTable(model);
 		tableTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -113,5 +112,17 @@ public class TuyenTauTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void napDuLieuTuyenTau() {
+		List<TuyenTau> dsTuyenTau = tuyenTauDAO.layTatCa();
+		for (TuyenTau tuyenTau : dsTuyenTau) {
+			model.addRow(new Object[] {
+				tuyenTau.getMaTT(),
+				tuyenTau.getMaGaDi(),
+				tuyenTau.getMaGaDen(),
+				String.format("%.0f", tuyenTau.getKhoangCach())
+			});
+		}
 	}
 }

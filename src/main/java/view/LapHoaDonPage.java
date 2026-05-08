@@ -1,11 +1,17 @@
 package view;
 
+import dao.VeTau_DAO;
+import entity.VeTau;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -19,6 +25,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class LapHoaDonPage extends JPanel {
 	private static final long serialVersionUID = 1L;
+	private final VeTau_DAO veTauDAO = new VeTau_DAO();
 
 	private final JTextField txtMaHD = new JTextField("HD-NEW");
 	private final JTextField txtMaNV = new JTextField("NV-1024");
@@ -39,9 +46,7 @@ public class LapHoaDonPage extends JPanel {
 			@Override
 			public boolean isCellEditable(int row, int column) { return false; }
 		};
-		model.addRow(new Object[] { "VE0101", "Nguyễn Văn Minh", "SE1", "Toa 3 - Ghế 06", "1.220.000" });
-		model.addRow(new Object[] { "VE0102", "Trần Thị Hoa", "SE2", "Toa 1 - Ghế 18", "980.000" });
-		model.addRow(new Object[] { "VE0103", "Lê Tuấn Anh", "SE1", "Toa 2 - Ghế 09", "1.050.000" });
+		napDuLieuVeChuaLapHoaDon(model);
 		tblVeChoLapHoaDon = new JTable(model);
 		AppTheme.styleTable(tblVeChoLapHoaDon);
 		tblVeChoLapHoaDon.setRowHeight(32);
@@ -131,6 +136,31 @@ public class LapHoaDonPage extends JPanel {
 		body.add(left, BorderLayout.CENTER);
 		body.add(right, BorderLayout.EAST);
 		return body;
+	}
+
+	private void napDuLieuVeChuaLapHoaDon(DefaultTableModel model) {
+		// Chỉ hiển thị các vé nháp/chưa chốt để lập hóa đơn từ dữ liệu thật.
+		List<VeTau> dsVe = veTauDAO.layTheoTrangThai("VE_NHAP");
+		if (dsVe.isEmpty()) {
+			dsVe = veTauDAO.layTatCa();
+		}
+		for (VeTau veTau : dsVe) {
+			model.addRow(new Object[] {
+				veTau.getMaVeTau(),
+				veTau.getMaKH(),
+				veTau.getMaChuyenTau(),
+				veTau.getMaToa() + " - " + veTau.getViTriGhe(),
+				formatTien(veTau.getGiaVe())
+			});
+		}
+	}
+
+	private String formatTien(BigDecimal giaVe) {
+		if (giaVe == null) {
+			return "0";
+		}
+		NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+		return formatter.format(giaVe);
 	}
 
 	private void themDong(JPanel form, GridBagConstraints gbc, int row, String label, java.awt.Component field) {

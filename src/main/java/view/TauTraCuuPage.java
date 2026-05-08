@@ -1,9 +1,12 @@
 package view;
 
+import dao.Tau_DAO;
+import entity.Tau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -17,6 +20,7 @@ import javax.swing.table.DefaultTableModel;
 public class TauTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final Tau_DAO tauDAO = new Tau_DAO();
 
 	private JTextField txtTimKiem;
 	private JComboBox<String> cbSapXep;
@@ -106,12 +110,7 @@ public class TauTraCuuPage extends JPanel {
 			}
 		};
 
-		// Sample data
-		model.addRow(new Object[] { "T001", "Tàu hỏa XP1", 8, 320, 2015, "Hoạt động" });
-		model.addRow(new Object[] { "T002", "Tàu hỏa SB2", 10, 400, 2018, "Hoạt động" });
-		model.addRow(new Object[] { "T003", "Tàu Sapa Express", 12, 480, 2019, "Hoạt động" });
-		model.addRow(new Object[] { "T004", "Tàu Nightly", 8, 320, 2016, "Bảo trí" });
-		model.addRow(new Object[] { "T005", "Tàu Hỏa Thường", 6, 240, 2014, "NgẺ ng hoạt động" });
+		napDuLieuTau();
 
 		tableTau = new JTable(model);
 		tableTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -128,5 +127,20 @@ public class TauTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void napDuLieuTau() {
+		List<Tau> dsTau = tauDAO.layTatCa();
+		for (Tau tau : dsTau) {
+			int sucChua = tau.getSoLuongToa() * 40;
+			model.addRow(new Object[] {
+				tau.getMaTau(),
+				tau.getTenTau(),
+				tau.getSoLuongToa(),
+				sucChua,
+				"",
+				"Hoạt động"
+			});
+		}
 	}
 }

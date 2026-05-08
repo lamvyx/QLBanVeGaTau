@@ -1,5 +1,7 @@
 package view;
 
+import dao.Toa_DAO;
+import entity.Toa;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,6 +11,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -24,6 +27,7 @@ import javax.swing.table.DefaultTableModel;
 public class ToaCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final Toa_DAO toaDAO = new Toa_DAO();
 
 	private JTable table;
 	private JPanel formPanel;
@@ -73,10 +77,7 @@ public class ToaCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { "TOA001", "Toa ngủ", "T001", "50", "Toa 1" });
-		model.addRow(new Object[] { "TOA002", "Toa ngồi", "T001", "80", "Toa 2" });
-		model.addRow(new Object[] { "TOA003", "Toa hàng hoá", "T002", "100", "Toa 1" });
-		model.addRow(new Object[] { "TOA004", "Toa nhà bếp", "T002", "20", "Toa 2" });
+		napDuLieuToa(model);
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -156,7 +157,7 @@ public class ToaCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaToa = new JTextField(table.getValueAt(row, 1).toString());
+		txtMaToa = new JTextField(table.getValueAt(row, 0).toString());
 		txtMaToa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtMaToa.setPreferredSize(new Dimension(200, 30));
 		txtMaToa.setBorder(BorderFactory.createCompoundBorder(
@@ -176,7 +177,7 @@ public class ToaCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		cbLoaiToa = new JComboBox<>();
-		cbLoaiToa.addItem(table.getValueAt(row, 2).toString());
+		cbLoaiToa.addItem(table.getValueAt(row, 1).toString());
 		cbLoaiToa.addItem("Toa ngủ");
 		cbLoaiToa.addItem("Toa ngồi");
 		cbLoaiToa.addItem("Toa hàng hoá");
@@ -194,7 +195,7 @@ public class ToaCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		cbTau = new JComboBox<>();
-		cbTau.addItem(table.getValueAt(row, 3).toString());
+		cbTau.addItem(table.getValueAt(row, 2).toString());
 		cbTau.addItem("T001");
 		cbTau.addItem("T002");
 		cbTau.addItem("T003");
@@ -211,7 +212,7 @@ public class ToaCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtSoGhe = new JTextField(table.getValueAt(row, 4).toString());
+		txtSoGhe = new JTextField(table.getValueAt(row, 3).toString());
 		txtSoGhe.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtSoGhe.setPreferredSize(new Dimension(200, 30));
 		txtSoGhe.setBorder(BorderFactory.createCompoundBorder(
@@ -229,7 +230,7 @@ public class ToaCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtViTriToa = new JTextField(table.getValueAt(row, 5).toString());
+		txtViTriToa = new JTextField(table.getValueAt(row, 4).toString());
 		txtViTriToa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtViTriToa.setPreferredSize(new Dimension(200, 30));
 		txtViTriToa.setBorder(BorderFactory.createCompoundBorder(
@@ -282,5 +283,19 @@ public class ToaCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void napDuLieuToa(DefaultTableModel model) {
+		// Toa lấy từ SQL để bảng và form cập nhật đúng dữ liệu vận hành.
+		List<Toa> dsToa = toaDAO.layTatCa();
+		for (Toa toa : dsToa) {
+			model.addRow(new Object[] {
+				toa.getMaToa(),
+				toa.getLoaiToa(),
+				toa.getMaTau(),
+				toa.getSoGhe(),
+				toa.getViTriToa()
+			});
+		}
 	}
 }

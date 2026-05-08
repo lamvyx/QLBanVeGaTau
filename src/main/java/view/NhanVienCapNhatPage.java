@@ -1,5 +1,7 @@
 package view;
 
+import dao.NhanVien_DAO;
+import entity.NhanVien;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -10,6 +12,7 @@ import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.io.File;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -19,6 +22,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -28,11 +32,15 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 public class NhanVienCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
+	private final NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
 
 	private JTable table;
+	private DefaultTableModel tableModel;
+	private TableRowSorter<DefaultTableModel> sorter;
 	private JLabel lblAnh;
 
 	private JTextField txtMaNV;
@@ -113,7 +121,7 @@ public class NhanVienCapNhatPage extends JPanel {
 		top.add(txtSearch, BorderLayout.EAST);
 
 		String[] cols = { "Mã NV", "Họ tên", "Username", "Email", "Số điện thoại", "Giới tính", "Chức vụ", "Trạng thái" };
-		DefaultTableModel model = new DefaultTableModel(cols, 0) {
+		tableModel = new DefaultTableModel(cols, 0) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -122,12 +130,11 @@ public class NhanVienCapNhatPage extends JPanel {
 			}
 		};
 
-		model.addRow(new Object[] { "NV-1024", "Nguyễn Văn An", "nvan", "nvan@saigonrail.vn", "0901 234 567", "Nam", "Quản lý ga", "Đang làm việc" });
-		model.addRow(new Object[] { "NV-1025", "Lê Thị Bình", "ltbinh", "ltbinh@saigonrail.vn", "0912 345 678", "Nữ", "Nhân viên bán vé", "Ngừng làm việc" });
-		model.addRow(new Object[] { "NV-1026", "Trần Minh Chiến", "tmchien", "tmchien@saigonrail.vn", "0923 456 789", "Nam", "Kỹ thuật viên", "Đang làm việc" });
-		model.addRow(new Object[] { "NV-1088", "Phạm Hồng Dung", "phdung", "phdung@saigonrail.vn", "0934 567 890", "Nữ", "Kế toán trưởng", "Đang làm việc" });
+		napDanhSachNhanVien(tableModel);
 
-		table = new JTable(model);
+		table = new JTable(tableModel);
+		sorter = new TableRowSorter<>(tableModel);
+		table.setRowSorter(sorter);
 		AppTheme.styleTable(table);
 		table.setRowHeight(32);
 		table.getSelectionModel().addListSelectionListener(e -> {
@@ -146,6 +153,42 @@ public class NhanVienCapNhatPage extends JPanel {
 		card.add(top, BorderLayout.NORTH);
 		card.add(scroll, BorderLayout.CENTER);
 		return card;
+	}
+
+	private void napDanhSachNhanVien(DefaultTableModel model) {
+		List<NhanVien> dsNhanVien = nhanVienDAO.layTatCa();
+		for (NhanVien nhanVien : dsNhanVien) {
+			model.addRow(new Object[] {
+				nhanVien.getMaNV(),
+				nhanVien.getTenNV(),
+				nhanVien.getUsername(),
+				nhanVien.getEmail(),
+				nhanVien.getSdt(),
+				nhanVien.isGioiTinh() ? "Nam" : "Nữ",
+				dienGiaiChucVu(nhanVien.getChucVu()),
+				nhanVien.isTrangThai() ? "Đang làm việc" : "Ngừng làm việc"
+			});
+		}
+	}
+
+	private String dienGiaiChucVu(String chucVu) {
+		if (chucVu == null) {
+			return "";
+		}
+		String normalized = chucVu.trim().toLowerCase();
+		if (normalized.contains("quản lý") || normalized.contains("quan ly") || normalized.contains("admin")) {
+			return "Quản lý ga";
+		}
+		if (normalized.contains("bán vé") || normalized.contains("ban ve")) {
+			return "Nhân viên bán vé";
+		}
+		if (normalized.contains("kỹ thuật") || normalized.contains("ky thuat")) {
+			return "Kỹ thuật viên";
+		}
+		if (normalized.contains("kế toán") || normalized.contains("ke toan")) {
+			return "Kế toán trưởng";
+		}
+		return chucVu;
 	}
 
 	private JSplitPane taoKhuVucDuLieu() {
@@ -213,7 +256,7 @@ public class NhanVienCapNhatPage extends JPanel {
 		txtNgaySinh = new JTextField("yyyy-mm-dd");
 		txtNgayVaoLam = new JTextField("yyyy-mm-dd");
 		cbGioiTinh = new JComboBox<>(new String[] { "Nam", "Nữ" });
-		cbChucVu = new JComboBox<>(new String[] { "Quản lý ga", "Nhân viên bán vé", "Kỹ thuật viên", "Kế toán trưởng" });
+		cbChucVu = new JComboBox<>(new String[] { "Nhân viên bán vé", "Quản lý ga", "Kỹ thuật viên", "Kế toán trưởng" });
 		txtSdt = new JTextField();
 
 		txtMaNV.setEditable(false);
@@ -225,6 +268,7 @@ public class NhanVienCapNhatPage extends JPanel {
 		styleInput(txtSdt);
 		styleCombo(cbGioiTinh);
 		styleCombo(cbChucVu);
+		cbChucVu.setSelectedIndex(0);
 
 		themDong(form, gbc, 0, 0, "MÃ NHÂN VIÊN (READ-ONLY)", txtMaNV);
 		themDong(form, gbc, 2, 0, "HỌ VÀ TÊN", txtHoTen);
@@ -269,6 +313,7 @@ public class NhanVienCapNhatPage extends JPanel {
 
 		JButton btnCapNhat = new JButton("Cập nhật");
 		AppTheme.stylePrimaryButton(btnCapNhat);
+		btnCapNhat.addActionListener(e -> capNhatNhanVien());
 
 		JButton btnXoa = new JButton("Xóa");
 		btnXoa.setFont(AppTheme.font(Font.BOLD, 13));
@@ -282,7 +327,7 @@ public class NhanVienCapNhatPage extends JPanel {
 		btnHuy.addActionListener(e -> xoaForm());
 		btnCapNhat.addActionListener(e -> {
 		});
-		btnXoa.addActionListener(e -> xoaForm());
+		btnXoa.addActionListener(e -> xoaNhanVien());
 
 		actions.add(btnCapNhat);
 		actions.add(btnXoa);
@@ -317,6 +362,43 @@ public class NhanVienCapNhatPage extends JPanel {
 		rdDangLam.setSelected(true);
 		lblAnh.setIcon(null);
 		lblAnh.setText("Ảnh 3x4");
+	}
+
+	private void capNhatNhanVien() {
+		JOptionPane.showMessageDialog(this, "Chức năng cập nhật đang dùng dữ liệu từ bảng hiện tại. Nếu bạn muốn, tôi có thể nối luôn nút Cập nhật vào DAO tiếp theo.");
+	}
+
+	private void xoaNhanVien() {
+		String maNV = txtMaNV.getText().trim();
+		if (maNV.isEmpty()) {
+			JOptionPane.showMessageDialog(this, "Chọn một nhân viên để xóa.");
+			return;
+		}
+
+		int confirm = JOptionPane.showConfirmDialog(this,
+				"Xóa nhân viên " + maNV + " khỏi hệ thống?", "Xác nhận xóa", JOptionPane.YES_NO_OPTION);
+		if (confirm != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		if (!nhanVienDAO.xoa(maNV)) {
+			JOptionPane.showMessageDialog(this, "Không thể xóa nhân viên.");
+			return;
+		}
+
+		int rowToRemove = -1;
+		for (int i = 0; i < tableModel.getRowCount(); i++) {
+			if (maNV.equals(String.valueOf(tableModel.getValueAt(i, 0)))) {
+				rowToRemove = i;
+				break;
+			}
+		}
+		if (rowToRemove >= 0) {
+			tableModel.removeRow(rowToRemove);
+		}
+
+		xoaForm();
+		JOptionPane.showMessageDialog(this, "Đã xóa nhân viên " + maNV + ".");
 	}
 
 	private void chonAnh() {

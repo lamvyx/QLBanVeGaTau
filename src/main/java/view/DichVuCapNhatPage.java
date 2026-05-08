@@ -1,5 +1,7 @@
 package view;
 
+import dao.DichVu_DAO;
+import entity.DichVu;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,6 +11,10 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.math.BigDecimal;
+import java.text.NumberFormat;
+import java.util.List;
+import java.util.Locale;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -23,6 +29,7 @@ import javax.swing.table.DefaultTableModel;
 public class DichVuCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final DichVu_DAO dichVuDAO = new DichVu_DAO();
 
 	private JTable table;
 	private JPanel formPanel;
@@ -71,11 +78,7 @@ public class DichVuCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { "DV001", "Ăn sáng", "50.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { "DV002", "Ăn cơm trưa", "75.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { "DV003", "Bảo hiểm", "100.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { "DV004", "WiFi", "30.000 đ", "Hoạt động" });
-		model.addRow(new Object[] { "DV005", "Phòng VIP", "200.000 đ", "Hoạt động" });
+		napDuLieuDichVu(model);
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -155,7 +158,7 @@ public class DichVuCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaDV = new JTextField(table.getValueAt(row, 1).toString());
+		txtMaDV = new JTextField(table.getValueAt(row, 0).toString());
 		txtMaDV.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtMaDV.setPreferredSize(new Dimension(200, 30));
 		txtMaDV.setBorder(BorderFactory.createCompoundBorder(
@@ -174,7 +177,7 @@ public class DichVuCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtTenDV = new JTextField(table.getValueAt(row, 2).toString());
+		txtTenDV = new JTextField(table.getValueAt(row, 1).toString());
 		txtTenDV.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtTenDV.setPreferredSize(new Dimension(200, 30));
 		txtTenDV.setBorder(BorderFactory.createCompoundBorder(
@@ -192,7 +195,7 @@ public class DichVuCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtGiaDV = new JTextField(table.getValueAt(row, 3).toString());
+		txtGiaDV = new JTextField(table.getValueAt(row, 2).toString());
 		txtGiaDV.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtGiaDV.setPreferredSize(new Dimension(200, 30));
 		txtGiaDV.setBorder(BorderFactory.createCompoundBorder(
@@ -245,5 +248,26 @@ public class DichVuCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void napDuLieuDichVu(DefaultTableModel model) {
+		// Dịch vụ lấy từ SQL để tránh bảng cập nhật bị lệch dữ liệu.
+		List<DichVu> dsDichVu = dichVuDAO.layTatCa();
+		for (DichVu dichVu : dsDichVu) {
+			model.addRow(new Object[] {
+				dichVu.getMaDV(),
+				dichVu.getTenDV(),
+				formatTien(dichVu.getGiaDV()),
+				dichVu.isTrangThai() ? "Hoạt động" : "Ngừng"
+			});
+		}
+	}
+
+	private String formatTien(BigDecimal giaTien) {
+		if (giaTien == null) {
+			return "0";
+		}
+		NumberFormat formatter = NumberFormat.getInstance(new Locale("vi", "VN"));
+		return formatter.format(giaTien);
 	}
 }

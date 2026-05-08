@@ -1,5 +1,7 @@
 package view;
 
+import dao.NhanVien_DAO;
+import entity.NhanVien;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
@@ -24,7 +26,8 @@ public class NhanVienTraCuuPage extends JPanel {
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
 	private static final int COL_MA_NV = 1;
 	private static final int COL_TEN_NV = 2;
-	private static final int COL_CHUC_VU = 6;
+	private static final int COL_CHUC_VU = 5;
+	private final NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
 
 	public NhanVienTraCuuPage() {
 		setLayout(new BorderLayout());
@@ -68,11 +71,7 @@ public class NhanVienTraCuuPage extends JPanel {
 			}
 		};
 
-		model.addRow(new Object[] { "U001", "Nguyễn Văn Admin", "admin", "admin@saigontrain.vn", "0901234567", "Quản lý" });
-		model.addRow(new Object[] { "U002", "Trần Thị Nhân Viên", "staff", "staff@saigontrain.vn", "0901234568", "Bán vé" });
-		model.addRow(new Object[] { "U003", "Nguyễn Phát Đạt", "nguyen.phat", "phat@saigontrain.vn", "0901234569", "Bán vé" });
-		model.addRow(new Object[] { "U004", "Lê Thị Mai", "le.mai", "mai@saigontrain.vn", "0901234570", "Hỗ trợ" });
-		model.addRow(new Object[] { "U005", "Phạm Văn Cường", "pham.cuong", "cuong@saigontrain.vn", "0901234571", "Quản lý" });
+		napDanhSachNhanVien(model);
 
 		TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
 
@@ -95,6 +94,34 @@ public class NhanVienTraCuuPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void napDanhSachNhanVien(DefaultTableModel model) {
+		model.setRowCount(0);
+		for (NhanVien nhanVien : nhanVienDAO.layTatCa()) {
+			model.addRow(new Object[] {
+				nhanVien.getMaNV(),
+				nhanVien.getTenNV(),
+				nhanVien.getUsername(),
+				nhanVien.getEmail(),
+				nhanVien.getSdt(),
+				dienGiaiChucVu(nhanVien.getChucVu())
+			});
+		}
+	}
+
+	private String dienGiaiChucVu(String chucVu) {
+		if (chucVu == null) {
+			return "";
+		}
+		String normalized = chucVu.trim().toLowerCase();
+		if (normalized.contains("quản lý") || normalized.contains("quan ly") || normalized.contains("admin")) {
+			return "Quản lý";
+		}
+		if (normalized.contains("bán vé") || normalized.contains("ban ve")) {
+			return "Bán vé";
+		}
+		return chucVu;
 	}
 
 	private JPanel taoSearchPanel(TableRowSorter<DefaultTableModel> sorter) {

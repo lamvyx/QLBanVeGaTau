@@ -1,10 +1,13 @@
 package view;
 
+import dao.Tau_DAO;
+import entity.Tau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +20,7 @@ import javax.swing.table.DefaultTableModel;
 public class TauPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final Tau_DAO tauDAO = new Tau_DAO();
 
 	public TauPage() {
 		setLayout(new BorderLayout());
@@ -63,11 +67,10 @@ public class TauPage extends JPanel {
 		content.setBackground(Color.decode("#F0F5F9"));
 		content.setBorder(new EmptyBorder(12, 16, 12, 16));
 
-		String[] columns = { "Mã tàu", "Tên tàu", "Số toa", "Sức chứa", "Năm sản xuất", "Trạng thái" };
+		String[] columns = { "Mã tàu", "Tên tàu", "Số toa" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0);
 
-		model.addRow(new Object[] { "T001", "Tàu hỏa XP1", "8", "320", "2015", "Hoạt động" });
-		model.addRow(new Object[] { "T002", "Tàu hỏa SB2", "10", "400", "2018", "Hoạt động" });
+		napDuLieuTau(model);
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,5 +83,13 @@ public class TauPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void napDuLieuTau(DefaultTableModel model) {
+		// Lấy dữ liệu tàu thật từ DB thay cho danh sách mẫu.
+		List<Tau> dsTau = tauDAO.layTatCa();
+		for (Tau tau : dsTau) {
+			model.addRow(new Object[] { tau.getMaTau(), tau.getTenTau(), tau.getSoLuongToa() });
+		}
 	}
 }

@@ -1,5 +1,7 @@
 package view;
 
+import dao.ChuyenTau_DAO;
+import entity.ChuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,6 +11,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -24,6 +28,9 @@ import javax.swing.table.DefaultTableModel;
 public class ChuyenTauCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final DateTimeFormatter FORMAT_NGAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+	private static final DateTimeFormatter FORMAT_GIO = DateTimeFormatter.ofPattern("HH:mm");
+	private final ChuyenTau_DAO chuyenTauDAO = new ChuyenTau_DAO();
 
 	private JTable table;
 	private JPanel formPanel;
@@ -65,7 +72,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
-		String[] columns = { "Mã chuyến", "Tàu", "Tuyến", "Giờ khởi hành", "Giá cơ bản" };
+		String[] columns = { "Mã chuyến", "Tàu", "Tuyến", "Ngày khởi hành", "Giờ khởi hành", "Trạng thái" };
 		DefaultTableModel model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
@@ -73,10 +80,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 			}
 		};
 		
-		model.addRow(new Object[] { "SE1-020426", "SE1", "Sài Gòn - Hà Nội", "19:00:00", "850.000 đ" });
-		model.addRow(new Object[] { "SE1-030426", "SE1", "Sài Gòn - Hà Nội", "19:00:00", "850.000 đ" });
-		model.addRow(new Object[] { "SE2-020426", "SE2", "Sài Gòn - Đà Nẵng", "07:00:00", "530.000 đ" });
-		model.addRow(new Object[] { "TN1-020426", "TN1", "Sài Gòn - Nha Trang", "06:00:00", "280.000 đ" });
+		napDuLieuChuyenTau(model);
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -156,7 +160,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaChuyenTau = new JTextField(table.getValueAt(row, 1).toString());
+		txtMaChuyenTau = new JTextField(table.getValueAt(row, 0).toString());
 		txtMaChuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtMaChuyenTau.setPreferredSize(new Dimension(200, 30));
 		txtMaChuyenTau.setBorder(BorderFactory.createCompoundBorder(
@@ -176,7 +180,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		cbTau = new JComboBox<>();
-		cbTau.addItem(table.getValueAt(row, 2).toString());
+		cbTau.addItem(table.getValueAt(row, 1).toString());
 		cbTau.addItem("T001");
 		cbTau.addItem("T002");
 		cbTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -193,7 +197,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		cbTuyenTau = new JComboBox<>();
-		cbTuyenTau.addItem(table.getValueAt(row, 3).toString());
+		cbTuyenTau.addItem(table.getValueAt(row, 2).toString());
 		cbTuyenTau.addItem("Sài Gòn - Hà Nội");
 		cbTuyenTau.addItem("Sài Gòn - Đà Nẵng");
 		cbTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -209,7 +213,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtGioKhoiHanh = new JTextField(table.getValueAt(row, 4).toString());
+		txtGioKhoiHanh = new JTextField(table.getValueAt(row, 3).toString() + " " + table.getValueAt(row, 4).toString());
 		txtGioKhoiHanh.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		txtGioKhoiHanh.setPreferredSize(new Dimension(200, 30));
 		txtGioKhoiHanh.setBorder(BorderFactory.createCompoundBorder(
@@ -218,10 +222,10 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		));
 		formContainer.add(txtGioKhoiHanh, gbc);
 
-		// Giá cơ bản
+		// Trạng thái
 		gbc.gridx = 0;
 		gbc.gridy = 4;
-		lbl = new JLabel("Giá cơ bản (VND) *");
+		lbl = new JLabel("Trạng thái");
 		lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
 		lbl.setForeground(Color.decode("#2B4B74"));
 		formContainer.add(lbl, gbc);
@@ -280,5 +284,20 @@ public class ChuyenTauCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void napDuLieuChuyenTau(DefaultTableModel model) {
+		// Dữ liệu chuyến tàu lấy từ SQL để màn cập nhật phản ánh đúng lịch chạy.
+		List<ChuyenTau> dsChuyenTau = chuyenTauDAO.layTatCa();
+		for (ChuyenTau chuyenTau : dsChuyenTau) {
+			model.addRow(new Object[] {
+				chuyenTau.getMaCT(),
+				chuyenTau.getMaTau(),
+				chuyenTau.getMaTuyenTau(),
+				chuyenTau.getNgayKhoiHanh() == null ? "" : FORMAT_NGAY.format(chuyenTau.getNgayKhoiHanh().toLocalDate()),
+				chuyenTau.getGioKhoiHanh() == null ? "" : FORMAT_GIO.format(chuyenTau.getGioKhoiHanh().toLocalTime()),
+				chuyenTau.isTrangThai() ? "Đang chạy" : "Hoàn thành"
+			});
+		}
 	}
 }

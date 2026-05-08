@@ -1,5 +1,7 @@
 package view;
 
+import dao.KhachHang_DAO;
+import entity.KhachHang;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -27,6 +29,7 @@ import javax.swing.table.TableRowSorter;
 public class KhachHangCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private final KhachHang_DAO khachHangDAO = new KhachHang_DAO();
 
 	private JTable table;
 	private TableRowSorter<DefaultTableModel> sorter;
@@ -77,12 +80,8 @@ public class KhachHangCapNhatPage extends JPanel {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { "KH001", "Trần Văn A", "0901234567", "tryvana@email.com", "012345678901", "Thường" });
-		model.addRow(new Object[] { "KH002", "Nguyễn Thị B", "0912345678", "nguyenb@email.com", "012345678902", "VIP" });
-		model.addRow(new Object[] { "KH003", "Phạm Văn C", "0923456789", "phamvan@email.com", "012345678903", "Thường" });
-		model.addRow(new Object[] { "KH004", "Hoàng Thị D", "0934567890", "hoang.d@email.com", "012345678904", "Doanh nghiệp" });
-		model.addRow(new Object[] { "KH005", "Võ Văn E", "0945678901", "vo.van.e@email.com", "012345678905", "VIP" });
+
+		napDuLieuKhachHang(model);
 
 		table = new JTable(model);
 		sorter = new TableRowSorter<>(model);
@@ -134,6 +133,20 @@ public class KhachHangCapNhatPage extends JPanel {
 		content.add(splitPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void napDuLieuKhachHang(DefaultTableModel model) {
+		// Đọc khách hàng thật từ SQL để bảng và form luôn bám dữ liệu hiện tại.
+		for (KhachHang khachHang : khachHangDAO.layTatCa()) {
+			model.addRow(new Object[] {
+				khachHang.getMaKH(),
+				khachHang.getTenKH(),
+				khachHang.getSdt(),
+				khachHang.getEmail(),
+				khachHang.getCccd(),
+				khachHang.isLoaiKH() ? "VIP" : "Thường"
+			});
+		}
 	}
 
 	private JPanel taoFormPanel() {

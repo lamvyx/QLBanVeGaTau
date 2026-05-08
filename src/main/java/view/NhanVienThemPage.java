@@ -1,6 +1,8 @@
 package view;
 
 import connectDB.Database;
+import dao.NhanVien_DAO;
+import entity.NhanVien;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
@@ -11,7 +13,6 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.io.File;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,6 +38,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 public class NhanVienThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
+	private final NhanVien_DAO nhanVienDAO = new NhanVien_DAO();
 
 	private JTextField txtMaNV;
 	private JTextField txtTen;
@@ -160,7 +162,7 @@ public class NhanVienThemPage extends JPanel {
 		txtNgayVaoLam = new JTextField("yyyy-mm-dd");
 
 		cbGioiTinh = new JComboBox<>(new String[] { "Nam", "Nữ" });
-		cbChucVu = new JComboBox<>(new String[] { "Quản lý", "Nhân viên bán vé", "Kỹ thuật viên", "Kế toán" });
+		cbChucVu = new JComboBox<>(new String[] { "Nhân viên bán vé", "Quản lý ga", "Kỹ thuật viên", "Kế toán trưởng" });
 
 		styleInput(txtMaNV);
 		styleInput(txtTen);
@@ -170,6 +172,7 @@ public class NhanVienThemPage extends JPanel {
 		styleInput(txtNgayVaoLam);
 		styleCombo(cbGioiTinh);
 		styleCombo(cbChucVu);
+		cbChucVu.setSelectedIndex(0);
 
 		themDong(form, gbc, 0, 0, "Mã nhân viên (auto)", txtMaNV);
 		themDong(form, gbc, 2, 0, "Họ và tên", txtTen);
@@ -263,34 +266,22 @@ public class NhanVienThemPage extends JPanel {
 				}
 				String vaiTro = chucVu.toLowerCase().contains("quản lý") ? "ADMIN" : "NHAN_VIEN";
 
-				try (PreparedStatement psTaiKhoan = conn.prepareStatement(
-						"INSERT INTO TaiKhoan(username, [password], vaiTro) VALUES (?, ?, ?)")) {
-					psTaiKhoan.setString(1, username);
-					psTaiKhoan.setString(2, "123456");
-					psTaiKhoan.setString(3, vaiTro);
-					psTaiKhoan.executeUpdate();
-				}
+				NhanVien nhanVien = new NhanVien();
+				nhanVien.setMaNV(maNV);
+				nhanVien.setTenNV(hoTen);
+				nhanVien.setEmail(email);
+				nhanVien.setSdt(sdt.isBlank() ? null : sdt);
+				nhanVien.setGioiTinh(gioiTinh);
+				nhanVien.setNgaySinh(ngaySinh);
+				nhanVien.setNgayVaoLam(ngayVaoLam);
+				nhanVien.setChucVu(chucVu);
+				nhanVien.setTrangThai(trangThai);
+				nhanVien.setUsername(username);
 
-				try (PreparedStatement psNhanVien = conn.prepareStatement(
-						"""
-						INSERT INTO NhanVien(maNV, tenNV, sdt, gioiTinh, ngaySinh, ngayVaoLam, trangThai, email, chucVu, username)
-						VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-						""")) {
-					psNhanVien.setString(1, maNV);
-					psNhanVien.setString(2, hoTen);
-					if (sdt.isBlank()) {
-						psNhanVien.setNull(3, java.sql.Types.VARCHAR);
-					} else {
-						psNhanVien.setString(3, sdt);
-					}
-					psNhanVien.setBoolean(4, gioiTinh);
-					psNhanVien.setDate(5, Date.valueOf(ngaySinh));
-					psNhanVien.setDate(6, Date.valueOf(ngayVaoLam));
-					psNhanVien.setBoolean(7, trangThai);
-					psNhanVien.setString(8, email);
-					psNhanVien.setString(9, chucVu);
-					psNhanVien.setString(10, username);
-					psNhanVien.executeUpdate();
+				if (!nhanVienDAO.them(conn, nhanVien, "123456", vaiTro)) {
+					conn.rollback();
+					JOptionPane.showMessageDialog(this, "Không thể lưu nhân viên.");
+					return;
 				}
 
 				conn.commit();
