@@ -2,15 +2,15 @@
 -- HỆ THỐNG QUẢN LÝ VÉ TÀU (NỘI BỘ NHÂN VIÊN)
 -- SQL Server Version
 -- ============================================
-CREATE DATABASE QLBANVETAU
-USE QLBANVETAU;
+CREATE DATABASE QuanLyVeTau
+USE QuanLyVeTau;
 GO
 
 -- ============================================
 -- 1. THUE
 -- ============================================
 CREATE TABLE Thue (
-    maThue      VARCHAR(10)     NOT NULL,
+    maThue      VARCHAR(20)     NOT NULL,
     tenThue     NVARCHAR(100)   NOT NULL,
     phamTram    FLOAT           NOT NULL,
     moTa        NVARCHAR(255)   NULL,
@@ -23,7 +23,7 @@ GO
 -- 2. TUYEN_TAU
 -- ============================================
 CREATE TABLE TuyenTau (
-    maTT        VARCHAR(10)     NOT NULL,
+    maTT        VARCHAR(20)     NOT NULL,
     maGaDi      NVARCHAR(100)   NOT NULL,
     maGaDen     NVARCHAR(100)   NOT NULL,
     khoangCach  INT             NOT NULL,
@@ -36,7 +36,7 @@ GO
 -- 3. TAU
 -- ============================================
 CREATE TABLE Tau (
-    maTau       VARCHAR(10)     NOT NULL,
+    maTau       VARCHAR(20)     NOT NULL,
     tenTau      NVARCHAR(100)   NOT NULL,
     soLuongToa  INT             NOT NULL,
     CONSTRAINT PK_Tau PRIMARY KEY (maTau),
@@ -48,11 +48,11 @@ GO
 -- 4. TOA
 -- ============================================
 CREATE TABLE Toa (
-    maToa       VARCHAR(10)     NOT NULL,
-    maTau       VARCHAR(10)     NOT NULL,
+    maToa       VARCHAR(20)     NOT NULL,
+    maTau       VARCHAR(20)     NOT NULL,
     loaiToa     NVARCHAR(50)    NOT NULL,
     soGhe       INT             NOT NULL,
-    viTriToa    NVARCHAR(10)    NULL,
+    viTriToa    NVARCHAR(20)    NULL,
     trangThai   BIT             NOT NULL DEFAULT 1,
     CONSTRAINT PK_Toa PRIMARY KEY (maToa),
     CONSTRAINT FK_Toa_Tau FOREIGN KEY (maTau) REFERENCES Tau(maTau),
@@ -64,9 +64,9 @@ GO
 -- 5. CHUYEN_TAU
 -- ============================================
 CREATE TABLE ChuyenTau (
-    maCT            VARCHAR(10)     NOT NULL,
-    maTau           VARCHAR(10)     NOT NULL,
-    maTuyenTau      VARCHAR(10)     NOT NULL,
+    maCT            VARCHAR(20)     NOT NULL,
+    maTau           VARCHAR(20)     NOT NULL,
+    maTuyenTau      VARCHAR(20)     NOT NULL,
     ngayKhoiHanh    DATE            NOT NULL,
     gioKhoiHanh     TIME            NOT NULL,
     trangThai       BIT             NOT NULL DEFAULT 1,
@@ -80,7 +80,7 @@ GO
 -- 6. DICH_VU
 -- ============================================
 CREATE TABLE DichVu (
-    maDV        VARCHAR(10)     NOT NULL,
+    maDV        VARCHAR(20)     NOT NULL,
     tenDV       NVARCHAR(100)   NOT NULL,
     trangThai   BIT             NOT NULL DEFAULT 1,
     giaTien     FLOAT           NOT NULL,
@@ -105,7 +105,7 @@ GO
 -- 8. NHAN_VIEN
 -- ============================================
 CREATE TABLE NhanVien (
-    maNV        VARCHAR(10)     NOT NULL,
+    maNV        VARCHAR(20)     NOT NULL,
     tenNV       NVARCHAR(100)   NOT NULL,
     sdt         VARCHAR(15)     NULL,
     gioiTinh    BIT             NULL,
@@ -125,7 +125,7 @@ GO
 -- 9. KHACH_HANG (do nhân viên tạo, không có tài khoản)
 -- ============================================
 CREATE TABLE KhachHang (
-    maKH        VARCHAR(10)     NOT NULL,
+    maKH        VARCHAR(20)     NOT NULL,
     tenKH       NVARCHAR(100)   NOT NULL,
     sdt         VARCHAR(15)     NULL,
     CCCD        VARCHAR(20)     NULL,
@@ -143,7 +143,7 @@ GO
 -- 10. KHUYEN_MAI
 -- ============================================
 CREATE TABLE KhuyenMai (
-    maKM            VARCHAR(10)     NOT NULL,
+    maKM            VARCHAR(20)     NOT NULL,
     tenKM           NVARCHAR(100)   NOT NULL,
     tyLeKM          FLOAT           NOT NULL,
     ngayBD          DATE            NOT NULL,
@@ -159,10 +159,10 @@ GO
 -- 11. VE_TAU
 -- ============================================
 CREATE TABLE VeTau (
-    maVeTau     VARCHAR(10)     NOT NULL,
-    maKH        VARCHAR(10)     NOT NULL,
-    maCT        VARCHAR(10)     NOT NULL,
-    maToa       VARCHAR(10)     NOT NULL,
+    maVeTau     VARCHAR(20)     NOT NULL,
+    maKH        VARCHAR(20)     NOT NULL,
+    maCT        VARCHAR(20)     NOT NULL,
+    maToa       VARCHAR(20)     NOT NULL,
     giaVe       FLOAT           NOT NULL,
     trangThai   VARCHAR(20)     NOT NULL DEFAULT 'CHO_THANH_TOAN',
     CONSTRAINT PK_VeTau PRIMARY KEY (maVeTau),
@@ -180,12 +180,12 @@ GO
 -- 12. CHI_TIET_VE_TAU
 -- ============================================
 CREATE TABLE ChiTietVeTau (
-    maChiTiet       VARCHAR(10)     NOT NULL,
-    maVeTau         VARCHAR(10)     NOT NULL,
+    maChiTiet       VARCHAR(20)     NOT NULL,
+    maVeTau         VARCHAR(20)     NOT NULL,
     tenHanhKhach    NVARCHAR(100)   NOT NULL,
     CCCD            VARCHAR(20)     NOT NULL,
     ngaySinh        DATE            NOT NULL,
-    viTriGhe        VARCHAR(10)     NOT NULL,
+    viTriGhe        VARCHAR(20)     NOT NULL,
     loaiVe          VARCHAR(20)     NOT NULL,
     giaVeTheoLoai   FLOAT           NOT NULL,
     CONSTRAINT PK_ChiTietVeTau PRIMARY KEY (maChiTiet),
@@ -201,11 +201,11 @@ GO
 -- 13. HOA_DON
 -- ============================================
 CREATE TABLE HoaDon (
-    maHD                VARCHAR(10)     NOT NULL,
-    maNV                VARCHAR(10)     NOT NULL,
-    maKH                VARCHAR(10)     NOT NULL,
-    maKM                VARCHAR(10)     NULL,
-    maThue              VARCHAR(10)     NULL,
+    maHD                VARCHAR(20)     NOT NULL,
+    maNV                VARCHAR(20)     NOT NULL,
+    maKH                VARCHAR(20)     NOT NULL,
+    maKM                VARCHAR(20)     NULL,
+    maThue              VARCHAR(20)     NULL,
     thoiGian            DATE            NOT NULL DEFAULT CAST(GETDATE() AS DATE),
     phuongThucThanhToan VARCHAR(20)     NULL,
     ngayThanhToan       DATE            NULL,
@@ -225,10 +225,10 @@ GO
 -- 14. CHI_TIET_HOA_DON
 -- ============================================
 CREATE TABLE ChiTietHoaDon (
-    maCTHD      VARCHAR(10)     NOT NULL,
-    maHD        VARCHAR(10)     NOT NULL,
-    maVeTau     VARCHAR(10)     NULL,
-    maDV        VARCHAR(10)     NULL,
+    maCTHD      VARCHAR(20)     NOT NULL,
+    maHD        VARCHAR(20)     NOT NULL,
+    maVeTau     VARCHAR(20)     NULL,
+    maDV        VARCHAR(20)     NULL,
     soLuong     INT             NOT NULL DEFAULT 1,
     donGia      FLOAT           NOT NULL,
     CONSTRAINT PK_ChiTietHoaDon PRIMARY KEY (maCTHD),

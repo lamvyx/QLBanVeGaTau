@@ -1,13 +1,17 @@
 package view;
 
+import connectDB.Database;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
-import java.awt.GridLayout;
-import java.util.regex.Pattern;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -19,27 +23,28 @@ import javax.swing.table.TableRowSorter;
 
 public class KhachHangTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private static final Color MAU_CHINH = AppTheme.PRIMARY;
+
+	private DefaultTableModel model;
+	private JTable table;
+	private JTextField txtTimKiem;
 
 	public KhachHangTraCuuPage() {
-		setLayout(new BorderLayout());
-		setBackground(Color.decode("#F0F5F9"));
-		setBorder(new EmptyBorder(14, 14, 14, 14));
+		setLayout(new BorderLayout(0, 12));
+		setBackground(AppTheme.PAGE_BG);
+		setBorder(AppTheme.pagePadding());
 
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoContent(), BorderLayout.CENTER);
+		napDuLieuTuDB();
 	}
 
 	private JPanel taoHeader() {
 		JPanel header = new JPanel(new BorderLayout());
-		header.setBackground(Color.WHITE);
-		header.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(12, 14, 12, 14)
-		));
+		header.setOpaque(false);
 
 		JLabel title = new JLabel("Tra cứu khách hàng");
-		title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+		title.setFont(AppTheme.font(Font.BOLD, 30));
 		title.setForeground(MAU_CHINH);
 		header.add(title, BorderLayout.WEST);
 
@@ -48,104 +53,73 @@ public class KhachHangTraCuuPage extends JPanel {
 
 	private JPanel taoContent() {
 		JPanel content = new JPanel(new BorderLayout(0, 15));
-		content.setBackground(Color.WHITE);
-		content.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(14, 14, 14, 14)
-		));
+		content.setOpaque(false);
 
-		// Phần tìm kiếm
-		String[] columns = { "Mã KH", "Tên khách hàng", "Số ĐT", "Email", "CCCD", "Loại KH" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
-			@Override
-			public boolean isCellEditable(int row, int column) {
-				return false;
-			}
+		// Phần bảng kết quả
+		String[] columns = { "Mã KH", "Họ và tên", "Số điện thoại", "CCCD", "Địa chỉ", "Email", "Loại KH" };
+		model = new DefaultTableModel(columns, 0) {
+			private static final long serialVersionUID = 1L;
+			@Override public boolean isCellEditable(int r, int c) { return false; }
 		};
 
-		model.addRow(new Object[] { "KH001", "Trần Văn A", "0901234567", "tryvana@email.com", "012345678901", "Thường" });
-		model.addRow(new Object[] { "KH002", "Nguyễn Thị B", "0912345678", "nguyenb@email.com", "012345678902", "VIP" });
-		model.addRow(new Object[] { "KH003", "Phạm Văn C", "0923456789", "phamvan@email.com", "012345678903", "Thường" });
-		model.addRow(new Object[] { "KH004", "Hoàng Thị D", "0934567890", "hoang.d@email.com", "012345678904", "Doanh nghiệp" });
-		model.addRow(new Object[] { "KH005", "Võ Văn E", "0945678901", "vo.van.e@email.com", "012345678905", "VIP" });
-
-		JTable table = new JTable(model);
+		table = new JTable(model);
+		AppTheme.styleTable(table);
+		table.setRowHeight(40);
+		
 		TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
 		table.setRowSorter(sorter);
 
-		JPanel searchPanel = taoSearchPanel(sorter);
+		// Thanh tìm kiếm
+		JPanel searchPanel = new JPanel(new BorderLayout(10, 0));
+		searchPanel.setBackground(AppTheme.CARD_BG);
+		searchPanel.setBorder(AppTheme.cardBorder());
+		
+		JLabel lblSearch = new JLabel("Nhập tên, SĐT hoặc CCCD:");
+		lblSearch.setFont(AppTheme.font(Font.BOLD, 13));
+		searchPanel.add(lblSearch, BorderLayout.WEST);
+		
+		txtTimKiem = new JTextField();
+		txtTimKiem.setFont(AppTheme.font(Font.PLAIN, 13));
+		txtTimKiem.addActionListener(e -> {
+			String text = txtTimKiem.getText().trim();
+			if (text.length() == 0) sorter.setRowFilter(null);
+			else sorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
+		});
+		searchPanel.add(txtTimKiem, BorderLayout.CENTER);
+		
+		JButton btnLamMoi = new JButton("Làm mới");
+		AppTheme.styleSecondaryButton(btnLamMoi);
+		btnLamMoi.addActionListener(e -> { txtTimKiem.setText(""); sorter.setRowFilter(null); napDuLieuTuDB(); });
+		searchPanel.add(btnLamMoi, BorderLayout.EAST);
+
 		content.add(searchPanel, BorderLayout.NORTH);
-		table.setRowHeight(50);
-		table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		table.getTableHeader().setBackground(MAU_CHINH);
-		table.getTableHeader().setForeground(Color.WHITE);
-		table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-		table.setGridColor(Color.decode("#E4EBF3"));
-		table.setSelectionBackground(Color.decode("#B3D9FF"));
 
 		JScrollPane scrollPane = new JScrollPane(table);
-		scrollPane.setBorder(BorderFactory.createLineBorder(Color.decode("#DCE3EC")));
+		scrollPane.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
 	}
 
-	private JPanel taoSearchPanel(TableRowSorter<DefaultTableModel> sorter) {
-		JPanel panel = new JPanel(new GridLayout(1, 3, 10, 10));
-		panel.setBackground(Color.WHITE);
-		panel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(15, 15, 15, 15)
-		));
-
-		JLabel lblSdt = new JLabel("Số điện thoại khách hàng:");
-		lblSdt.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		lblSdt.setForeground(Color.decode("#2B4B74"));
-		panel.add(lblSdt);
-
-		JTextField txtSdt = new JTextField();
-		txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtSdt.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 8, 6, 8)
-		));
-		panel.add(txtSdt);
-
-		// Nút Tìm kiếm
-		JButton btnTimKiem = new JButton("Tìm kiếm");
-		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnTimKiem.setBackground(MAU_CHINH);
-		btnTimKiem.setForeground(Color.WHITE);
-		btnTimKiem.setFocusPainted(false);
-		btnTimKiem.setBorder(new EmptyBorder(6, 12, 6, 12));
-		panel.add(btnTimKiem);
-
-		JButton btnLamMoi = new JButton("Làm mới");
-		btnLamMoi.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnLamMoi.setBackground(Color.WHITE);
-		btnLamMoi.setForeground(Color.decode("#3A4D66"));
-		btnLamMoi.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 12, 6, 12)
-		));
-		panel.add(btnLamMoi);
-
-		btnTimKiem.addActionListener(e -> {
-			String sdt = txtSdt.getText().trim();
-			if (sdt.isEmpty()) {
-				sorter.setRowFilter(null);
-				return;
+	private void napDuLieuTuDB() {
+		model.setRowCount(0);
+		String sql = "SELECT maKH, tenKH, sdt, CCCD, diaChi, email, loaiKH FROM KhachHang";
+		try (Connection conn = Database.getConnection();
+			 PreparedStatement ps = conn.prepareStatement(sql);
+			 ResultSet rs = ps.executeQuery()) {
+			while (rs.next()) {
+				model.addRow(new Object[] {
+					rs.getString("maKH"),
+					rs.getString("tenKH"),
+					rs.getString("sdt"),
+					rs.getString("CCCD"),
+					rs.getString("diaChi"),
+					rs.getString("email"),
+					rs.getBoolean("loaiKH") ? "Thành viên" : "Vãng lai"
+				});
 			}
-			sorter.setRowFilter(RowFilter.regexFilter(Pattern.quote(sdt), 3));
-		});
-
-		txtSdt.addActionListener(e -> btnTimKiem.doClick());
-
-		btnLamMoi.addActionListener(e -> {
-			txtSdt.setText("");
-			sorter.setRowFilter(null);
-		});
-
-		return panel;
+		} catch (SQLException ex) {
+			JOptionPane.showMessageDialog(this, "Lỗi khi lấy dữ liệu khách hàng: " + ex.getMessage());
+		}
 	}
 }

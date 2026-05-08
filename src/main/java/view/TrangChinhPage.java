@@ -279,7 +279,7 @@ public class TrangChinhPage extends JFrame {
 			case "Cập nhật thông tin":
 				return new NhanVienCapNhatPage();
 			case "Lập hóa đơn":
-				return new LapHoaDonPage();
+				return new LapHoaDonPage(taiKhoan);
 			default:
 				return new NhanVienTraCuuPage();
 			}
@@ -303,17 +303,17 @@ public class TrangChinhPage extends JFrame {
 		if ("Vé".equals(menuName)) {
 			switch (menuCon) {
 			case "Bán vé":
-				return new VeTauPage("BAN_VE");
+				return new VeTauPage(taiKhoan, "BAN_VE");
 			case "Đổi vé":
-				return new VeTauPage("DOI_VE");
+				return new VeTauPage(taiKhoan, "DOI_VE");
 			case "Trả vé":
-				return new VeTauPage("TRA_VE");
+				return new VeTauPage(taiKhoan, "TRA_VE");
 			case "Kiểm tra chỗ trống":
-				return new VeTauPage("KT_CHO");
+				return new VeTauPage(taiKhoan, "KT_CHO");
 			case "In vé":
-				return new VeTauPage("IN_VE");
+				return new VeTauPage(taiKhoan, "IN_VE");
 			default:
-				return new VeTauPage();
+				return new VeTauPage(taiKhoan, "BAN_VE");
 			}
 		}
 

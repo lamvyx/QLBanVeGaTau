@@ -1,50 +1,56 @@
 package view;
 
+import connectDB.Database;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
-import javax.swing.RowFilter;
 
 public class NhanVienTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
-	private static final int COL_MA_NV = 1;
-	private static final int COL_TEN_NV = 2;
-	private static final int COL_CHUC_VU = 6;
+	private static final Color MAU_CHINH = AppTheme.PRIMARY;
+	private static final int COL_MA_NV = 0;
+	private static final int COL_TEN_NV = 1;
+	private static final int COL_CHUC_VU = 5;
+
+	private DefaultTableModel model;
+	private JTable table;
 
 	public NhanVienTraCuuPage() {
-		setLayout(new BorderLayout());
-		setBackground(Color.decode("#F0F5F9"));
-		setBorder(new EmptyBorder(14, 14, 14, 14));
+		setLayout(new BorderLayout(0, 12));
+		setBackground(AppTheme.PAGE_BG);
+		setBorder(AppTheme.pagePadding());
 
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoContent(), BorderLayout.CENTER);
+		napDuLieuTuDB();
 	}
 
 	private JPanel taoHeader() {
 		JPanel header = new JPanel(new BorderLayout());
-		header.setBackground(Color.WHITE);
-		header.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(12, 14, 12, 14)
-		));
+		header.setOpaque(false);
 
 		JLabel title = new JLabel("Tra cứu nhân viên");
-		title.setFont(new Font("Segoe UI", Font.BOLD, 24));
+		title.setFont(AppTheme.font(Font.BOLD, 30));
 		title.setForeground(MAU_CHINH);
 		header.add(title, BorderLayout.WEST);
 
@@ -53,45 +59,31 @@ public class NhanVienTraCuuPage extends JPanel {
 
 	private JPanel taoContent() {
 		JPanel content = new JPanel(new BorderLayout(0, 15));
-		content.setBackground(Color.WHITE);
-		content.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(14, 14, 14, 14)
-		));
+		content.setOpaque(false);
 
 		// Phần bảng kết quả
 		String[] columns = { "Mã NV", "Họ và tên", "Tài khoản", "Email", "Điện thoại", "Chức vụ" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		model = new DefaultTableModel(columns, 0) {
+			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
 
-		model.addRow(new Object[] { "U001", "Nguyễn Văn Admin", "admin", "admin@saigontrain.vn", "0901234567", "Quản lý" });
-		model.addRow(new Object[] { "U002", "Trần Thị Nhân Viên", "staff", "staff@saigontrain.vn", "0901234568", "Bán vé" });
-		model.addRow(new Object[] { "U003", "Nguyễn Phát Đạt", "nguyen.phat", "phat@saigontrain.vn", "0901234569", "Bán vé" });
-		model.addRow(new Object[] { "U004", "Lê Thị Mai", "le.mai", "mai@saigontrain.vn", "0901234570", "Hỗ trợ" });
-		model.addRow(new Object[] { "U005", "Phạm Văn Cường", "pham.cuong", "cuong@saigontrain.vn", "0901234571", "Quản lý" });
-
+		table = new JTable(model);
+		AppTheme.styleTable(table);
+		table.setRowHeight(40);
+		
 		TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+		table.setRowSorter(sorter);
 
 		// Phần tìm kiếm
 		JPanel searchPanel = taoSearchPanel(sorter);
 		content.add(searchPanel, BorderLayout.NORTH);
 
-		JTable table = new JTable(model);
-		table.setRowSorter(sorter);
-		table.setRowHeight(50);
-		table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		table.getTableHeader().setBackground(MAU_CHINH);
-		table.getTableHeader().setForeground(Color.WHITE);
-		table.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
-		table.setGridColor(Color.decode("#E4EBF3"));
-		table.setSelectionBackground(Color.decode("#B3D9FF"));
-
 		JScrollPane scrollPane = new JScrollPane(table);
-		scrollPane.setBorder(BorderFactory.createLineBorder(Color.decode("#DCE3EC")));
+		scrollPane.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
@@ -99,56 +91,31 @@ public class NhanVienTraCuuPage extends JPanel {
 
 	private JPanel taoSearchPanel(TableRowSorter<DefaultTableModel> sorter) {
 		JPanel panel = new JPanel(new GridLayout(2, 3, 10, 10));
-		panel.setBackground(Color.WHITE);
-		panel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(15, 15, 15, 15)
-		));
+		panel.setBackground(AppTheme.CARD_BG);
+		panel.setBorder(AppTheme.cardBorder());
 
 		JLabel lblTuKhoa = new JLabel("Mã hoặc tên nhân viên:");
-		lblTuKhoa.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		lblTuKhoa.setForeground(Color.decode("#2B4B74"));
+		lblTuKhoa.setFont(AppTheme.font(Font.BOLD, 12));
 		panel.add(lblTuKhoa);
 
 		JTextField txtTuKhoa = new JTextField();
-		txtTuKhoa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtTuKhoa.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 8, 6, 8)
-		));
+		styleInput(txtTuKhoa);
 		panel.add(txtTuKhoa);
 
-		// Nút Tìm kiếm
 		JButton btnTimKiem = new JButton("Tìm kiếm");
-		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnTimKiem.setBackground(MAU_CHINH);
-		btnTimKiem.setForeground(Color.WHITE);
-		btnTimKiem.setFocusPainted(false);
-		btnTimKiem.setBorder(new EmptyBorder(6, 12, 6, 12));
+		AppTheme.stylePrimaryButton(btnTimKiem);
 		panel.add(btnTimKiem);
 
 		JLabel lblChucVu = new JLabel("Chức vụ:");
-		lblChucVu.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		lblChucVu.setForeground(Color.decode("#2B4B74"));
+		lblChucVu.setFont(AppTheme.font(Font.BOLD, 12));
 		panel.add(lblChucVu);
 
 		JComboBox<String> cbChucVu = new JComboBox<>(new String[] { "Tất cả", "Quản lý", "Bán vé", "Hỗ trợ" });
-		cbChucVu.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		cbChucVu.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 8, 6, 8)
-		));
+		cbChucVu.setFont(AppTheme.font(Font.PLAIN, 13));
 		panel.add(cbChucVu);
 
-		// Nút Làm mới
 		JButton btnLamMoi = new JButton("Làm mới");
-		btnLamMoi.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnLamMoi.setBackground(Color.WHITE);
-		btnLamMoi.setForeground(Color.decode("#3A4D66"));
-		btnLamMoi.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 12, 6, 12)
-		));
+		AppTheme.styleSecondaryButton(btnLamMoi);
 		panel.add(btnLamMoi);
 
 		Runnable apDungLoc = () -> {
@@ -186,8 +153,37 @@ public class NhanVienTraCuuPage extends JPanel {
 			txtTuKhoa.setText("");
 			cbChucVu.setSelectedIndex(0);
 			sorter.setRowFilter(null);
+			napDuLieuTuDB();
 		});
 
 		return panel;
+	}
+
+	private void napDuLieuTuDB() {
+		model.setRowCount(0);
+		String sql = "SELECT maNV, tenNV, username, email, sdt, chucVu FROM NhanVien WHERE trangThai = 1";
+		try (Connection conn = Database.getConnection();
+			 PreparedStatement ps = conn.prepareStatement(sql);
+			 ResultSet rs = ps.executeQuery()) {
+			while (rs.next()) {
+				model.addRow(new Object[] {
+					rs.getString("maNV"),
+					rs.getString("tenNV"),
+					rs.getString("username"),
+					rs.getString("email"),
+					rs.getString("sdt"),
+					rs.getString("chucVu")
+				});
+			}
+		} catch (SQLException ex) {
+			JOptionPane.showMessageDialog(this, "Lỗi khi lấy dữ liệu nhân viên: " + ex.getMessage());
+		}
+	}
+
+	private void styleInput(JTextField field) {
+		field.setFont(AppTheme.font(Font.PLAIN, 13));
+		field.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(AppTheme.BORDER),
+				new EmptyBorder(6, 8, 6, 8)));
 	}
 }

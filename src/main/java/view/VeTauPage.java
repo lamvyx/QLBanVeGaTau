@@ -1,9 +1,9 @@
 package view;
 
+import entity.TaiKhoan;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.util.LinkedHashMap;
@@ -20,12 +20,18 @@ public class VeTauPage extends JPanel {
 	private final CardLayout cardLayout = new CardLayout();
 	private final JPanel workspacePanel = new JPanel(cardLayout);
 	private final Map<String, JButton> navButtons = new LinkedHashMap<>();
+	private final TaiKhoan taiKhoan;
 
 	public VeTauPage() {
-		this("BAN_VE");
+		this(null, "BAN_VE");
 	}
 
 	public VeTauPage(String initialModule) {
+		this(null, initialModule);
+	}
+
+	public VeTauPage(TaiKhoan taiKhoan, String initialModule) {
+		this.taiKhoan = taiKhoan;
 		setLayout(new BorderLayout(0, 12));
 		setBackground(AppTheme.PAGE_BG);
 		setBorder(AppTheme.pagePadding());
@@ -84,7 +90,7 @@ public class VeTauPage extends JPanel {
 		body.add(taoThongKeTongQuan(), BorderLayout.NORTH);
 
 		workspacePanel.setOpaque(false);
-		workspacePanel.add(new BanVePage(), "BAN_VE");
+		workspacePanel.add(new BanVePage(taiKhoan), "BAN_VE");
 		workspacePanel.add(new DoiVePage(), "DOI_VE");
 		workspacePanel.add(new TraVePage(), "TRA_VE");
 		workspacePanel.add(new KiemTraChoTrongPage(), "KT_CHO");
@@ -99,14 +105,39 @@ public class VeTauPage extends JPanel {
 		return body;
 	}
 
+	/** Tạo panel thống kê với số liệu thực từ DB */
 	private JPanel taoThongKeTongQuan() {
-		JPanel stats = new JPanel(new java.awt.GridLayout(1, 4, 10, 0));
-		stats.setOpaque(false);
-		stats.add(taoCardStat("Vé trong ngày", "124", Color.decode("#0EA5E9")));
-		stats.add(taoCardStat("Đổi vé", "18", Color.decode("#F59E0B")));
-		stats.add(taoCardStat("Trả vé", "9", Color.decode("#EF4444")));
-		stats.add(taoCardStat("Vé chờ in", "26", Color.decode("#22C55E")));
-		return stats;
+		int[] stats = layThongKeVeTuDB();
+		JPanel statsPanel = new JPanel(new java.awt.GridLayout(1, 4, 10, 0));
+		statsPanel.setOpaque(false);
+		statsPanel.add(taoCardStat("Đã thanh toán", String.valueOf(stats[0]), Color.decode("#0EA5E9")));
+		statsPanel.add(taoCardStat("Chờ thanh toán", String.valueOf(stats[1]), Color.decode("#F59E0B")));
+		statsPanel.add(taoCardStat("Đã hoàn trả", String.valueOf(stats[2]), Color.decode("#EF4444")));
+		statsPanel.add(taoCardStat("Đã sử dụng", String.valueOf(stats[3]), Color.decode("#22C55E")));
+		return statsPanel;
+	}
+
+	/** Truy vấn DB → [daThanhToan, choThanhToan, daHoan, daSuDung] */
+	private int[] layThongKeVeTuDB() {
+		int[] result = {0, 0, 0, 0};
+		String sql = "SELECT " +
+				"SUM(CASE WHEN trangThai = 'DA_THANH_TOAN' THEN 1 ELSE 0 END), " +
+				"SUM(CASE WHEN trangThai = 'CHO_THANH_TOAN' THEN 1 ELSE 0 END), " +
+				"SUM(CASE WHEN trangThai = 'DA_HOAN' THEN 1 ELSE 0 END), " +
+				"SUM(CASE WHEN trangThai = 'DA_SU_DUNG' THEN 1 ELSE 0 END) " +
+				"FROM VeTau";
+		try (java.sql.Connection conn = connectDB.Database.getConnection();
+			 java.sql.PreparedStatement ps = conn.prepareStatement(sql);
+			 java.sql.ResultSet rs = ps.executeQuery()) {
+			if (rs.next()) {
+				result[0] = rs.getInt(1);
+				result[1] = rs.getInt(2);
+				result[2] = rs.getInt(3);
+				result[3] = rs.getInt(4);
+			}
+		} catch (java.sql.SQLException ignored) {
+		}
+		return result;
 	}
 
 	private JPanel taoCardStat(String label, String value, Color accent) {

@@ -9,7 +9,7 @@ import java.sql.SQLException;
 
 public class TaiKhoan_DAO {
 	private static final String ADMIN_MAC_DINH_USERNAME = "admin";
-	private static final String ADMIN_MAC_DINH_PASSWORD = "admin123";
+	private static final String ADMIN_MAC_DINH_PASSWORD = "123456";
 	private static final String ADMIN_MAC_DINH_EMAIL = "admin@local";
 	private static final String ADMIN_MAC_DINH_HOTEN = "Quan tri he thong";
 

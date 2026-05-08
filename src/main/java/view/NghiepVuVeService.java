@@ -1,6 +1,10 @@
 package view;
 
+import connectDB.Database;
 import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,8 +64,9 @@ public final class NghiepVuVeService {
 		List<VeThongTin> result = new ArrayList<>();
 		for (int i = 0; i < gheSapXep.size(); i++) {
 			String ghe = gheSapXep.get(i);
-			result.add(new VeThongTin(
-					buildMaVe(chuyen, toa, ghe, i),
+			String maVe = buildMaVe(chuyen, toa, ghe, i);
+			VeThongTin ve = new VeThongTin(
+					maVe,
 					khachHang,
 					giayTo,
 					chuyen,
@@ -72,9 +77,49 @@ public final class NghiepVuVeService {
 					ghe,
 					giaGoc,
 					phuongThucThanhToan,
-					nhanVien));
+					nhanVien);
+			
+			// Thêm logic lưu vào CSDL
+			luuVeVaoCSDL(ve);
+			result.add(ve);
 		}
 		return result;
+	}
+
+	private static void luuVeVaoCSDL(VeThongTin ve) {
+		String sqlVe = "INSERT INTO VeTau (maVeTau, maKH, maCT, maToa, giaVe, trangThai) VALUES (?, (SELECT maKH FROM KhachHang WHERE CCCD = ? OR tenKH = ?), ?, ?, ?, 'CHO_THANH_TOAN')";
+		String sqlChiTiet = "INSERT INTO ChiTietVeTau (maChiTiet, maVeTau, tenHanhKhach, CCCD, ngaySinh, viTriGhe, loaiVe, giaVeTheoLoai) VALUES (?, ?, ?, ?, '2000-01-01', ?, 'NGUOI_LON', ?)";
+		
+		try (Connection conn = Database.getConnection()) {
+			conn.setAutoCommit(false);
+			try {
+				try (PreparedStatement ps = conn.prepareStatement(sqlVe)) {
+					ps.setString(1, ve.getMaVe());
+					ps.setString(2, ve.getGiayTo());
+					ps.setString(3, ve.getKhachHang());
+					ps.setString(4, ve.getChuyen());
+					ps.setString(5, ve.getToa());
+					ps.setBigDecimal(6, ve.getGiaGoc());
+					ps.executeUpdate();
+				}
+				
+				try (PreparedStatement ps = conn.prepareStatement(sqlChiTiet)) {
+					ps.setString(1, "CT" + ve.getMaVe().substring(2));
+					ps.setString(2, ve.getMaVe());
+					ps.setString(3, ve.getKhachHang());
+					ps.setString(4, ve.getGiayTo());
+					ps.setString(5, ve.getGhe());
+					ps.setBigDecimal(6, ve.getGiaGoc());
+					ps.executeUpdate();
+				}
+				conn.commit();
+			} catch (SQLException e) {
+				conn.rollback();
+				System.err.println("Lỗi lưu vé: " + e.getMessage());
+			}
+		} catch (SQLException e) {
+			System.err.println("Lỗi kết nối CSDL: " + e.getMessage());
+		}
 	}
 
 	private static void validateKey(String maChuyen, String maToa, String maGhe) {
@@ -100,7 +145,7 @@ public final class NghiepVuVeService {
 	}
 
 	private static String buildMaVe(String chuyen, String toa, String ghe, int index) {
-		String base = Objects.toString(chuyen, "CT") + Objects.toString(toa, "TOA") + ghe + index;
+		String base = Objects.toString(chuyen, "CT") + Objects.toString(toa, "TOA") + ghe + index + System.currentTimeMillis();
 		int hash = Math.abs(base.hashCode());
 		return "VE" + String.format("%08d", hash % 100000000);
 	}

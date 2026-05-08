@@ -26,7 +26,7 @@ import javax.swing.SwingUtilities;
 
 public class LoginPage extends JFrame {
 	private static final long serialVersionUID = 1L;
-	private static final boolean BYPASS_LOGIN_FOR_TEST = true;
+	private static final boolean BYPASS_LOGIN_FOR_TEST = false;
 	private static final Color MAU_CHINH = AppTheme.PRIMARY;
 	private static final Color MAU_NEN_TRANG = Color.decode("#FFFFFF");
 	private static final Color MAU_NEN = AppTheme.PAGE_BG;
@@ -359,12 +359,6 @@ public class LoginPage extends JFrame {
 
 	public static void main(String[] args) {
 		AppTheme.installGlobalStyles();
-		SwingUtilities.invokeLater(() -> {
-			if (BYPASS_LOGIN_FOR_TEST) {
-				new TrangChinhPage(new TaiKhoan("admin", "", "", "Admin", "QUAN_LY")).setVisible(true);
-				return;
-			}
-			new LoginPage().setVisible(true);
-		});
+		SwingUtilities.invokeLater(() -> new LoginPage().setVisible(true));
 	}
 }
