@@ -2,6 +2,7 @@ package dao;
 
 import connectDB.DatabaseConnection;
 import entity.VeTau;
+import entity.LichSuVeDTO;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -146,8 +147,8 @@ public class VeTau_DAO {
 		}
 		return dsGhe;
 	}
-	public List<Object[]> layLichSuVe(String maKH) {
-		List<Object[]> danhSach = new ArrayList<>();
+	public List<LichSuVeDTO> layLichSuVe(String maKH) {
+		List<LichSuVeDTO> danhSach = new ArrayList<>();
 		try {
 			Connection conn = DatabaseConnection.getConnection();
 			if (conn == null) return danhSach;
@@ -167,18 +168,16 @@ public class VeTau_DAO {
 					ps.setString(1, maKH.trim());
 				}
 				try (ResultSet rs = ps.executeQuery()) {
-					int i = 1;
 					while (rs.next()) {
-						danhSach.add(new Object[] {
-							i++,
-							rs.getString("maVeTau"),
-							rs.getString("maGaDi") + " - " + rs.getString("maGaDen"),
-							rs.getTimestamp("ngayKhoiHanh").toLocalDateTime().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")),
-							rs.getString("maToa"),
-							rs.getDouble("giaVe"),
-							rs.getString("trangThai"),
-							"Vừa xong"
-						});
+						LichSuVeDTO dto = new LichSuVeDTO();
+						dto.setMaVeTau(rs.getString("maVeTau"));
+						dto.setGaDi(rs.getString("maGaDi"));
+						dto.setGaDen(rs.getString("maGaDen"));
+						dto.setNgayKhoiHanh(rs.getTimestamp("ngayKhoiHanh").toLocalDateTime());
+						dto.setMaToa(rs.getString("maToa"));
+						dto.setGiaVe(rs.getDouble("giaVe"));
+						dto.setTrangThai(rs.getString("trangThai"));
+						danhSach.add(dto);
 					}
 				}
 			}

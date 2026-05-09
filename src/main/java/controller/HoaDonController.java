@@ -45,6 +45,18 @@ public class HoaDonController {
 		return hoaDonService.kiemTraThanhToan(chuanHoa(maHD));
 	}
 
+	public BigDecimal tinhThueVAT(BigDecimal giaTruocThue) {
+		return hoaDonService.tinhThueVAT(giaTruocThue);
+	}
+
+	public BigDecimal tinhChietKhau(BigDecimal giaTruocThue, String maKM) {
+		return hoaDonService.tinhChietKhau(giaTruocThue, maKM);
+	}
+
+	public BigDecimal tinhTongThanhToan(BigDecimal giaTruocThue, BigDecimal thue, BigDecimal ck) {
+		return hoaDonService.tinhTongThanhToan(giaTruocThue, thue, ck);
+	}
+
 	private String chuanHoa(String s) {
 		return s == null ? null : s.trim();
 	}

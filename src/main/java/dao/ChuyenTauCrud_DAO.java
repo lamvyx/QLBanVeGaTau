@@ -121,4 +121,42 @@ public class ChuyenTauCrud_DAO {
 		}
 		return String.format("CT%03d", max + 1);
 	}
+
+	public List<ChuyenTau> searchChuyenTauByGaAndNgay(String gaDi, String gaDen, LocalDate ngayDi) {
+		List<ChuyenTau> danhSach = new ArrayList<>();
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) return danhSach;
+
+			StringBuilder sql = new StringBuilder(
+				"SELECT ct.maCT, ct.maTau, ct.maTuyenTau, ct.ngayKhoiHanh, ct.gioKhoiHanh, ct.trangThai " +
+				"FROM ChuyenTau ct JOIN TuyenTau tt ON ct.maTuyenTau = tt.maTT " +
+				"WHERE ct.trangThai = 1"
+			);
+			
+			if (gaDi != null && !gaDi.isBlank()) sql.append(" AND tt.maGaDi = ?");
+			if (gaDen != null && !gaDen.isBlank()) sql.append(" AND tt.maGaDen = ?");
+			if (ngayDi != null) sql.append(" AND ct.ngayKhoiHanh = ?");
+
+			try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+				int paramIndex = 1;
+				if (gaDi != null && !gaDi.isBlank()) ps.setString(paramIndex++, gaDi);
+				if (gaDen != null && !gaDen.isBlank()) ps.setString(paramIndex++, gaDen);
+				if (ngayDi != null) ps.setDate(paramIndex++, java.sql.Date.valueOf(ngayDi));
+
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						LocalDate ngay = rs.getDate("ngayKhoiHanh").toLocalDate();
+						LocalTime gio = rs.getTime("gioKhoiHanh").toLocalTime();
+						LocalDateTime start = LocalDateTime.of(ngay, gio);
+						danhSach.add(new ChuyenTau(rs.getString("maCT"), start, start, rs.getBoolean("trangThai"),
+								rs.getString("maTau"), rs.getString("maTuyenTau")));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("[ChuyenTauCrud_DAO] Lỗi search nâng cao: " + e.getMessage());
+		}
+		return danhSach;
+	}
 }

@@ -134,4 +134,25 @@ public class ChuyenTau_DAO {
 			return 0;
 		}
 	}
+
+	public java.util.List<ChuyenTau> searchChuyenTau(String gaDi, String gaDen, java.time.LocalDate ngayDi) {
+		List<ChuyenTau> all = layChuyenTauHoatDong();
+		List<ChuyenTau> result = new ArrayList<>();
+		TuyenTau_DAO tuyenDAO = new TuyenTau_DAO();
+		
+		for (ChuyenTau ct : all) {
+			boolean matchDate = ngayDi == null || ct.getNgayKhoiHanh().toLocalDate().equals(ngayDi);
+			if (matchDate) {
+				entity.TuyenTau tt = tuyenDAO.timTheoMa(ct.getMaTuyenTau());
+				if (tt != null) {
+					boolean matchGaDi = gaDi == null || gaDi.isBlank() || tt.getMaGaDi().equalsIgnoreCase(gaDi);
+					boolean matchGaDen = gaDen == null || gaDen.isBlank() || tt.getMaGaDen().equalsIgnoreCase(gaDen);
+					if (matchGaDi && matchGaDen) {
+						result.add(ct);
+					}
+				}
+			}
+		}
+		return result;
+	}
 }

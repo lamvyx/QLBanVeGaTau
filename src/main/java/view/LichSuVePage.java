@@ -1,6 +1,8 @@
 package view;
 
-import dao.VeTau_DAO;
+import controller.VeTauController;
+import entity.LichSuVeDTO;
+import java.time.format.DateTimeFormatter;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -10,7 +12,6 @@ import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -28,7 +29,7 @@ public class LichSuVePage extends JPanel {
 	private static final Color MAU_VIEN = Color.decode("#DCE3EC");
 	private final DefaultTableModel model;
 	private final JTextField txtMaKH = new JTextField();
-	private final VeTau_DAO veTauDAO = new VeTau_DAO();
+	private final VeTauController veTauController = new VeTauController();
 
 	public LichSuVePage() {
 		setLayout(new BorderLayout(0, 14));
@@ -51,9 +52,20 @@ public class LichSuVePage extends JPanel {
 
 	private void taiDuLieu(String maKH) {
 		model.setRowCount(0);
-		List<Object[]> dsVe = veTauDAO.layLichSuVe(maKH);
-		for (Object[] row : dsVe) {
-			model.addRow(row);
+		List<LichSuVeDTO> dsVe = veTauController.layLichSuVe(maKH);
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+		int i = 1;
+		for (LichSuVeDTO ve : dsVe) {
+			model.addRow(new Object[] {
+				i++,
+				ve.getMaVeTau(),
+				ve.getTuyenDuong(),
+				ve.getNgayKhoiHanh().format(dtf),
+				ve.getMaToa(),
+				ve.getGiaVe(),
+				ve.getTrangThai(),
+				"Vừa xong"
+			});
 		}
 	}
 

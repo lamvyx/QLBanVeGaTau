@@ -15,20 +15,41 @@ public class KhachHangService {
 			ketQua.thongBao = "Tên khách hàng không được để trống";
 			return ketQua;
 		}
+		if (tenKH.trim().matches(".*\\d.*")) {
+		    ketQua.thongBao = "Tên khách hàng không được chứa số";
+		    return ketQua;
+		}
 		if (sdt == null || sdt.trim().isEmpty()) {
 			ketQua.thongBao = "Số điện thoại không được để trống";
 			return ketQua;
 		}
-		if (cccd == null || cccd.trim().isEmpty()) {
-			ketQua.thongBao = "CCCD/Passport không được để trống";
+		if (!sdt.trim().matches("^0\\d{9}$")) {
+		    ketQua.thongBao = "Số điện thoại không hợp lệ (10 số, bắt đầu bằng 0)";
+		    return ketQua;
+		}
+		if (!sdt.trim().matches("^0\\d{9}$")) {
+		    ketQua.thongBao = "Số điện thoại phải bao gồm 10 chữ số và bắt đầu bằng số 0";
+		    return ketQua;
+		}
+		if (cccd.trim().length() != 12 || !cccd.trim().matches("\\d+")) {
+		    ketQua.thongBao = "CCCD không hợp lệ (phải là 12 chữ số)";
+		    return ketQua;
+		}
+		if (email == null || email.trim().isEmpty()) {
+			ketQua.thongBao = "Email không được để trống";
 			return ketQua;
 		}
-		if (email != null && !email.isBlank() && !email.contains("@")) {
-			ketQua.thongBao = "Email không hợp lệ";
-			return ketQua;
+		String emailRegex = "^[A-Za-z0-9+_.-]+@(.+)$";
+		if (email != null && !email.isBlank() && !email.matches(emailRegex)) {
+		    ketQua.thongBao = "Định dạng Email không hợp lệ";
+		    return ketQua;
 		}
 		if (khachHangDAO.kiemTraCCCDTonTai(cccd.trim())) {
 			ketQua.thongBao = "CCCD/Passport đã tồn tại";
+			return ketQua;
+		}
+		if (diaChi == null || diaChi.trim().isEmpty()) {
+			ketQua.thongBao = "Địa chỉ không được để trống";
 			return ketQua;
 		}
 

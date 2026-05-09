@@ -173,16 +173,38 @@ public class TrangChinhPage extends JFrame {
 		popupMenu.setBorder(BorderFactory.createLineBorder(AppTheme.BORDER));
 
 		for (MenuAction item : menu.chucNangCon()) {
-			JMenuItem menuItem = new JMenuItem(item.tieuDe());
-			menuItem.setFont(AppTheme.font(Font.PLAIN, 13));
-			menuItem.addActionListener(e -> {
-				JPanel page = item.taoPage();
-				contentPanel.removeAll();
-				contentPanel.add(page, BorderLayout.CENTER);
-				contentPanel.revalidate();
-				contentPanel.repaint();
-			});
-			popupMenu.add(menuItem);
+			if (item.subActions() != null && !item.subActions().isEmpty()) {
+				javax.swing.JMenu subMenu = new javax.swing.JMenu(item.tieuDe());
+				subMenu.setFont(AppTheme.font(Font.PLAIN, 13));
+				for (MenuAction subItem : item.subActions()) {
+					JMenuItem subMenuItem = new JMenuItem(subItem.tieuDe());
+					subMenuItem.setFont(AppTheme.font(Font.PLAIN, 13));
+					subMenuItem.addActionListener(e -> {
+						JPanel page = subItem.taoPage();
+						if (page != null) {
+							contentPanel.removeAll();
+							contentPanel.add(page, BorderLayout.CENTER);
+							contentPanel.revalidate();
+							contentPanel.repaint();
+						}
+					});
+					subMenu.add(subMenuItem);
+				}
+				popupMenu.add(subMenu);
+			} else {
+				JMenuItem menuItem = new JMenuItem(item.tieuDe());
+				menuItem.setFont(AppTheme.font(Font.PLAIN, 13));
+				menuItem.addActionListener(e -> {
+					JPanel page = item.taoPage();
+					if (page != null) {
+						contentPanel.removeAll();
+						contentPanel.add(page, BorderLayout.CENTER);
+						contentPanel.revalidate();
+						contentPanel.repaint();
+					}
+				});
+				popupMenu.add(menuItem);
+			}
 		}
 
 		return popupMenu;
@@ -229,10 +251,7 @@ public class TrangChinhPage extends JFrame {
 			menu.add(taoMenuKhachHang());
 			menu.add(taoMenuVeTau());
 			menu.add(taoMenuHoaDon());
-			menu.add(taoMenuChuyenTau());
-			menu.add(taoMenuTau());
-			menu.add(taoMenuToa());
-			menu.add(taoMenuTuyenTau());
+			menu.add(taoMenuQuanLyTau());
 			menu.add(taoMenuDichVu());
 			menu.add(taoMenuKhuyenMai());
 			menu.add(taoMenuThongKe());
@@ -275,32 +294,24 @@ public class TrangChinhPage extends JFrame {
 				new MenuAction("Tra cứu hóa đơn", HoaDonTraCuuPage::new)));
 	}
 
-	private MenuGroup taoMenuChuyenTau() {
-		return new MenuGroup("Chuyến tàu", List.of(
-				new MenuAction("Thêm chuyến", ChuyenTauThemPage::new),
-				new MenuAction("Tra cứu chuyến", ChuyenTauTraCuuPage::new),
-				new MenuAction("Cập nhật", ChuyenTauCapNhatPage::new)));
-	}
-
-	private MenuGroup taoMenuTau() {
+	private MenuGroup taoMenuQuanLyTau() {
 		return new MenuGroup("Tàu", List.of(
 				new MenuAction("Thêm tàu", TauThemPage::new),
 				new MenuAction("Tra cứu tàu", TauTraCuuPage::new),
-				new MenuAction("Cập nhật", TauCapNhatPage::new)));
-	}
-
-	private MenuGroup taoMenuToa() {
-		return new MenuGroup("Toa", List.of(
-				new MenuAction("Thêm toa", ToaThemPage::new),
-				new MenuAction("Tra cứu toa", ToaTraCuuPage::new),
-				new MenuAction("Cập nhật", ToaCapNhatPage::new)));
-	}
-
-	private MenuGroup taoMenuTuyenTau() {
-		return new MenuGroup("Tuyến tàu", List.of(
-				new MenuAction("Thêm tuyến", TuyenTauThemPage::new),
-				new MenuAction("Tra cứu tuyến", TuyenTauTraCuuPage::new),
-				new MenuAction("Cập nhật", TuyenTauCapNhatPage::new)));
+				new MenuAction("Cập nhật tàu", TauCapNhatPage::new),
+				new MenuAction("Toa", null, List.of(
+						new MenuAction("Thêm toa", ToaThemPage::new),
+						new MenuAction("Tra cứu toa", ToaTraCuuPage::new),
+						new MenuAction("Cập nhật", ToaCapNhatPage::new))),
+				new MenuAction("Tuyến tàu", null, List.of(
+						new MenuAction("Thêm tuyến", TuyenTauThemPage::new),
+						new MenuAction("Tra cứu tuyến", TuyenTauTraCuuPage::new),
+						new MenuAction("Cập nhật", TuyenTauCapNhatPage::new))),
+				new MenuAction("Chuyến tàu", null, List.of(
+						new MenuAction("Thêm chuyến", ChuyenTauThemPage::new),
+						new MenuAction("Tra cứu chuyến", ChuyenTauTraCuuPage::new),
+						new MenuAction("Cập nhật", ChuyenTauCapNhatPage::new)))
+		));
 	}
 
 	private MenuGroup taoMenuDichVu() {
@@ -392,9 +403,13 @@ public class TrangChinhPage extends JFrame {
 		}
 	}
 
-	private record MenuAction(String tieuDe, Supplier<JPanel> pageFactory) {
+	private record MenuAction(String tieuDe, Supplier<JPanel> pageFactory, List<MenuAction> subActions) {
+		public MenuAction(String tieuDe, Supplier<JPanel> pageFactory) {
+			this(tieuDe, pageFactory, List.of());
+		}
+
 		private JPanel taoPage() {
-			return pageFactory.get();
+			return pageFactory != null ? pageFactory.get() : null;
 		}
 	}
 

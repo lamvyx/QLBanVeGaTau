@@ -7,6 +7,7 @@ import entity.ChiTietHoaDonItem;
 import entity.HoaDon;
 import entity.KhachHang;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -15,6 +16,8 @@ import java.util.List;
 import java.util.Set;
 
 public class HoaDonService {
+	public static final BigDecimal VAT_RATE = new BigDecimal("0.08");
+	public static final BigDecimal DISCOUNT_RATE = new BigDecimal("0.05");
 	private final HoaDon_DAO hoaDonDAO = new HoaDon_DAO();
 	private final VeTau_DAO veTauDAO = new VeTau_DAO();
 	private final KhachHang_DAO khachHangDAO = new KhachHang_DAO();
@@ -160,6 +163,26 @@ public class HoaDonService {
 	public boolean kiemTraThanhToan(String maHD) {
 		if (maHD == null || maHD.isBlank()) return false;
 		return hoaDonDAO.kiemTraThanhToan(maHD.trim());
+	}
+
+	public BigDecimal tinhThueVAT(BigDecimal tongTienTruocThue) {
+		if (tongTienTruocThue == null) return BigDecimal.ZERO;
+		return tongTienTruocThue.multiply(VAT_RATE).setScale(0, RoundingMode.HALF_UP);
+	}
+
+	public BigDecimal tinhChietKhau(BigDecimal tongTienTruocThue, String maKM) {
+		if (maKM == null || maKM.trim().isEmpty() || tongTienTruocThue == null) {
+			return BigDecimal.ZERO;
+		}
+		// Logic: Cứ có mã KM là giảm 5% (có thể mở rộng kiểm tra mã KM trong DB sau này)
+		return tongTienTruocThue.multiply(DISCOUNT_RATE).setScale(0, RoundingMode.HALF_UP);
+	}
+
+	public BigDecimal tinhTongThanhToan(BigDecimal giaChuaThue, BigDecimal thue, BigDecimal chietKhau) {
+		if (giaChuaThue == null) return BigDecimal.ZERO;
+		BigDecimal v = thue == null ? BigDecimal.ZERO : thue;
+		BigDecimal ck = chietKhau == null ? BigDecimal.ZERO : chietKhau;
+		return giaChuaThue.add(v).subtract(ck);
 	}
 
 	public static class KetQuaLapHoaDon {

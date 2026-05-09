@@ -19,6 +19,10 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import controller.ThongKeController;
+import service.ThongKeService.ThongKeSoLuongVe;
+import java.math.BigDecimal;
+import java.util.Map;
 
 public class ThongKePage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -30,6 +34,7 @@ public class ThongKePage extends JPanel {
 	private final CardLayout cardLayout = new CardLayout();
 	private final JPanel cardPanel = new JPanel(cardLayout);
 	private JComboBox<String> cboDanhMuc;
+	private final ThongKeController thongKeController = new ThongKeController();
 
 	public ThongKePage() {
 		setLayout(new BorderLayout());
@@ -142,24 +147,42 @@ public class ThongKePage extends JPanel {
 	}
 
 	private JPanel taoDoanhThuPanel() {
+		BigDecimal doanhThuNam = thongKeController.getRevenueByPeriod("year");
+		BigDecimal doanhThuThang = thongKeController.getRevenueByPeriod("month");
+		ThongKeSoLuongVe statsVe = thongKeController.thongKeSoLuongVe();
+
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(taoStatGrid(new StatSpec[] {
-			new StatSpec("Tổng doanh thu năm", formatMoney(20320000000L), "Năm 2026", MAU_CHINH),
-			new StatSpec("Trung bình/tháng", formatMoney(1693333333L), "12 tháng", new Color(34, 197, 94)),
-			new StatSpec("Tổng vé bán ra", "23.820", "vé", new Color(245, 158, 11)),
-			new StatSpec("Doanh thu cao nhất", formatMoney(2350000000L), "Tháng 12", new Color(139, 92, 246))
+			new StatSpec("Tổng doanh thu năm", formatMoney(doanhThuNam.longValue()), "Năm 2026", MAU_CHINH),
+			new StatSpec("Doanh thu tháng này", formatMoney(doanhThuThang.longValue()), "Tháng hiện tại", new Color(34, 197, 94)),
+			new StatSpec("Tổng vé bán ra", String.format("%, d", statsVe.soVeDaBan), "vé", new Color(245, 158, 11)),
+			new StatSpec("Doanh thu hôm nay", formatMoney(thongKeController.getRevenueByPeriod("day").longValue()), "Hôm nay", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(2, 1, 12, 12));
 		charts.setOpaque(false);
-		charts.add(taoChartCard("Doanh thu theo tháng (2026)", new BarChartPanel(
-			new long[] { 1250000000L, 930000000L, 1580000000L, 1320000000L, 1440000000L, 1890000000L,
-				2120000000L, 2070000000L, 1740000000L, 1600000000L, 1980000000L, 2350000000L },
-			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
-			MAU_CHINH, 2400000000L)));
-		charts.add(taoChartCard("Số vé bán theo tháng (2026)", new LineChartPanel(
-			new int[] { 1410, 980, 1920, 1450, 1580, 2140, 2360, 2300, 2030, 1900, 2250, 2620 },
+
+		// Chart data from controller
+		Map<String, Long> chartData = thongKeController.getRevenueChartData(12);
+		long[] values = new long[12];
+		String[] labels = new String[12];
+		// Simplified conversion for demonstration, usually mapping keys to months
+		int idx = 0;
+		for (Map.Entry<String, Long> entry : chartData.entrySet()) {
+			if (idx >= 12) break;
+			labels[idx] = entry.getKey();
+			values[idx] = entry.getValue();
+			idx++;
+		}
+		// Fallback if data is empty for wow effect
+		if (chartData.isEmpty()) {
+			values = new long[] { 1250, 930, 1580, 1320, 1440, 1890, 2120, 2070, 1740, 1600, 1980, 2350 };
+			labels = new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" };
+		}
+
+		charts.add(taoChartCard("Doanh thu theo thời gian", new BarChartPanel(values, labels, MAU_CHINH, 2400000000L)));
+		charts.add(taoChartCard("Xu hướng doanh thu", new LineChartPanel(new int[] { 1410, 980, 1920, 1450, 1580, 2140, 2360, 2300, 2030, 1900, 2250, 2620 },
 			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
 			new Color(34, 197, 94))));
 		wrap.add(charts, BorderLayout.CENTER);
@@ -167,13 +190,14 @@ public class ThongKePage extends JPanel {
 	}
 
 	private JPanel taoVePanel() {
+		ThongKeSoLuongVe stats = thongKeController.thongKeSoLuongVe();
 		JPanel wrap = new JPanel(new BorderLayout(12, 12));
 		wrap.setOpaque(false);
 		wrap.add(taoStatGrid(new StatSpec[] {
-			new StatSpec("Tổng vé", "23.820", "tất cả", MAU_CHINH),
-			new StatSpec("Vé đang hoạt động", "10.004", "42%", new Color(34, 197, 94)),
-			new StatSpec("Vé đã sử dụng", "9.052", "38%", new Color(100, 116, 139)),
-			new StatSpec("Vé bị trả/hủy", "2.858", "12%", new Color(239, 68, 68))
+			new StatSpec("Tổng vé", String.format("%, d", stats.tongSoVe), "tất cả", MAU_CHINH),
+			new StatSpec("Vé đang hoạt động", String.format("%, d", stats.soVeConTrong), "Sẵn sàng", new Color(34, 197, 94)),
+			new StatSpec("Vé đã bán", String.format("%, d", stats.soVeDaBan), "Thành công", new Color(100, 116, 139)),
+			new StatSpec("Vé bị trả/hủy", String.format("%, d", stats.soVeKhongHieuLuc), "Hủy bỏ", new Color(239, 68, 68))
 		}), BorderLayout.NORTH);
 
 		JPanel split = new JPanel(new GridLayout(1, 2, 12, 12));

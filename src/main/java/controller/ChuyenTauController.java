@@ -13,6 +13,10 @@ public class ChuyenTauController {
 		return chuyenTauService.timKiemChuyenTau(chuanHoaRongThanhNull(tuKhoa));
 	}
 
+	public List<ChuyenTau> traCuuChuyenTau(String gaDi, String gaDen, java.time.LocalDate ngayDi) {
+		return chuyenTauService.traCuuChuyenTau(chuanHoa(gaDi), chuanHoa(gaDen), ngayDi);
+	}
+
 	public KetQuaXuLy themChuyenTau(String maTau, String maTuyenTau, LocalDateTime ngayGioKhoiHanh) {
 		return chuyenTauService.themChuyenTau(chuanHoa(maTau), chuanHoa(maTuyenTau), ngayGioKhoiHanh);
 	}

@@ -12,6 +12,10 @@ public class ChuyenTauService {
 		return chuyenTauDAO.timKiemChuyenTau(tuKhoa == null ? "" : tuKhoa.trim());
 	}
 
+	public List<ChuyenTau> traCuuChuyenTau(String gaDi, String gaDen, java.time.LocalDate ngayDi) {
+		return chuyenTauDAO.searchChuyenTauByGaAndNgay(gaDi, gaDen, ngayDi);
+	}
+
 	public KetQuaXuLy themChuyenTau(String maTau, String maTuyenTau, LocalDateTime ngayGioKhoiHanh) {
 		KetQuaXuLy ketQua = new KetQuaXuLy();
 		if (maTau == null || maTau.trim().isEmpty()) {
