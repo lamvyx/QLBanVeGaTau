@@ -10,5 +10,7 @@
 	<classpathentry kind="lib" path="lib/mssql-jdbc-13.4.0.jre11.jar"/>
 	<classpathentry kind="lib" path="C:/Users/ACER/OneDrive/Máy tính/PTUD2/New folder/QLBanVeGaTau/lib/jakarta.mail-2.0.1.jar"/>
 	<classpathentry kind="lib" path="C:/Users/ACER/OneDrive/Máy tính/PTUD2/New folder/QLBanVeGaTau/lib/jakarta.activation-2.0.1.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ACER/OneDrive/Máy tính/PTUD2/New folder/QLBanVeGaTau/lib/jcommon-1.0.23.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ACER/OneDrive/Máy tính/PTUD2/New folder/QLBanVeGaTau/lib/jfreechart-1.0.19.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

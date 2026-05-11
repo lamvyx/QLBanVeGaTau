@@ -42,6 +42,34 @@ public class ThongKeService {
 		return thongKeDAO.getTripOccupancy();
 	}
 
+	public Map<String, Integer> getTicketsByCarriageType() {
+		return thongKeDAO.getTicketsByCarriageType();
+	}
+
+	public Map<String, Integer> getNewCustomersByMonth(int year) {
+		return thongKeDAO.getNewCustomersByMonth(year);
+	}
+
+	public int getTotalCustomers() {
+		return thongKeDAO.getTotalCustomers();
+	}
+
+	public Map<String, Integer> getTripCountByRoute() {
+		return thongKeDAO.getTripCountByRoute();
+	}
+
+	public Map<String, Long> getRevenueByMonth(int year) {
+		return thongKeDAO.getRevenueByMonth(year);
+	}
+
+	public Map<String, Long> getRevenueByQuarter(int year) {
+		return thongKeDAO.getRevenueByQuarter(year);
+	}
+
+	public int getTotalTrips() {
+		return thongKeDAO.getTotalTrips();
+	}
+
 	public static class ThongKeSoLuongVe {
 		public int tongSoVe;
 		public int soVeDaBan;

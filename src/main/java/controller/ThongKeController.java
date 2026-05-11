@@ -32,4 +32,32 @@ public class ThongKeController {
 	public List<Object[]> getTripOccupancy() {
 		return thongKeService.getTripOccupancy();
 	}
+
+	public Map<String, Integer> getTicketsByCarriageType() {
+		return thongKeService.getTicketsByCarriageType();
+	}
+
+	public Map<String, Integer> getNewCustomersByMonth(int year) {
+		return thongKeService.getNewCustomersByMonth(year);
+	}
+
+	public int getTotalCustomers() {
+		return thongKeService.getTotalCustomers();
+	}
+
+	public Map<String, Integer> getTripCountByRoute() {
+		return thongKeService.getTripCountByRoute();
+	}
+
+	public Map<String, Long> getRevenueByMonth(int year) {
+		return thongKeService.getRevenueByMonth(year);
+	}
+
+	public Map<String, Long> getRevenueByQuarter(int year) {
+		return thongKeService.getRevenueByQuarter(year);
+	}
+
+	public int getTotalTrips() {
+		return thongKeService.getTotalTrips();
+	}
 }

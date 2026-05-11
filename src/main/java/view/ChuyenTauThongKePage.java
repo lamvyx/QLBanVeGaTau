@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.util.List;
+import java.util.Map;
 import javax.swing.JPanel;
 import controller.ThongKeController;
 
@@ -62,13 +63,23 @@ public class ChuyenTauThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createMonthPanel() {
+		int totalTrips = thongKeController.getTotalTrips();
+		List<Object[]> occupancy = thongKeController.getTripOccupancy();
+		int totalBooked = 0;
+		int totalSeats = 0;
+		for (Object[] o : occupancy) {
+			totalBooked += (int) o[1];
+			totalSeats += (int) o[2];
+		}
+		double avgFill = totalSeats == 0 ? 0 : (totalBooked * 100.0 / totalSeats);
+		
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			spec("Tổng chuyến tàu", "128", "tháng này", MAU_CHINH),
-			spec("Đúng giờ", "94.2%", "tỷ lệ", new Color(34, 197, 94)),
-			spec("Bị hủy", "23", "chuyến", new Color(239, 68, 68)),
-			spec("Hệ số lấp đầy", "78.5%", "trung bình", new Color(245, 158, 11))
+			spec("Tổng chuyến tàu", String.format("%, d", totalTrips), "tháng này", MAU_CHINH),
+			spec("Đúng giờ", "---", "tỷ lệ", new Color(34, 197, 94)),
+			spec("Bị hủy", "---", "chuyến", new Color(239, 68, 68)),
+			spec("Hệ số lấp đầy", String.format("%.1f%%", avgFill), "trung bình", new Color(245, 158, 11))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(1, 2, 12, 12));
@@ -77,29 +88,52 @@ public class ChuyenTauThongKePage extends ThongKeBaoCaoBasePage {
 			new int[] { 92, 93, 95, 94, 96, 95, 94, 93, 95, 96, 94, 95 },
 			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
 			new Color(34, 197, 94))));
+		
+		Map<String, Integer> tripsByRoute = thongKeController.getTripCountByRoute();
+		String[] routeLabels = tripsByRoute.keySet().toArray(new String[0]);
+		int[] routeValues = new int[routeLabels.length];
+		int maxRouteValue = 0;
+		for (int i = 0; i < routeLabels.length; i++) {
+			routeValues[i] = tripsByRoute.get(routeLabels[i]);
+			if (routeValues[i] > maxRouteValue) maxRouteValue = routeValues[i];
+		}
+		if (routeLabels.length == 0) {
+			routeLabels = new String[] { "SGN-HAN", "SGN-DNA", "SGN-NTR", "HAN-SGN", "SGN-PLK" };
+			routeValues = new int[] { 0, 0, 0, 0, 0 };
+			maxRouteValue = 80;
+		}
+		
 		charts.add(createChartCard("Chuyến theo tuyến", new HorizontalBarChartPanel(
-			new int[] { 72, 28, 19, 67, 11 },
-			new String[] { "SGN-HAN", "SGN-DNA", "SGN-NTR", "HAN-SGN", "SGN-PLK" },
-			MAU_CHINH, 80)));
+			routeValues, routeLabels, MAU_CHINH, maxRouteValue > 0 ? maxRouteValue : 80)));
 		wrap.add(charts, BorderLayout.CENTER);
 		return wrap;
 	}
 
 	private JPanel createQuarterPanel() {
+		int totalTrips = thongKeController.getTotalTrips();
+		List<Object[]> occupancy = thongKeController.getTripOccupancy();
+		int totalBooked = 0;
+		int totalSeats = 0;
+		for (Object[] o : occupancy) {
+			totalBooked += (int) o[1];
+			totalSeats += (int) o[2];
+		}
+		double avgFill = totalSeats == 0 ? 0 : (totalBooked * 100.0 / totalSeats);
+		
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			spec("Chuyến quý", "385", "Q2/2026", MAU_CHINH),
-			spec("Đúng giờ", "91.7%", "tỷ lệ", new Color(34, 197, 94)),
-			spec("Bị hủy", "7", "chuyến", new Color(239, 68, 68)),
-			spec("Lấp đầy TB", "76.2%", "trung bình", new Color(245, 158, 11))
+			spec("Chuyến quý", String.format("%, d", totalTrips), "Q2/2026", MAU_CHINH),
+			spec("Đúng giờ", "---", "tỷ lệ", new Color(34, 197, 94)),
+			spec("Bị hủy", "---", "chuyến", new Color(239, 68, 68)),
+			spec("Lấp đầy TB", String.format("%.1f%%", avgFill), "trung bình", new Color(245, 158, 11))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(1, 2, 12, 12));
 		charts.setOpaque(false);
 		charts.add(createChartCard("Chuyến theo quý", new BarChartPanel(
-			new long[] { 96L, 121L, 83L, 152L },
-			new String[] { "Q1", "Q2", "Q3", "Q4" }, MAU_CHINH, 160L)));
+			new long[] { totalTrips / 4, totalTrips / 4, totalTrips / 4, totalTrips / 4 },
+			new String[] { "Q1", "Q2", "Q3", "Q4" }, MAU_CHINH, totalTrips > 0 ? totalTrips : 160L)));
 		charts.add(createChartCard("Lấp đầy theo quý", new LineChartPanel(
 			new int[] { 71, 74, 77, 79 },
 			new String[] { "Q1", "Q2", "Q3", "Q4" }, new Color(245, 158, 11))));
@@ -108,25 +142,57 @@ public class ChuyenTauThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createYearPanel() {
+		int totalTrips = thongKeController.getTotalTrips();
+		List<Object[]> occupancy = thongKeController.getTripOccupancy();
+		int totalBooked = 0;
+		int totalSeats = 0;
+		for (Object[] o : occupancy) {
+			totalBooked += (int) o[1];
+			totalSeats += (int) o[2];
+		}
+		double avgFill = totalSeats == 0 ? 0 : (totalBooked * 100.0 / totalSeats);
+		
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			spec("Tổng chuyến tàu", "1.247", "Năm 2026", MAU_CHINH),
-			spec("Đúng giờ", "94.2%", "tỷ lệ", new Color(34, 197, 94)),
-			spec("Bị hủy", "23", "chuyến", new Color(239, 68, 68)),
-			spec("Hệ số lấp đầy", "78.5%", "trung bình", new Color(245, 158, 11))
+			spec("Tổng chuyến tàu", String.format("%, d", totalTrips), "Năm 2026", MAU_CHINH),
+			spec("Đúng giờ", "---", "tỷ lệ", new Color(34, 197, 94)),
+			spec("Bị hủy", "---", "chuyến", new Color(239, 68, 68)),
+			spec("Hệ số lấp đầy", String.format("%.1f%%", avgFill), "trung bình", new Color(245, 158, 11))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(2, 1, 12, 12));
 		charts.setOpaque(false);
+		
+		Map<String, Integer> tripsByRoute = thongKeController.getTripCountByRoute();
+		String[] routeLabels = tripsByRoute.keySet().toArray(new String[0]);
+		int[] routeValues = new int[routeLabels.length];
+		int maxRouteValue = 0;
+		for (int i = 0; i < routeLabels.length; i++) {
+			routeValues[i] = tripsByRoute.get(routeLabels[i]);
+			if (routeValues[i] > maxRouteValue) maxRouteValue = routeValues[i];
+		}
+		if (routeLabels.length == 0) {
+			routeLabels = new String[] { "SGN-HAN", "SGN-DNA", "SGN-NTR", "HAN-SGN", "SGN-PLK" };
+			routeValues = new int[] { 0, 0, 0, 0, 0 };
+			maxRouteValue = 80;
+		}
+		
 		charts.add(createChartCard("Doanh thu theo tuyến đường", new BarChartPanel(
-			new long[] { 72L, 28L, 19L, 67L, 11L },
-			new String[] { "SGN-HAN", "SGN-DNA", "SGN-NTR", "HAN-SGN", "SGN-PLK" }, MAU_CHINH, 80L)));
+			convertToLongArray(routeValues), routeLabels, MAU_CHINH, maxRouteValue > 0 ? maxRouteValue : 80L)));
 		charts.add(createChartCard("Lấp đầy theo tháng", new LineChartPanel(
 			new int[] { 72, 74, 76, 78, 79, 81, 80, 77, 76, 75, 82, 87 },
 			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
 			new Color(34, 197, 94))));
 		wrap.add(charts, BorderLayout.CENTER);
 		return wrap;
+	}
+
+	private long[] convertToLongArray(int[] arr) {
+		long[] result = new long[arr.length];
+		for (int i = 0; i < arr.length; i++) {
+			result[i] = arr[i];
+		}
+		return result;
 	}
 }

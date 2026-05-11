@@ -202,41 +202,55 @@ public class ThongKePage extends JPanel {
 
 		JPanel split = new JPanel(new GridLayout(1, 2, 12, 12));
 		split.setOpaque(false);
-		split.add(taoChartCard("Trạng thái vé", new TicketStatusPanel()));
+		split.add(taoChartCard("Trạng thái vé", new TicketStatusPanel(stats)));
+		
+		Map<String, Integer> ticketsByType = thongKeController.getTicketsByCarriageType();
+		String[] typeLabels = ticketsByType.keySet().toArray(new String[0]);
+		int[] typeValues = new int[typeLabels.length];
+		int maxTypeValue = 0;
+		for (int i = 0; i < typeLabels.length; i++) {
+			typeValues[i] = ticketsByType.get(typeLabels[i]);
+			if (typeValues[i] > maxTypeValue) maxTypeValue = typeValues[i];
+		}
+		if (typeLabels.length == 0) {
+			typeLabels = new String[] { "Ghế cứng", "Ghế mềm", "Nằm cứng", "Nằm mềm", "VIP" };
+			typeValues = new int[] { 0, 0, 0, 0, 0 };
+			maxTypeValue = 100;
+		}
 		split.add(taoChartCard("Vé bán theo loại toa", new HorizontalBarChartPanel(
-			new int[] { 8400, 6200, 9800, 4700, 1300 },
-			new String[] { "Ghế cứng", "Ghế mềm", "Nằm cứng", "Nằm mềm", "VIP" },
-			MAU_CHINH, 10000)));
+			typeValues, typeLabels, MAU_CHINH, maxTypeValue > 0 ? maxTypeValue : 100)));
 		wrap.add(split, BorderLayout.CENTER);
 		return wrap;
 	}
 
 	private JPanel taoKhachHangPanel() {
+		int totalCustomers = thongKeController.getTotalCustomers();
 		JPanel wrap = new JPanel(new BorderLayout());
 		wrap.setOpaque(false);
 		wrap.add(taoStatGrid(new StatSpec[] {
-			new StatSpec("Khách hàng", "1.850", "đang hoạt động", MAU_CHINH),
-			new StatSpec("Khách mới", "286", "tháng này", new Color(34, 197, 94)),
-			new StatSpec("Khách quay lại", "1.130", "61%", new Color(245, 158, 11)),
-			new StatSpec("Tỉ lệ hài lòng", "96%", "khảo sát", new Color(139, 92, 246))
+			new StatSpec("Khách hàng", String.format("%, d", totalCustomers), "đang hoạt động", MAU_CHINH),
+			new StatSpec("Khách mới", "---", "tháng này", new Color(34, 197, 94)),
+			new StatSpec("Khách quay lại", "---", "61%", new Color(245, 158, 11)),
+			new StatSpec("Tỉ lệ hài lòng", "---", "khảo sát", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
-		JPanel placeholder = taoPlaceholderCard("Thống kê khách hàng sẽ hiển thị ở đây");
+		JPanel placeholder = taoPlaceholderCard("Thống kê khách hàng chi tiết xem trang riêng");
 		wrap.add(placeholder, BorderLayout.CENTER);
 		return wrap;
 	}
 
 	private JPanel taoChuyenTauPanel() {
+		int totalTrips = thongKeController.getTotalTrips();
 		JPanel wrap = new JPanel(new BorderLayout());
 		wrap.setOpaque(false);
 		wrap.add(taoStatGrid(new StatSpec[] {
-			new StatSpec("Chuyến tàu", "128", "đang khai thác", MAU_CHINH),
-			new StatSpec("Đúng giờ", "94%", "tháng này", new Color(34, 197, 94)),
-			new StatSpec("Trễ chuyến", "6%", "tháng này", new Color(245, 158, 11)),
-			new StatSpec("Hủy chuyến", "2", "trong năm", new Color(239, 68, 68))
+			new StatSpec("Chuyến tàu", String.format("%, d", totalTrips), "đang khai thác", MAU_CHINH),
+			new StatSpec("Đúng giờ", "---", "tháng này", new Color(34, 197, 94)),
+			new StatSpec("Trễ chuyến", "---", "tháng này", new Color(245, 158, 11)),
+			new StatSpec("Hủy chuyến", "---", "trong năm", new Color(239, 68, 68))
 		}), BorderLayout.NORTH);
 
-		JPanel placeholder = taoPlaceholderCard("Thống kê chuyến tàu sẽ hiển thị ở đây");
+		JPanel placeholder = taoPlaceholderCard("Thống kê chuyến tàu chi tiết xem trang riêng");
 		wrap.add(placeholder, BorderLayout.CENTER);
 		return wrap;
 	}
@@ -474,7 +488,7 @@ public class ThongKePage extends JPanel {
 
 	private static final class TicketStatusPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
-		private final int[] values = { 42, 38, 12, 8 };
+		private final int[] values;
 		private final Color[] colors = {
 			new Color(34, 197, 94),
 			new Color(59, 130, 246),
@@ -484,6 +498,22 @@ public class ThongKePage extends JPanel {
 		private final String[] labels = { "Đang sử dụng", "Đã dùng", "Đã trả", "Đã đổi" };
 
 		private TicketStatusPanel() {
+			this.values = new int[] { 42, 38, 12, 8 };
+			setOpaque(false);
+		}
+
+		private TicketStatusPanel(ThongKeSoLuongVe stats) {
+			int total = stats.tongSoVe;
+			if (total == 0) {
+				this.values = new int[] { 0, 0, 0, 0 };
+			} else {
+				this.values = new int[] {
+					(int) ((stats.soVeConTrong * 100.0) / total),
+					(int) ((stats.soVeDaBan * 100.0) / total),
+					(int) ((stats.soVeKhongHieuLuc * 100.0) / total),
+					0
+				};
+			}
 			setOpaque(false);
 		}
 

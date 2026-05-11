@@ -5,6 +5,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
 import java.math.BigDecimal;
+import java.util.Map;
 import javax.swing.JPanel;
 
 public class DoanhThuThongKePage extends ThongKeBaoCaoBasePage {
@@ -68,11 +69,20 @@ public class DoanhThuThongKePage extends ThongKeBaoCaoBasePage {
 
 		JPanel charts = new JPanel(new GridLayout(2, 1, 12, 12));
 		charts.setOpaque(false);
+		
+		Map<String, Long> revenueByMonth = thongKeController.getRevenueByMonth(2026);
+		long[] monthValues = new long[12];
+		String[] monthLabels = new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" };
+		long maxMonthValue = 0;
+		for (int i = 1; i <= 12; i++) {
+			String key = "T" + i;
+			monthValues[i - 1] = revenueByMonth.getOrDefault(key, 0L);
+			if (monthValues[i - 1] > maxMonthValue) maxMonthValue = monthValues[i - 1];
+		}
+		if (maxMonthValue == 0) maxMonthValue = 2400000000L;
+		
 		charts.add(createChartCard("Doanh thu theo tháng (2026)", new BarChartPanel(
-			new long[] { 1250000000L, 930000000L, 1580000000L, 1320000000L, 1440000000L, 1890000000L,
-				2120000000L, 2070000000L, 1740000000L, 1600000000L, 1980000000L, 2350000000L },
-			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
-			MAU_CHINH, 2400000000L)));
+			monthValues, monthLabels, MAU_CHINH, maxMonthValue)));
 		charts.add(createChartCard("Số vé bán theo tháng", new LineChartPanel(
 			new int[] { 1410, 980, 1920, 1450, 1580, 2140, 2360, 2300, 2030, 1900, 2250, 2620 },
 			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
@@ -84,18 +94,28 @@ public class DoanhThuThongKePage extends ThongKeBaoCaoBasePage {
 	private JPanel createQuarterPanel() {
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
+		
+		Map<String, Long> revenueByQuarter = thongKeController.getRevenueByQuarter(2026);
+		long q1 = revenueByQuarter.getOrDefault("Q1", 0L);
+		long q2 = revenueByQuarter.getOrDefault("Q2", 0L);
+		long q3 = revenueByQuarter.getOrDefault("Q3", 0L);
+		long q4 = revenueByQuarter.getOrDefault("Q4", 0L);
+		long total = q1 + q2 + q3 + q4;
+		long avg = total / 4;
+		long maxQuarter = Math.max(Math.max(q1, q2), Math.max(q3, q4));
+		
 		wrap.add(createStatGrid(new StatSpec[] {
-			 spec("Quý hiện tại", money(5620000000L), "Q2/2026", MAU_CHINH),
-			 spec("Doanh thu TB/quý", money(4870000000L), "4 quý", new Color(34, 197, 94)),
+			 spec("Quý hiện tại", money(q2), "Q2/2026", MAU_CHINH),
+			 spec("Doanh thu TB/quý", money(avg), "4 quý", new Color(34, 197, 94)),
 			 spec("Tăng trưởng quý", "+12.5%", "so với quý trước", new Color(245, 158, 11)),
-			 spec("Đóng góp cao nhất", "Quý 4", money(7140000000L), new Color(139, 92, 246))
+			 spec("Đóng góp cao nhất", "Quý " + (maxQuarter == q1 ? "1" : maxQuarter == q2 ? "2" : maxQuarter == q3 ? "3" : "4"), money(maxQuarter), new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(1, 2, 12, 12));
 		charts.setOpaque(false);
 		charts.add(createChartCard("Doanh thu theo quý", new BarChartPanel(
-			new long[] { 4200000000L, 5600000000L, 4870000000L, 7140000000L },
-			new String[] { "Q1", "Q2", "Q3", "Q4" }, MAU_CHINH, 7500000000L)));
+			new long[] { q1, q2, q3, q4 },
+			new String[] { "Q1", "Q2", "Q3", "Q4" }, MAU_CHINH, maxQuarter > 0 ? maxQuarter : 7500000000L)));
 		charts.add(createChartCard("Vé bán theo quý", new BarChartPanel(
 			new long[] { 6120L, 7340L, 6890L, 9470L },
 			new String[] { "Q1", "Q2", "Q3", "Q4" }, new Color(34, 197, 94), 10000L)));
