@@ -285,7 +285,6 @@ public class TrangChinhPage extends JFrame {
 				new MenuAction("Trả vé", TraVePage::new),
 				new MenuAction("Lịch sử vé", LichSuVePage::new),
 				new MenuAction("Lịch sử đổi/trả", () -> new DonDoiTraTraCuuPage()),
-				new MenuAction("Kiểm tra chỗ trống", KiemTraChoTrongPage::new),
 				new MenuAction("In vé", InVePage::new)));
 	}
 

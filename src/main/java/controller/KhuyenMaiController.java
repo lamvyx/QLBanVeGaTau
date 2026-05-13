@@ -9,6 +9,10 @@ import service.KhuyenMaiService.KetQuaXuLy;
 
 public class KhuyenMaiController {
 	private final KhuyenMaiService khuyenMaiService = new KhuyenMaiService();
+    
+    public List<KhuyenMai> layTatCaKhuyenMai() {
+        return khuyenMaiService.layTatCaKhuyenMai();
+    }
 
 	public List<KhuyenMai> timKiemKhuyenMai(String maKM, String tenKM) {
 		return khuyenMaiService.timKiemKhuyenMai(chuanHoaRongThanhNull(maKM), chuanHoaRongThanhNull(tenKM));

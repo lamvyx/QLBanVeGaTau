@@ -9,6 +9,10 @@ import java.util.List;
 
 public class KhuyenMaiService {
 	private final KhuyenMai_DAO khuyenMaiDAO = new KhuyenMai_DAO();
+    
+    public List<KhuyenMai> layTatCaKhuyenMai() {
+        return khuyenMaiDAO.layTatCaKhuyenMai();
+    }
 
 	public List<KhuyenMai> timKiemKhuyenMai(String maKM, String tenKM) {
 		if (maKM != null && !maKM.trim().isEmpty()) {

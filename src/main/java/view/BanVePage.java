@@ -3,9 +3,11 @@ package view;
 import controller.ChuyenTauController;
 import controller.HoaDonController;
 import controller.KhachHangController;
+import controller.KhuyenMaiController;
 import controller.ToaController;
 import entity.ChuyenTau;
 import entity.KhachHang;
+import entity.KhuyenMai;
 import entity.Toa;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -31,10 +33,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 import service.HoaDonService.KetQuaLapHoaDon;
 
 public class BanVePage extends JPanel {
@@ -57,13 +56,14 @@ public class BanVePage extends JPanel {
     private final Set<String> bookedSeats = new LinkedHashSet<>();
 
     private JLabel lblSeatTitle;
-    private JTextField txtMaKM;
+    private JComboBox<KhuyenMaiOption> cboKhuyenMai;
     private JComboBox<KhachHangOption> cboKhachHang;
     private JComboBox<ToaOption> cboToaTau;
 
     private BigDecimal selectedPrice = new BigDecimal("1105000");
     private final HoaDonController hoaDonController = new HoaDonController();
     private final KhachHangController khachHangController = new KhachHangController();
+    private final KhuyenMaiController khuyenMaiController = new KhuyenMaiController();
     private final ChuyenTauController chuyenTauController = new ChuyenTauController();
     private final ToaController toaController = new ToaController();
     
@@ -288,16 +288,10 @@ public class BanVePage extends JPanel {
         return cboToaTau;
     }
 
-    private JPanel createPromotionField() {
-        txtMaKM = new JTextField();
-        txtMaKM.getDocument().addDocumentListener(new DocumentListener() {
-            public void insertUpdate(DocumentEvent e) { refreshSummary(); }
-            public void removeUpdate(DocumentEvent e) { refreshSummary(); }
-            public void changedUpdate(DocumentEvent e) { refreshSummary(); }
-        });
-        JPanel p = new JPanel(new BorderLayout());
-        p.add(txtMaKM, BorderLayout.CENTER);
-        return p;
+    private JComboBox<KhuyenMaiOption> createPromotionField() {
+        cboKhuyenMai = new JComboBox<>();
+        cboKhuyenMai.addActionListener(e -> refreshSummary());
+        return cboKhuyenMai;
     }
 
     private void onSelectionChanged() {
@@ -307,7 +301,14 @@ public class BanVePage extends JPanel {
     private void refreshSummary() {
         BigDecimal base = selectedPrice.multiply(BigDecimal.valueOf(selectedSeats.size()));
         BigDecimal vat = hoaDonController.tinhThueVAT(base);
-        BigDecimal km = hoaDonController.tinhChietKhau(base, txtMaKM.getText().trim());
+        
+        String maKM = "";
+        KhuyenMaiOption kmOpt = (KhuyenMaiOption) cboKhuyenMai.getSelectedItem();
+        if (kmOpt != null && kmOpt.maKM != null) {
+            maKM = kmOpt.maKM;
+        }
+        
+        BigDecimal km = hoaDonController.tinhChietKhau(base, maKM);
         BigDecimal tong = hoaDonController.tinhTongThanhToan(base, vat, km);
 
         String gheStr = selectedSeats.isEmpty() ? "Chưa chọn" : String.join(", ", selectedSeats);
@@ -331,7 +332,13 @@ public class BanVePage extends JPanel {
             return;
         }
 
-        KetQuaLapHoaDon res = hoaDonController.lapHoaDonBanVe("NV001", selectedMaKH, txtMaKM.getText().trim(),
+        String maKM = "";
+        KhuyenMaiOption kmOpt = (KhuyenMaiOption) cboKhuyenMai.getSelectedItem();
+        if (kmOpt != null && kmOpt.maKM != null) {
+            maKM = kmOpt.maKM;
+        }
+
+        KetQuaLapHoaDon res = hoaDonController.lapHoaDonBanVe("NV001", selectedMaKH, maKM,
                 selectedMaCT, selectedMaToa, new ArrayList<String>(selectedSeats), selectedPrice);
 
         if (!res.thanhCong) {
@@ -388,7 +395,7 @@ public class BanVePage extends JPanel {
         daChotGiaoDich = false;
         if (cboKhachHang != null && cboKhachHang.getItemCount() > 0) cboKhachHang.setSelectedIndex(0);
         if (cboToaTau != null) cboToaTau.removeAllItems();
-        if (txtMaKM != null) txtMaKM.setText("");
+        if (cboKhuyenMai != null && cboKhuyenMai.getItemCount() > 0) cboKhuyenMai.setSelectedIndex(0);
         if (tripListPanel != null) tripListPanel.setTrips(new ArrayList<ChuyenTau>());
         if (seatCardContainer != null) seatCardContainer.setVisible(false);
         selectedTrangThai = "Đang chờ";
@@ -404,6 +411,13 @@ public class BanVePage extends JPanel {
         }
         cboKhachHang.removeAllItems();
         for (KhachHangOption o : dsKhachHang) cboKhachHang.addItem(o);
+
+        // Tải khuyến mãi
+        cboKhuyenMai.removeAllItems();
+        cboKhuyenMai.addItem(new KhuyenMaiOption(null, "Không áp dụng", BigDecimal.ZERO));
+        for (KhuyenMai km : khuyenMaiController.layTatCaKhuyenMai()) {
+            cboKhuyenMai.addItem(new KhuyenMaiOption(km.getMaKM(), km.getTenKM(), km.getTyLeKM()));
+        }
 
         toaTheoChuyen.clear();
         for (Toa toa : toaController.timKiemToa(null)) {
