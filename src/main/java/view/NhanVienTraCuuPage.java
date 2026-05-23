@@ -163,7 +163,30 @@ public class NhanVienTraCuuPage extends JPanel {
 		gbc.weightx = 1;
 		panel.add(txtTen, gbc);
 
+		panel.add(new JLabel(), gbc); // ô trống để tạo khoảng cách
+		// Số điện thoại
+		JLabel lblSdt = new JLabel("Số ĐT:");
+		lblSdt.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		lblSdt.setForeground(Color.decode("#2B4B74"));
+		gbc.gridx = 0;
+		gbc.gridy = 1;
+		gbc.weightx = 0;
+		panel.add(lblSdt, gbc);
+
+		JTextField txtSdt = new JTextField();
+		txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		txtSdt.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(6, 8, 6, 8)
+		));
+		gbc.gridx = 1;
+		gbc.gridy = 1;
+		gbc.weightx = 1;
+		panel.add(txtSdt, gbc);
+
 		// Nút Tìm kiếm
+		panel.add(new JLabel(), gbc); // ô trống để tạo khoảng cách
+
 		JButton btnTimKiem = new JButton("Tìm kiếm");
 		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
 		btnTimKiem.setBackground(MAU_CHINH);
@@ -174,9 +197,15 @@ public class NhanVienTraCuuPage extends JPanel {
 		btnTimKiem.addActionListener(e -> {
 			String ma = txtMa.getText().trim();
 			String ten = txtTen.getText().trim();
-			
+			String sdt = txtSdt.getText().trim();
+            
 			model.setRowCount(0);
 			List<NhanVien> results = nhanVienController.timKiemNhanVien(ma, ten);
+			if ((results == null || results.isEmpty()) && !sdt.isEmpty()) {
+				// nếu tìm theo mã/tên không có kết quả thì thử tìm theo SDT
+				NhanVien nv = nhanVienController.timKiemNhanVienTheoSDT(sdt);
+				if (nv != null) results = List.of(nv);
+			}
 			
 			for (int i = 0; i < results.size(); i++) {
 				NhanVien nv = results.get(i);
@@ -205,6 +234,7 @@ public class NhanVienTraCuuPage extends JPanel {
 		btnLamMoi.addActionListener(e -> {
 			txtMa.setText("");
 			txtTen.setText("");
+			txtSdt.setText("");
 			loadDataFromDatabase();
 		});
 

@@ -4,10 +4,14 @@ import controller.ChuyenTauController;
 import controller.HoaDonController;
 import controller.KhachHangController;
 import controller.KhuyenMaiController;
+import controller.PhieuDatVeController;
 import controller.ToaController;
+import controller.TuyenTauController;
+import entity.ChiTietPhieuDat;
 import entity.ChuyenTau;
 import entity.KhachHang;
 import entity.KhuyenMai;
+import entity.PhieuDatVeInfo;
 import entity.Toa;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -63,12 +67,14 @@ public class BanVePage extends JPanel {
     private BigDecimal selectedPrice = new BigDecimal("1105000");
     private final HoaDonController hoaDonController = new HoaDonController();
     private final KhachHangController khachHangController = new KhachHangController();
+    private final PhieuDatVeController phieuDatVeController = new PhieuDatVeController();
     private final KhuyenMaiController khuyenMaiController = new KhuyenMaiController();
     private final ChuyenTauController chuyenTauController = new ChuyenTauController();
     private final ToaController toaController = new ToaController();
+    private final TuyenTauController tuyenTauController = new TuyenTauController();
     
-    private final List<KhachHangOption> dsKhachHang = new ArrayList<KhachHangOption>();
-    private final Map<String, List<ToaOption>> toaTheoChuyen = new HashMap<String, List<ToaOption>>();
+    private final List<KhachHangOption> dsKhachHang = new ArrayList<>();
+    private final Map<String, List<ToaOption>> toaTheoChuyen = new HashMap<>();
 
     private String selectedMaKH;
     private String selectedMaCT;
@@ -92,8 +98,14 @@ public class BanVePage extends JPanel {
     private String chuyenDaChot = "";
     private String tuyenDaChot = "";
     private String toaDaChot = "";
+    private PhieuDatVeInfo phieuDatDaNap;
+    private final Set<String> gheCuaPhieuDat = new LinkedHashSet<>();
 
     public BanVePage() {
+        this(null);
+    }
+
+    public BanVePage(PhieuDatVeInfo phieuDatVeInfo) {
         this.successCard = new BanVeSuccessPanel(() -> hienThiCard(printCard), this::resetForm);
         this.printCard = new BanVePrintPanel(() -> hienThiCard(successCard), this::resetForm);
         this.seatPanel = new BanVeSeatPanel(selectedSeats, bookedSeats, this::onSelectionChanged);
@@ -110,6 +122,9 @@ public class BanVePage extends JPanel {
         buildSaleCard();
         taiDuLieuBanDau();
         resetForm();
+        if (phieuDatVeInfo != null) {
+            apDungPhieuDat(phieuDatVeInfo);
+        }
         hienThiCard(saleCard);
     }
 
@@ -248,7 +263,20 @@ public class BanVePage extends JPanel {
         if (trip != null) {
             selectedMaCT = trip.getMaCT();
             selectedChuyen = trip.getMaCT();
-            selectedTuyen = trip.getMaTuyenTau();
+            // Hiển thị tên ga (ga đi -> ga đến) thay vì mã tuyến
+            try {
+                var list = tuyenTauController.timKiemTuyenTau(trip.getMaTuyenTau(), null, null);
+                if (list != null && !list.isEmpty()) {
+                    var tt = list.get(0);
+                    String gaDi = tt.getMaGaDi() == null ? "" : tt.getMaGaDi();
+                    String gaDen = tt.getMaGaDen() == null ? "" : tt.getMaGaDen();
+                    selectedTuyen = gaDi + " → " + gaDen;
+                } else {
+                    selectedTuyen = trip.getMaTuyenTau();
+                }
+            } catch (Exception ex) {
+                selectedTuyen = trip.getMaTuyenTau();
+            }
             selectedKhoiHanh = trip.getNgayKhoiHanh().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
             
             // Tìm toa của tàu này
@@ -338,8 +366,11 @@ public class BanVePage extends JPanel {
             maKM = kmOpt.maKM;
         }
 
-        KetQuaLapHoaDon res = hoaDonController.lapHoaDonBanVe("NV001", selectedMaKH, maKM,
-                selectedMaCT, selectedMaToa, new ArrayList<String>(selectedSeats), selectedPrice);
+    KetQuaLapHoaDon res = phieuDatDaNap == null
+        ? hoaDonController.lapHoaDonBanVe("NV001", selectedMaKH, maKM,
+            selectedMaCT, selectedMaToa, new ArrayList<>(selectedSeats), selectedPrice)
+        : hoaDonController.lapHoaDonBanVe("NV001", selectedMaKH, maKM,
+            selectedMaCT, selectedMaToa, new ArrayList<>(selectedSeats), selectedPrice, gheCuaPhieuDat);
 
         if (!res.thanhCong) {
             JOptionPane.showMessageDialog(this, "Lỗi: " + res.thongBao);
@@ -347,6 +378,10 @@ public class BanVePage extends JPanel {
             seatPanel.refreshUI();
             return;
         }
+
+    if (phieuDatDaNap != null && phieuDatDaNap.getPhieuDatVe() != null) {
+        phieuDatVeController.capNhatTrangThai(phieuDatDaNap.getPhieuDatVe().getMaPhieu(), false);
+    }
 
         String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("ddMMyyHHmm"));
         generatedMaHD = res.maHoaDon;
@@ -393,10 +428,12 @@ public class BanVePage extends JPanel {
     private void resetForm() {
         selectedSeats.clear();
         daChotGiaoDich = false;
+        phieuDatDaNap = null;
+        gheCuaPhieuDat.clear();
         if (cboKhachHang != null && cboKhachHang.getItemCount() > 0) cboKhachHang.setSelectedIndex(0);
         if (cboToaTau != null) cboToaTau.removeAllItems();
         if (cboKhuyenMai != null && cboKhuyenMai.getItemCount() > 0) cboKhuyenMai.setSelectedIndex(0);
-        if (tripListPanel != null) tripListPanel.setTrips(new ArrayList<ChuyenTau>());
+        if (tripListPanel != null) tripListPanel.setTrips(new ArrayList<>());
         if (seatCardContainer != null) seatCardContainer.setVisible(false);
         selectedTrangThai = "Đang chờ";
         capNhatGheDaDatTheoToa();
@@ -431,7 +468,70 @@ public class BanVePage extends JPanel {
         bookedSeats.clear();
         if (selectedMaCT == null || selectedMaToa == null) return;
         Set<String> daDat = hoaDonController.layGheDaDat(selectedMaCT, selectedMaToa);
+        for (String ghe : gheCuaPhieuDat) {
+            if (ghe != null) {
+                daDat.remove(ghe.trim().toUpperCase());
+            }
+        }
         for (String g : daDat) bookedSeats.add(BanVeUtils.chuanHoaMaGhe(g));
+    }
+
+    private void apDungPhieuDat(PhieuDatVeInfo info) {
+        if (info == null || info.getPhieuDatVe() == null) {
+            return;
+        }
+        phieuDatDaNap = info;
+        gheCuaPhieuDat.clear();
+        selectedSeats.clear();
+        if (info.getPhieuDatVe().getMaKH() != null) {
+            KhachHang kh = khachHangController.timKiemKhachHang(info.getPhieuDatVe().getMaKH(), null, null).stream().findFirst().orElse(null);
+            if (kh != null) {
+                selectedMaKH = kh.getMaKH();
+                selectedKhachHang = kh.getTenKH();
+            }
+        }
+        if (info.getChiTietList() != null && !info.getChiTietList().isEmpty()) {
+            ChiTietPhieuDat ct = info.getChiTietList().get(0);
+            selectedMaCT = ct.getMaCT();
+            selectedMaToa = ct.getMaToa();
+            selectedPrice = BigDecimal.valueOf(ct.getGiaVe());
+            List<ChuyenTau> chuyenList = chuyenTauController.timKiemChuyenTau(selectedMaCT);
+            if (chuyenList != null && !chuyenList.isEmpty()) {
+                ChuyenTau chuyen = chuyenList.get(0);
+                selectedChuyen = chuyen.getMaCT();
+                selectedKhoiHanh = chuyen.getNgayKhoiHanh().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+                try {
+                    var tuyenList = tuyenTauController.timKiemTuyenTau(chuyen.getMaTuyenTau(), null, null);
+                    if (tuyenList != null && !tuyenList.isEmpty()) {
+                        var tt = tuyenList.get(0);
+                        selectedTuyen = (tt.getMaGaDi() == null ? "" : tt.getMaGaDi()) + " → " + (tt.getMaGaDen() == null ? "" : tt.getMaGaDen());
+                    } else {
+                        selectedTuyen = chuyen.getMaTuyenTau();
+                    }
+                } catch (Exception ex) {
+                    selectedTuyen = chuyen.getMaTuyenTau();
+                }
+            }
+            List<Toa> toaList = toaController.timKiemToa(selectedMaToa);
+            if (toaList != null && !toaList.isEmpty()) {
+                Toa toa = toaList.get(0);
+                currentSeatCount = toa.getSoGhe();
+                selectedToa = toa.getMaToa() + " (" + toa.getLoaiToa() + ")";
+                seatPanel.setSeatCount(currentSeatCount);
+            } else {
+                selectedToa = ct.getMaToa();
+            }
+            for (ChiTietPhieuDat item : info.getChiTietList()) {
+                if (item.getViTriGhe() != null && !item.getViTriGhe().isBlank()) {
+                    String ghe = BanVeUtils.chuanHoaMaGhe(item.getViTriGhe());
+                    selectedSeats.add(ghe);
+                    gheCuaPhieuDat.add(ghe);
+                }
+            }
+        }
+        capNhatGheDaDatTheoToa();
+        seatPanel.refreshUI();
+        refreshSummary();
     }
 
     private void hienThiCard(JPanel card) {

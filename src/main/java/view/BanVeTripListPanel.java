@@ -97,7 +97,16 @@ public class BanVeTripListPanel extends JPanel {
                 lblInfo.setForeground(MAU_TEXT);
                 panel.add(lblInfo, BorderLayout.CENTER);
                 
-                JLabel lblTuyen = new JLabel("Tuyến: " + ct.getMaTuyenTau());
+                String tuyenText = ct.getMaTuyenTau();
+                try {
+                    dao.TuyenTau_DAO dao = new dao.TuyenTau_DAO();
+                    entity.TuyenTau tt = dao.timTheoMa(ct.getMaTuyenTau());
+                    if (tt != null) {
+                        tuyenText = tt.getMaGaDi() + " → " + tt.getMaGaDen();
+                    }
+                } catch (Exception ignore) {
+                }
+                JLabel lblTuyen = new JLabel("Tuyến: " + tuyenText);
                 lblTuyen.setFont(new Font("Segoe UI", Font.ITALIC, 12));
                 lblTuyen.setForeground(new Color(100, 116, 139));
                 panel.add(lblTuyen, BorderLayout.EAST);

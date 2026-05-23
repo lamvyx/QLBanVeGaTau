@@ -275,7 +275,8 @@ public class TrangChinhPage extends JFrame {
 		return new MenuGroup("Khách hàng", List.of(
 				new MenuAction("Thêm khách hàng", KhachHangThemPage::new),
 				new MenuAction("Tra cứu khách hàng", KhachHangTraCuuPage::new),
-				new MenuAction("Cập nhật thông tin", KhachHangCapNhatPage::new)));
+				new MenuAction("Cập nhật thông tin", KhachHangCapNhatPage::new),
+				new MenuAction("Đặt vé khách gọi", PhieuDatVePage::new)));
 	}
 
 	private MenuGroup taoMenuVeTau() {

@@ -42,28 +42,21 @@ public class HoaDon_DAO {
 	}
 
 	public String layMaChiTietTiepTheo() {
-		int max = 0;
+		// Generate a CTHD id based on current count of detail rows across both detail tables
+		int count = 0;
 		try {
 			Connection conn = DatabaseConnection.getConnection();
 			if (conn == null) {
 				return "CTHD001";
 			}
-			String sql = "SELECT maCTHD FROM ChiTietHoaDon";
+			String sql = "SELECT (SELECT COUNT(*) FROM ChiTietHoaDon_Ve) + (SELECT COUNT(*) FROM ChiTietHoaDon_DichVu)";
 			try (Statement st = conn.createStatement(); ResultSet rs = st.executeQuery(sql)) {
-				while (rs.next()) {
-					String ma = rs.getString(1);
-					if (ma != null && ma.startsWith("CTHD")) {
-						try {
-							max = Math.max(max, Integer.parseInt(ma.substring(4)));
-						} catch (NumberFormatException ignored) {
-						}
-					}
-				}
+				if (rs.next()) count = rs.getInt(1);
 			}
 		} catch (Exception e) {
 			System.err.println("[HoaDon_DAO] Lỗi lấy mã chi tiết hóa đơn tiếp theo: " + e.getMessage());
 		}
-		return String.format("CTHD%03d", max + 1);
+		return String.format("CTHD%03d", count + 1);
 	}
 
 	public boolean taoHoaDon(HoaDon hoaDon, List<ChiTietHoaDonItem> chiTietItems) {
@@ -93,18 +86,27 @@ public class HoaDon_DAO {
 				}
 			}
 
-			String sqlChiTiet = "INSERT INTO ChiTietHoaDon(maCTHD, maHD, maVeTau, maDV, soLuong, donGia) VALUES(?,?,?,?,?,?)";
-			try (PreparedStatement ps = conn.prepareStatement(sqlChiTiet)) {
+			String sqlCTVe = "INSERT INTO ChiTietHoaDon_Ve(maHD, maVeTau, soLuong, donGia) VALUES(?,?,?,?)";
+			String sqlCTDV = "INSERT INTO ChiTietHoaDon_DichVu(maHD, maDV, soLuong, donGia) VALUES(?,?,?,?)";
+			try (PreparedStatement psVe = conn.prepareStatement(sqlCTVe);
+					PreparedStatement psDv = conn.prepareStatement(sqlCTDV)) {
 				for (ChiTietHoaDonItem item : chiTietItems) {
-					ps.setString(1, item.getMaCTHD());
-					ps.setString(2, item.getMaHD());
-					ps.setString(3, item.getMaVeTau());
-					ps.setString(4, item.getMaDV());
-					ps.setInt(5, item.getSoLuong());
-					ps.setDouble(6, item.getDonGia().doubleValue());
-					ps.addBatch();
+					if (item.getMaVeTau() != null && !item.getMaVeTau().isBlank()) {
+						psVe.setString(1, item.getMaHD());
+						psVe.setString(2, item.getMaVeTau());
+						psVe.setInt(3, item.getSoLuong());
+						psVe.setDouble(4, item.getDonGia().doubleValue());
+						psVe.addBatch();
+					} else if (item.getMaDV() != null && !item.getMaDV().isBlank()) {
+						psDv.setString(1, item.getMaHD());
+						psDv.setString(2, item.getMaDV());
+						psDv.setInt(3, item.getSoLuong());
+						psDv.setDouble(4, item.getDonGia().doubleValue());
+						psDv.addBatch();
+					}
 				}
-				ps.executeBatch();
+				psVe.executeBatch();
+				psDv.executeBatch();
 			}
 
 			conn.commit();
@@ -166,55 +168,36 @@ public class HoaDon_DAO {
 			}
 
 			int nextVe = laySoThuTuTiepTheo(conn, "VeTau", "maVeTau", "VE", 2);
-			int nextChiTietVe = laySoThuTuTiepTheo(conn, "ChiTietVeTau", "maChiTiet", "CTVE", 4);
-			int nextChiTietHD = laySoThuTuTiepTheo(conn, "ChiTietHoaDon", "maCTHD", "CTHD", 4);
 
-			String sqlVeTau = "INSERT INTO VeTau(maVeTau, maKH, maCT, maToa, giaVe, trangThai) VALUES(?,?,?,?,?,?)";
-			String sqlCTVe = "INSERT INTO ChiTietVeTau(maChiTiet, maVeTau, tenHanhKhach, CCCD, ngaySinh, viTriGhe, loaiVe, giaVeTheoLoai) VALUES(?,?,?,?,?,?,?,?)";
-			String sqlCTHD = "INSERT INTO ChiTietHoaDon(maCTHD, maHD, maVeTau, maDV, soLuong, donGia) VALUES(?,?,?,?,?,?)";
+			String sqlVeTau = "INSERT INTO VeTau(maVeTau, maKH, maCT, maToa, viTriGhe, loaiVe, giaVe, trangThai) VALUES(?,?,?,?,?,?,?,?)";
+			String sqlCTVe = "INSERT INTO ChiTietHoaDon_Ve(maHD, maVeTau, soLuong, donGia) VALUES(?,?,?,?)";
 
 			try (PreparedStatement psVeTau = conn.prepareStatement(sqlVeTau);
-					PreparedStatement psCTVe = conn.prepareStatement(sqlCTVe);
-					PreparedStatement psCTHD = conn.prepareStatement(sqlCTHD)) {
+					PreparedStatement psCTVe = conn.prepareStatement(sqlCTVe)) {
 				for (String viTriGhe : viTriGheList) {
-					if (viTriGhe == null || viTriGhe.isBlank()) {
-						continue;
-					}
+					if (viTriGhe == null || viTriGhe.isBlank()) continue;
 
 					String maVeTau = String.format("VE%03d", nextVe++);
-					String maChiTietVe = String.format("CTVE%03d", nextChiTietVe++);
-					String maCTHD = String.format("CTHD%03d", nextChiTietHD++);
 
 					psVeTau.setString(1, maVeTau);
 					psVeTau.setString(2, maKH);
 					psVeTau.setString(3, maCT.trim());
 					psVeTau.setString(4, maToa.trim());
-					psVeTau.setDouble(5, giaVe.doubleValue());
-					psVeTau.setString(6, "DA_THANH_TOAN");
+					psVeTau.setString(5, viTriGhe.trim().toUpperCase());
+					psVeTau.setString(6, "NGUOI_LON");
+					psVeTau.setDouble(7, giaVe.doubleValue());
+					psVeTau.setString(8, "DA_THANH_TOAN");
 					psVeTau.addBatch();
 
-					psCTVe.setString(1, maChiTietVe);
+					psCTVe.setString(1, hoaDon.getMaHD());
 					psCTVe.setString(2, maVeTau);
-					psCTVe.setString(3, tenHanhKhach);
-					psCTVe.setString(4, cccd);
-					psCTVe.setDate(5, Date.valueOf(ngaySinh));
-					psCTVe.setString(6, viTriGhe.trim().toUpperCase());
-					psCTVe.setString(7, "NGUOI_LON");
-					psCTVe.setDouble(8, giaVe.doubleValue());
+					psCTVe.setInt(3, 1);
+					psCTVe.setDouble(4, giaVe.doubleValue());
 					psCTVe.addBatch();
-
-					psCTHD.setString(1, maCTHD);
-					psCTHD.setString(2, hoaDon.getMaHD());
-					psCTHD.setString(3, maVeTau);
-					psCTHD.setString(4, null);
-					psCTHD.setInt(5, 1);
-					psCTHD.setDouble(6, giaVe.doubleValue());
-					psCTHD.addBatch();
 				}
 
 				psVeTau.executeBatch();
 				psCTVe.executeBatch();
-				psCTHD.executeBatch();
 			}
 
 			conn.commit();
@@ -343,7 +326,7 @@ public class HoaDon_DAO {
 		try {
 			Connection conn = DatabaseConnection.getConnection();
 			if (conn == null) return danhSach;
-			String sql = "SELECT maCTHD, maHD, maVeTau, maDV, soLuong, donGia FROM ChiTietHoaDon WHERE maHD = ?";
+			String sql = "SELECT maCTHD, maHD, maVeTau, maDV, soLuong, donGia FROM v_ChiTietHoaDon WHERE maHD = ?";
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, maHD);
 				try (ResultSet rs = ps.executeQuery()) {

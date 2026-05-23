@@ -1,6 +1,11 @@
 package view;
 
 import controller.ChuyenTauController;
+import controller.ToaController;
+import dao.TuyenTau_DAO;
+import entity.Tau;
+import entity.Toa;
+import entity.TuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,11 +14,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.Calendar;
 import java.util.Date;
 import javax.swing.BorderFactory;
@@ -32,13 +36,15 @@ import service.ChuyenTauService.KetQuaXuLy;
 public class ChuyenTauThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
-	private static final DateTimeFormatter DATE_TIME_INPUT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 	private static final ImageIcon ICON_LICH = taiAnhIcon("/Image/icon_lich.png", 16, 16);
 
 	private JTextField txtMaChuyenTau, txtGiaCoban, txtTongSoCho;
 	private JSpinner spnGioKhoiHanh, spnGioDenNoi;
-	private JComboBox<String> cbTau, cbTuyenTau, cbTrangThai;
+	private JComboBox<TauOption> cbTau;
+	private JComboBox<TuyenOption> cbTuyenTau;
+	private JComboBox<String> cbTrangThai;
 	private final ChuyenTauController chuyenTauController = new ChuyenTauController();
+	private final ToaController toaController = new ToaController();
 
 	public ChuyenTauThemPage() {
 		setLayout(new BorderLayout());
@@ -47,6 +53,9 @@ public class ChuyenTauThemPage extends JPanel {
 
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoForm(), BorderLayout.CENTER);
+		taiDanhSachTau();
+		taiDanhSachTuyen();
+		capNhatThongTinTuChon();
 	}
 
 	private JPanel taoHeader() {
@@ -105,11 +114,9 @@ public class ChuyenTauThemPage extends JPanel {
 
 		gbc.gridx = 1;
 		cbTau = new JComboBox<>();
-		cbTau.addItem("-- Chọn tàu --");
-		cbTau.addItem("TAU001 - Tàu Sapa");
-		cbTau.addItem("TAU002 - Tàu Hà Nội");
 		cbTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		cbTau.setPreferredSize(new Dimension(250, 35));
+		cbTau.addActionListener(e -> capNhatThongTinTuChon());
 		formContainer.add(cbTau, gbc);
 
 		// Row 2: Tuyến tàu
@@ -122,12 +129,9 @@ public class ChuyenTauThemPage extends JPanel {
 
 		gbc.gridx = 1;
 		cbTuyenTau = new JComboBox<>();
-		cbTuyenTau.addItem("-- Chọn tuyến --");
-		cbTuyenTau.addItem("TT001 - Sài Gòn - Hà Nội");
-		cbTuyenTau.addItem("TT002 - Sài Gòn - Đà Nẵng");
-		cbTuyenTau.addItem("TT003 - Sài Gòn - Nha Trang");
 		cbTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		cbTuyenTau.setPreferredSize(new Dimension(250, 35));
+		cbTuyenTau.addActionListener(e -> capNhatThongTinTuChon());
 		formContainer.add(cbTuyenTau, gbc);
 
 		// Row 3: Giờ khởi hành
@@ -166,10 +170,11 @@ public class ChuyenTauThemPage extends JPanel {
 		txtGiaCoban = new JTextField();
 		txtGiaCoban.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtGiaCoban.setPreferredSize(new Dimension(250, 35));
+		txtGiaCoban.setEditable(false);
+		txtGiaCoban.setBackground(new Color(245, 247, 250));
 		txtGiaCoban.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 				new EmptyBorder(8, 8, 8, 8)));
-		txtGiaCoban.setText("0");
 		formContainer.add(txtGiaCoban, gbc);
 
 		// Row 6: Tổng số chỗ
@@ -184,10 +189,11 @@ public class ChuyenTauThemPage extends JPanel {
 		txtTongSoCho = new JTextField();
 		txtTongSoCho.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtTongSoCho.setPreferredSize(new Dimension(250, 35));
+		txtTongSoCho.setEditable(false);
+		txtTongSoCho.setBackground(new Color(245, 247, 250));
 		txtTongSoCho.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 				new EmptyBorder(8, 8, 8, 8)));
-		txtTongSoCho.setText("0");
 		formContainer.add(txtTongSoCho, gbc);
 
 		// Row 7: Trạng thái
@@ -342,8 +348,14 @@ public class ChuyenTauThemPage extends JPanel {
 
 	private void xuLyThemChuyenTau() {
 		try {
-			String maTau = layMaTuCombo((String) cbTau.getSelectedItem());
-			String maTuyen = layMaTuCombo((String) cbTuyenTau.getSelectedItem());
+			TauOption tauOpt = (TauOption) cbTau.getSelectedItem();
+			TuyenOption tuyenOpt = (TuyenOption) cbTuyenTau.getSelectedItem();
+			if (tauOpt == null || tauOpt.maTau == null || tuyenOpt == null || tuyenOpt.maTT == null) {
+				JOptionPane.showMessageDialog(this, "Vui lòng chọn tàu và tuyến tàu.");
+				return;
+			}
+			String maTau = tauOpt.maTau;
+			String maTuyen = tuyenOpt.maTT;
 			LocalDateTime thoiGian = layLocalDateTimeTuSpinner(spnGioKhoiHanh);
 			KetQuaXuLy ketQua = chuyenTauController.themChuyenTau(maTau, maTuyen, thoiGian);
 			JOptionPane.showMessageDialog(this,
@@ -351,27 +363,54 @@ public class ChuyenTauThemPage extends JPanel {
 			if (ketQua.thanhCong) {
 				lamMoiForm();
 			}
-		} catch (Exception ex) {
+		} catch (NumberFormatException | ClassCastException ex) {
 			JOptionPane.showMessageDialog(this, "Lỗi khi thêm chuyến tàu: " + ex.getMessage());
 		}
 	}
 
-	private String layMaTuCombo(String value) {
-		if (value == null) {
-			return null;
+	private void taiDanhSachTau() {
+		cbTau.removeAllItems();
+		cbTau.addItem(new TauOption(null, "-- Chọn tàu --", 0));
+		for (Tau tau : new controller.TauController().timKiemTau(null, null)) {
+			cbTau.addItem(new TauOption(tau.getMaTau(), tau.getTenTau(), tau.getSoLuongToa()));
 		}
-		String[] parts = value.split(" - ");
-		return parts.length > 0 ? parts[0].trim() : value.trim();
+	}
+
+	private void taiDanhSachTuyen() {
+		cbTuyenTau.removeAllItems();
+		cbTuyenTau.addItem(new TuyenOption(null, "-- Chọn tuyến --", null, 0));
+		for (TuyenTau tt : new TuyenTau_DAO().layTatCaTuyenTau()) {
+			cbTuyenTau.addItem(new TuyenOption(tt.getMaTT(), tt.getMaGaDi(), tt.getMaGaDen(), tt.getKhoangCach()));
+		}
+	}
+
+	private void capNhatThongTinTuChon() {
+		TauOption tauOpt = cbTau == null ? null : (TauOption) cbTau.getSelectedItem();
+		TuyenOption tuyenOpt = cbTuyenTau == null ? null : (TuyenOption) cbTuyenTau.getSelectedItem();
+		if (tauOpt == null || tauOpt.maTau == null || tuyenOpt == null || tuyenOpt.maTT == null) {
+			txtGiaCoban.setText("0 đ");
+			txtTongSoCho.setText("0");
+			return;
+		}
+
+		BigDecimal gia = BigDecimal.valueOf(tuyenOpt.khoangCach).multiply(BigDecimal.valueOf(1000)).setScale(0, java.math.RoundingMode.HALF_UP);
+		int tongSoCho = 0;
+		for (Toa toa : toaController.timKiemToa(null)) {
+			if (tauOpt.maTau.equals(toa.getMaTau())) {
+				tongSoCho += toa.getSoGhe();
+			}
+		}
+		txtGiaCoban.setText(BanVeUtils.formatMoney(gia));
+		txtTongSoCho.setText(String.valueOf(tongSoCho));
 	}
 
 	private void lamMoiForm() {
 		txtMaChuyenTau.setText("");
-		cbTau.setSelectedIndex(0);
-		cbTuyenTau.setSelectedIndex(0);
+		if (cbTau.getItemCount() > 0) cbTau.setSelectedIndex(0);
+		if (cbTuyenTau.getItemCount() > 0) cbTuyenTau.setSelectedIndex(0);
 		spnGioKhoiHanh.setValue(new Date());
 		spnGioDenNoi.setValue(new Date());
-		txtGiaCoban.setText("0");
-		txtTongSoCho.setText("0");
+		capNhatThongTinTuChon();
 		cbTrangThai.setSelectedIndex(0);
 	}
 }

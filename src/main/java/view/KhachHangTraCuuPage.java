@@ -132,16 +132,16 @@ public class KhachHangTraCuuPage extends JPanel {
 		gbc.weightx = 0;
 		panel.add(lblMa, gbc);
 
-		JTextField txtMa = new JTextField();
-		txtMa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtMa.setBorder(BorderFactory.createCompoundBorder(
+		JTextField txtMaKH = new JTextField();
+		txtMaKH.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		txtMaKH.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 8, 6, 8)
 		));
 		gbc.gridx = 1;
 		gbc.gridy = 0;
 		gbc.weightx = 1;
-		panel.add(txtMa, gbc);
+		panel.add(txtMaKH, gbc);
 
 		// Tên khách hàng
 		JLabel lblTen = new JLabel("Tên khách hàng:");
@@ -152,17 +152,38 @@ public class KhachHangTraCuuPage extends JPanel {
 		gbc.weightx = 0;
 		panel.add(lblTen, gbc);
 
-		JTextField txtTen = new JTextField();
-		txtTen.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtTen.setBorder(BorderFactory.createCompoundBorder(
+		JTextField txtTenKH = new JTextField();
+		txtTenKH.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		txtTenKH.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 8, 6, 8)
 		));
 		gbc.gridx = 3;
 		gbc.gridy = 0;
 		gbc.weightx = 1;
-		panel.add(txtTen, gbc);
+		panel.add(txtTenKH, gbc);
 
+		// Số điện thoại
+		JLabel lblSdt = new JLabel("Số ĐT:");
+		lblSdt.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		lblSdt.setForeground(Color.decode("#2B4B74"));
+		gbc.gridx = 0;
+		gbc.gridy = 1;
+		gbc.weightx = 0;
+		panel.add(lblSdt, gbc);
+
+		JTextField txtSdtKH = new JTextField();
+		txtSdtKH.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		txtSdtKH.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(6, 8, 6, 8)
+		));
+		gbc.gridx = 1;
+		gbc.gridy = 1;
+		gbc.weightx = 1;
+		panel.add(txtSdtKH, gbc);
+		
+		panel.add(new JLabel(), gbc); // ô trống để tạo khoảng cách
 		// Nút Tìm kiếm
 		JButton btnTimKiem = new JButton("Tìm kiếm");
 		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
@@ -172,11 +193,12 @@ public class KhachHangTraCuuPage extends JPanel {
 		btnTimKiem.setBorder(new EmptyBorder(6, 12, 6, 12));
 		
 		btnTimKiem.addActionListener(e -> {
-			String ma = txtMa.getText().trim();
-			String ten = txtTen.getText().trim();
-			
+			String ma = txtMaKH.getText().trim();
+			String ten = txtTenKH.getText().trim();
+			String sdt = txtSdtKH.getText().trim();
+
 			model.setRowCount(0);
-			List<KhachHang> results = khachHangController.timKiemKhachHang(ma, ten);
+			List<KhachHang> results = khachHangController.timKiemKhachHang(ma, ten, sdt);
 			
 			for (int i = 0; i < results.size(); i++) {
 				KhachHang kh = results.get(i);
@@ -203,8 +225,9 @@ public class KhachHangTraCuuPage extends JPanel {
 		));
 		
 		btnLamMoi.addActionListener(e -> {
-			txtMa.setText("");
-			txtTen.setText("");
+			txtMaKH.setText("");
+			txtTenKH.setText("");
+			txtSdtKH.setText("");
 			loadDataFromDatabase();
 		});
 

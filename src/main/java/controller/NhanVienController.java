@@ -35,6 +35,11 @@ public class NhanVienController {
 		return nhanVienService.timKiemNhanVien(chuanHoaChuoiRongThanhNull(maNV), chuanHoaChuoiRongThanhNull(tenNV));
 	}
 
+	public NhanVien timKiemNhanVienTheoSDT(String sdt) {
+		if (sdt == null || sdt.isBlank()) return null;
+		return nhanVienService.timKiemNhanVienTheoSDT(chuanHoaChuoiRongThanhNull(sdt));
+	}
+
 	public List<NhanVien> layTatCaNhanVien() {
 		return nhanVienService.layTatCaNhanVien();
 	}

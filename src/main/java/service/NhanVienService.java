@@ -110,6 +110,11 @@ public class NhanVienService {
 		return nhanVienDAO.layTatCaNhanVien();
 	}
 
+	public NhanVien timKiemNhanVienTheoSDT(String sdt) {
+		if (sdt == null || sdt.trim().isEmpty()) return null;
+		return nhanVienDAO.timNhanVienTheoSDT(sdt.trim());
+	}
+
 	public String layEmailTheoUsername(String username) {
 		return nhanVienDAO.timEmailTheoUsername(username);
 	}

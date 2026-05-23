@@ -1,10 +1,14 @@
 package view;
 
+import controller.VeTauController;
+import entity.LichSuVeDTO;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -18,6 +22,9 @@ import javax.swing.table.DefaultTableModel;
 public class VeTauPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final DateTimeFormatter DATE_TIME_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+	private final VeTauController veTauController = new VeTauController();
+	private DefaultTableModel model;
 
 	public VeTauPage() {
 		setLayout(new BorderLayout());
@@ -94,11 +101,9 @@ public class VeTauPage extends JPanel {
 		content.setBackground(Color.decode("#F0F5F9"));
 		content.setBorder(new EmptyBorder(12, 16, 12, 16));
 
-		String[] columns = { "Mã vé", "Khách hàng", "Chuyến tàu", "Toa", "Ghế", "Giá", "Trạng thái" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0);
-
-		model.addRow(new Object[] { "VE001", "Nguyễn Thị Hoa", "SE01", "A", "01", "150000", "Đã bán" });
-		model.addRow(new Object[] { "VE002", "Trần Văn Đạt", "SE02", "B", "15", "150000", "Còn" });
+		String[] columns = { "maVeTau", "tuyenDuong", "ngayKhoiHanh", "maToa", "giaVe", "trangThai" };
+		model = new DefaultTableModel(columns, 0);
+		loadDataFromDatabase();
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -111,5 +116,15 @@ public class VeTauPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<LichSuVeDTO> danhSach = veTauController.layLichSuVe(null);
+		for (LichSuVeDTO ve : danhSach) {
+			model.addRow(new Object[] { ve.getMaVeTau(), ve.getTuyenDuong(),
+					ve.getNgayKhoiHanh() != null ? ve.getNgayKhoiHanh().format(DATE_TIME_FMT) : "", ve.getMaToa(),
+					ve.getGiaVe(), ve.getTrangThai() });
+		}
 	}
 }

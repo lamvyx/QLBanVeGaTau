@@ -21,6 +21,12 @@ public class HoaDonController {
 				chuanHoa(maCT), chuanHoa(maToa), viTriGheList, giaVe);
 	}
 
+	public KetQuaLapHoaDon lapHoaDonBanVe(String maNV, String maKH, String maKM, String maCT, String maToa,
+			List<String> viTriGheList, BigDecimal giaVe, java.util.Set<String> gheBoQuaKiemTra) {
+		return hoaDonService.lapHoaDonBanVe(chuanHoa(maNV), chuanHoa(maKH), chuanHoaRongThanhNull(maKM),
+				chuanHoa(maCT), chuanHoa(maToa), viTriGheList, giaVe, gheBoQuaKiemTra);
+	}
+
 	public Set<String> layGheDaDat(String maCT, String maToa) {
 		return hoaDonService.layGheDaDat(chuanHoa(maCT), chuanHoa(maToa));
 	}

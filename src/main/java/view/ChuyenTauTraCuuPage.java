@@ -105,7 +105,7 @@ public class ChuyenTauTraCuuPage extends JPanel {
 			new EmptyBorder(12, 14, 12, 14)
 		));
 
-		String[] columns = { "#", "Mã chuyến", "Tàu", "Tuyến đường", "Khởi hành", "Đến nơi", "Chỗ trống", "Giá cơ bản", "Trạng thái", "Thao tác" };
+		String[] columns = { "STT", "Mã chuyến", "Tàu", "Ga đi", "Ga đến", "Khởi hành", "Đến nơi", "Trạng thái"};
 		model = new DefaultTableModel(columns, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -161,7 +161,18 @@ public class ChuyenTauTraCuuPage extends JPanel {
 		int stt = 1;
 		for (ChuyenTau ct : ds) {
 			String ngayGio = ct.getNgayKhoiHanh() == null ? "" : ct.getNgayKhoiHanh().format(dtf);
-			model.addRow(new Object[] { stt++, ct.getMaCT(), ct.getMaTau(), ct.getMaTuyenTau(), ngayGio, "", "", "", ct.isTrangThai() ? "Hoạt động" : "Ngừng", "" });
+			String gaDi = "";
+			String gaDen = "";
+			try {
+				dao.TuyenTau_DAO dao = new dao.TuyenTau_DAO();
+				entity.TuyenTau tt = dao.timTheoMa(ct.getMaTuyenTau());
+				if (tt != null) {
+					gaDi = tt.getMaGaDi() == null ? "" : tt.getMaGaDi();
+					gaDen = tt.getMaGaDen() == null ? "" : tt.getMaGaDen();
+				}
+			} catch (Exception ignore) {
+			}
+			model.addRow(new Object[] { stt++, ct.getMaCT(), ct.getMaTau(), gaDi, gaDen, ngayGio, "", ct.isTrangThai() ? "Hoạt động" : "Ngừng" });
 		}
 	}
 }

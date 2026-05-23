@@ -1,6 +1,8 @@
 package view;
 
 import controller.TuyenTauController;
+import dao.TuyenTau_DAO;
+import entity.TuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -8,8 +10,14 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -21,7 +29,8 @@ public class TuyenTauThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
 	
-	private JTextField txtMaTT, txtMaGaDi, txtMaGaDen, txtKhoangCach;
+	private JTextField txtMaTT, txtKhoangCach;
+	private JComboBox<String> cboMaGaDi, cboMaGaDen;
 	private final TuyenTauController tuyenTauController = new TuyenTauController();
 
 	public TuyenTauThemPage() {
@@ -31,6 +40,7 @@ public class TuyenTauThemPage extends JPanel {
 
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoForm(), BorderLayout.CENTER);
+		taiDanhSachGa();
 	}
 
 	private JPanel taoHeader() {
@@ -91,14 +101,10 @@ public class TuyenTauThemPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtMaGaDi = new JTextField();
-		txtMaGaDi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtMaGaDi.setPreferredSize(new Dimension(250, 35));
-		txtMaGaDi.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		formContainer.add(txtMaGaDi, gbc);
+		cboMaGaDi = new JComboBox<>();
+		cboMaGaDi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		cboMaGaDi.setPreferredSize(new Dimension(250, 35));
+		formContainer.add(cboMaGaDi, gbc);
 
 		// Row 2: Mã ga đến
 		gbc.gridx = 0;
@@ -109,14 +115,10 @@ public class TuyenTauThemPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtMaGaDen = new JTextField();
-		txtMaGaDen.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtMaGaDen.setPreferredSize(new Dimension(250, 35));
-		txtMaGaDen.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		formContainer.add(txtMaGaDen, gbc);
+		cboMaGaDen = new JComboBox<>();
+		cboMaGaDen.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		cboMaGaDen.setPreferredSize(new Dimension(250, 35));
+		formContainer.add(cboMaGaDen, gbc);
 
 		// Row 3: Khoảng cách
 		gbc.gridx = 0;
@@ -176,10 +178,38 @@ public class TuyenTauThemPage extends JPanel {
 		return wrapper;
 	}
 
+	private void taiDanhSachGa() {
+		TuyenTau_DAO dao = new TuyenTau_DAO();
+		List<TuyenTau> ds = dao.layTatCaTuyenTau();
+		Set<String> setGa = new HashSet<>();
+		for (TuyenTau tt : ds) {
+			if (tt.getMaGaDi() != null) setGa.add(tt.getMaGaDi());
+			if (tt.getMaGaDen() != null) setGa.add(tt.getMaGaDen());
+		}
+		List<String> sortedGa = new ArrayList<>(setGa);
+		Collections.sort(sortedGa);
+		cboMaGaDi.removeAllItems();
+		cboMaGaDen.removeAllItems();
+		cboMaGaDi.addItem("-- Chọn ga --");
+		cboMaGaDen.addItem("-- Chọn ga --");
+		for (String g : sortedGa) {
+			cboMaGaDi.addItem(g);
+			cboMaGaDen.addItem(g);
+		}
+	}
+
 	private void xuLyThemTuyenTau() {
 		try {
 			double khoangCach = Double.parseDouble(txtKhoangCach.getText().trim());
-			KetQuaXuLy ketQua = tuyenTauController.themTuyenTau(txtMaGaDi.getText(), txtMaGaDen.getText(), khoangCach);
+			String gaDi = (String) cboMaGaDi.getSelectedItem();
+			String gaDen = (String) cboMaGaDen.getSelectedItem();
+			if (gaDi != null && gaDi.startsWith("--")) gaDi = null;
+			if (gaDen != null && gaDen.startsWith("--")) gaDen = null;
+			if (gaDi == null || gaDen == null) {
+				JOptionPane.showMessageDialog(this, "Vui lòng chọn cả ga đi và ga đến.");
+				return;
+			}
+			KetQuaXuLy ketQua = tuyenTauController.themTuyenTau(gaDi, gaDen, khoangCach);
 			JOptionPane.showMessageDialog(this, ketQua.thongBao + (ketQua.thanhCong ? " (" + ketQua.maThamChieu + ")" : ""));
 			if (ketQua.thanhCong) {
 				lamMoiForm();
@@ -191,8 +221,8 @@ public class TuyenTauThemPage extends JPanel {
 
 	private void lamMoiForm() {
 		txtMaTT.setText("");
-		txtMaGaDi.setText("");
-		txtMaGaDen.setText("");
+		if (cboMaGaDi != null) cboMaGaDi.setSelectedIndex(0);
+		if (cboMaGaDen != null) cboMaGaDen.setSelectedIndex(0);
 		txtKhoangCach.setText("0");
 	}
 }

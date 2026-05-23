@@ -104,9 +104,14 @@ public class KhachHangService {
 		return ketQua;
 	}
 
-	public List<KhachHang> timKiemKhachHang(String maKH, String tenKH) {
+	public List<KhachHang> timKiemKhachHang(String maKH, String tenKH, String sdt) {
 		if (maKH != null && !maKH.trim().isEmpty()) {
 			KhachHang kh = khachHangDAO.timKhachHangTheoMa(maKH.trim());
+			return kh != null ? List.of(kh) : List.of();
+		}
+
+		if (sdt != null && !sdt.trim().isEmpty()) {
+			KhachHang kh = khachHangDAO.timKhachHangTheoSDT(sdt.trim());
 			return kh != null ? List.of(kh) : List.of();
 		}
 

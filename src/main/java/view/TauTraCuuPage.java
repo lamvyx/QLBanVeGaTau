@@ -86,11 +86,11 @@ public class TauTraCuuPage extends JPanel {
 
 		cbSapXep = new JComboBox<>();
 		cbSapXep.addItem("Tất cả");
-		cbSapXep.addItem("Hoạt động");
-		cbSapXep.addItem("Bảo trì");
-		cbSapXep.addItem("Ngừng hoạt động");
+		cbSapXep.addItem("Mã tàu");
+		cbSapXep.addItem("Tên tàu");
 		cbSapXep.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		cbSapXep.setPreferredSize(new Dimension(200, 32));
+		cbSapXep.addActionListener(e -> taiDuLieuBang());
 		searchPanel.add(cbSapXep);
 
 		return searchPanel;
@@ -104,7 +104,7 @@ public class TauTraCuuPage extends JPanel {
 			new EmptyBorder(12, 14, 12, 14)
 		));
 
-		String[] columns = { "#", "Mã tàu", "Tên tàu", "Số toa", "Sức chứa", "Năm sản xuất", "Trạng thái", "Thao tác" };
+		String[] columns = { "#", "Mã tàu", "Tên tàu", "Số toa" };
 		model = new DefaultTableModel(columns, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -155,11 +155,18 @@ public class TauTraCuuPage extends JPanel {
 		}
 		model.setRowCount(0);
 		String keyword = txtTimKiem == null ? null : txtTimKiem.getText();
-		List<Tau> ds = tauController.timKiemTau(null, keyword);
+		String cheDo = cbSapXep == null ? "Tất cả" : String.valueOf(cbSapXep.getSelectedItem());
+		List<Tau> ds;
+		if (keyword == null || keyword.trim().isEmpty()) {
+			ds = tauController.timKiemTau(null, null);
+		} else if ("Mã tàu".equals(cheDo)) {
+			ds = tauController.timKiemTau(keyword.trim(), null);
+		} else {
+			ds = tauController.timKiemTau(null, keyword.trim());
+		}
 		int stt = 1;
 		for (Tau tau : ds) {
-			int soToa = tau.getSoLuongToa();
-			model.addRow(new Object[] { stt++, tau.getMaTau(), tau.getTenTau(), soToa, soToa * 40, "-", "Hoạt động", "" });
+			model.addRow(new Object[] { stt++, tau.getMaTau(), tau.getTenTau(), tau.getSoLuongToa() });
 		}
 	}
 }

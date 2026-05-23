@@ -1,10 +1,14 @@
 package view;
 
+import controller.ChuyenTauController;
+import entity.ChuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +21,10 @@ import javax.swing.table.DefaultTableModel;
 public class ChuyenTauPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+	private final ChuyenTauController chuyenTauController = new ChuyenTauController();
+	private DefaultTableModel model;
 
 	public ChuyenTauPage() {
 		setLayout(new BorderLayout());
@@ -63,11 +71,9 @@ public class ChuyenTauPage extends JPanel {
 		content.setBackground(Color.decode("#F0F5F9"));
 		content.setBorder(new EmptyBorder(12, 16, 12, 16));
 
-		String[] columns = { "Mã chuyến", "Tuyến", "Tàu", "Khởi hành", "Đến nơi", "Thời gian", "Trạng thái" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0);
-
-		model.addRow(new Object[] { "SE01", "SG->HN", "T001", "07:00", "12:30", "5h30m", "Đang chạy" });
-		model.addRow(new Object[] { "SE02", "SG->HN", "T002", "13:00", "18:30", "5h30m", "Chậm" });
+		String[] columns = { "maCT", "maTau", "maTuyenTau", "ngayKhoiHanh", "gioKhoiHanh", "trangThai" };
+		model = new DefaultTableModel(columns, 0);
+		loadDataFromDatabase();
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,5 +86,16 @@ public class ChuyenTauPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<ChuyenTau> danhSach = chuyenTauController.timKiemChuyenTau(null);
+		for (ChuyenTau ct : danhSach) {
+			String ngayKhoiHanh = ct.getNgayKhoiHanh() != null ? ct.getNgayKhoiHanh().toLocalDate().format(DATE_FMT) : "";
+			String gioKhoiHanh = ct.getNgayKhoiHanh() != null ? ct.getNgayKhoiHanh().toLocalTime().format(TIME_FMT) : "";
+			model.addRow(new Object[] { ct.getMaCT(), ct.getMaTau(), ct.getMaTuyenTau(), ngayKhoiHanh, gioKhoiHanh,
+					ct.isTrangThai() ? "1" : "0" });
+		}
 	}
 }

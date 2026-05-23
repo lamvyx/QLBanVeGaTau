@@ -41,7 +41,7 @@ public class KhachHangPage extends JPanel {
 	}
 
 	private JPanel taoHub() {
-		JPanel hub = new JPanel(new GridLayout(2, 2, 16, 16));
+		JPanel hub = new JPanel(new GridLayout(2, 3, 16, 16));
 		hub.setBackground(AppTheme.PAGE_BG);
 		hub.setBorder(new EmptyBorder(18, 0, 0, 0));
 
@@ -49,6 +49,8 @@ public class KhachHangPage extends JPanel {
 		hub.add(taoNutChucNang("Tra cứu khách hàng", "Tìm kiếm và xem danh sách khách hàng", new KhachHangTraCuuPage()));
 		hub.add(taoNutChucNang("Cập nhật khách hàng", "Chọn khách hàng và chỉnh sửa thông tin", new KhachHangCapNhatPage()));
 		hub.add(taoNutChucNang("Lịch sử vé", "Xem lịch sử vé đã đặt", new LichSuVePage()));
+		hub.add(taoNutChucNang("Đặt vé khách gọi", "Lưu phiếu đặt trước cho khách gọi điện", new PhieuDatVePage()));
+		hub.add(taoNutChucNang("Phiếu đặt vé", "Xem phiếu đặt và nạp sang bán vé", new PhieuDatVeTraCuuPage()));
 
 		return hub;
 	}

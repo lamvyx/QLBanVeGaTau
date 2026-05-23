@@ -1,8 +1,8 @@
 package dao;
 
 import connectDB.DatabaseConnection;
-import entity.VeTau;
 import entity.LichSuVeDTO;
+import entity.VeTau;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -20,7 +20,7 @@ public class VeTau_DAO {
 			if (conn == null) {
 				return null;
 			}
-			String sql = "SELECT maVeTau, maKH, maCT, maToa, giaVe, trangThai FROM VeTau WHERE maVeTau = ?";
+			String sql = "SELECT maVeTau, maKH, maCT, maToa, viTriGhe, loaiVe, giaVe, trangThai FROM VeTau WHERE maVeTau = ?";
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, maVeTau);
 				try (ResultSet rs = ps.executeQuery()) {
@@ -31,7 +31,8 @@ public class VeTau_DAO {
 						ve.setMaChuyenTau(rs.getString("maCT"));
 						ve.setMaToa(rs.getString("maToa"));
 						ve.setGiaVe(BigDecimal.valueOf(rs.getDouble("giaVe")));
-						ve.setViTriGhe(rs.getString("trangThai"));
+						ve.setViTriGhe(rs.getString("viTriGhe"));
+						ve.setLoaiVe(rs.getString("loaiVe"));
 						return ve;
 					}
 				}
@@ -49,7 +50,7 @@ public class VeTau_DAO {
 			if (conn == null) {
 				return danhSach;
 			}
-			String sql = "SELECT maVeTau, maKH, maCT, maToa, giaVe, trangThai FROM VeTau WHERE maCT = ?";
+			String sql = "SELECT maVeTau, maKH, maCT, maToa, viTriGhe, loaiVe, giaVe, trangThai FROM VeTau WHERE maCT = ?";
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				ps.setString(1, maCT);
 				try (ResultSet rs = ps.executeQuery()) {
@@ -60,7 +61,8 @@ public class VeTau_DAO {
 						ve.setMaChuyenTau(rs.getString("maCT"));
 						ve.setMaToa(rs.getString("maToa"));
 						ve.setGiaVe(BigDecimal.valueOf(rs.getDouble("giaVe")));
-						ve.setViTriGhe(rs.getString("trangThai"));
+						ve.setViTriGhe(rs.getString("viTriGhe"));
+						ve.setLoaiVe(rs.getString("loaiVe"));
 						danhSach.add(ve);
 					}
 				}
@@ -126,11 +128,23 @@ public class VeTau_DAO {
 				return dsGhe;
 			}
 
-			String sql = "SELECT ctv.viTriGhe "
-					+ "FROM VeTau vt "
-					+ "JOIN ChiTietVeTau ctv ON ctv.maVeTau = vt.maVeTau "
-					+ "WHERE vt.maCT = ? AND vt.maToa = ? AND vt.trangThai <> 'DA_HOAN'";
+			String sql = "SELECT viTriGhe FROM VeTau WHERE maCT = ? AND maToa = ? AND trangThai <> 'DA_HOAN'";
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maCT.trim());
+				ps.setString(2, maToa.trim());
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						String viTri = rs.getString("viTriGhe");
+						if (viTri != null && !viTri.isBlank()) {
+							dsGhe.add(viTri.trim().toUpperCase());
+						}
+					}
+				}
+			}
+
+			String sqlPhieu = "SELECT ctpd.viTriGhe FROM ChiTietPhieuDat ctpd JOIN PhieuDatVe pd ON pd.maPhieu = ctpd.maPhieu "
+					+ "WHERE ctpd.maCT = ? AND ctpd.maToa = ? AND pd.trangThai = 1";
+			try (PreparedStatement ps = conn.prepareStatement(sqlPhieu)) {
 				ps.setString(1, maCT.trim());
 				ps.setString(2, maToa.trim());
 				try (ResultSet rs = ps.executeQuery()) {

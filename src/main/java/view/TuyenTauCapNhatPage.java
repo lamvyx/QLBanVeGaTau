@@ -1,6 +1,7 @@
 package view;
 
 import controller.TuyenTauController;
+import dao.TuyenTau_DAO;
 import entity.TuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -11,9 +12,14 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -33,7 +39,8 @@ public class TuyenTauCapNhatPage extends JPanel {
 	private JPanel formPanel;
 	private DefaultTableModel model;
 	
-	private JTextField txtMaTT, txtMaGaDi, txtMaGaDen, txtKhoangCach;
+	private JTextField txtMaTT, txtKhoangCach;
+	private JComboBox<String> cboMaGaDi, cboMaGaDen;
 	private JButton btnCapNhat, btnXoa, btnHuy;
 	private final TuyenTauController tuyenTauController = new TuyenTauController();
 
@@ -183,14 +190,10 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaGaDi = new JTextField(table.getValueAt(row, 2).toString());
-		txtMaGaDi.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtMaGaDi.setPreferredSize(new Dimension(200, 30));
-		txtMaGaDi.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 6, 6, 6)
-		));
-		formContainer.add(txtMaGaDi, gbc);
+		cboMaGaDi = new JComboBox<>();
+		cboMaGaDi.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		cboMaGaDi.setPreferredSize(new Dimension(200, 30));
+		formContainer.add(cboMaGaDi, gbc);
 
 		// Row 2: Mã ga đến
 		gbc.gridx = 0;
@@ -203,14 +206,10 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaGaDen = new JTextField(table.getValueAt(row, 3).toString());
-		txtMaGaDen.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtMaGaDen.setPreferredSize(new Dimension(200, 30));
-		txtMaGaDen.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 6, 6, 6)
-		));
-		formContainer.add(txtMaGaDen, gbc);
+		cboMaGaDen = new JComboBox<>();
+		cboMaGaDen.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		cboMaGaDen.setPreferredSize(new Dimension(200, 30));
+		formContainer.add(cboMaGaDen, gbc);
 
 		// Row 3: Khoảng cách
 		gbc.gridx = 0;
@@ -279,6 +278,27 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+
+		// load station lists into combos and try select current
+		try {
+			TuyenTau_DAO dao = new TuyenTau_DAO();
+			List<TuyenTau> ds = dao.layTatCaTuyenTau();
+			Set<String> setGa = new HashSet<>();
+			for (TuyenTau tt : ds) {
+				if (tt.getMaGaDi() != null) setGa.add(tt.getMaGaDi());
+				if (tt.getMaGaDen() != null) setGa.add(tt.getMaGaDen());
+			}
+			List<String> sortedGa = new ArrayList<>(setGa);
+			Collections.sort(sortedGa);
+			cboMaGaDi.removeAllItems(); cboMaGaDen.removeAllItems();
+			cboMaGaDi.addItem("-- Chọn ga --"); cboMaGaDen.addItem("-- Chọn ga --");
+			for (String g : sortedGa) { cboMaGaDi.addItem(g); cboMaGaDen.addItem(g); }
+			// select current values
+			String curDi = table.getValueAt(row, 2).toString();
+			String curDen = table.getValueAt(row, 3).toString();
+			for (int i = 0; i < cboMaGaDi.getItemCount(); i++) if (cboMaGaDi.getItemAt(i).equals(curDi)) { cboMaGaDi.setSelectedIndex(i); break; }
+			for (int i = 0; i < cboMaGaDen.getItemCount(); i++) if (cboMaGaDen.getItemAt(i).equals(curDen)) { cboMaGaDen.setSelectedIndex(i); break; }
+		} catch (Exception ex) {}
 	}
 
 	private void taiDuLieuBang() {
@@ -299,7 +319,15 @@ public class TuyenTauCapNhatPage extends JPanel {
 		}
 		try {
 			double khoangCach = Double.parseDouble(txtKhoangCach.getText().trim());
-			KetQuaXuLy ketQua = tuyenTauController.capNhatTuyenTau(txtMaTT.getText(), txtMaGaDi.getText(), txtMaGaDen.getText(), khoangCach);
+			String gaDi = (String) cboMaGaDi.getSelectedItem();
+			String gaDen = (String) cboMaGaDen.getSelectedItem();
+			if (gaDi != null && gaDi.startsWith("--")) gaDi = null;
+			if (gaDen != null && gaDen.startsWith("--")) gaDen = null;
+			if (gaDi == null || gaDen == null) {
+				JOptionPane.showMessageDialog(this, "Vui lòng chọn cả ga đi và ga đến.");
+				return;
+			}
+			KetQuaXuLy ketQua = tuyenTauController.capNhatTuyenTau(txtMaTT.getText(), gaDi, gaDen, khoangCach);
 			JOptionPane.showMessageDialog(this, ketQua.thongBao);
 			if (ketQua.thanhCong) {
 				taiDuLieuBang();

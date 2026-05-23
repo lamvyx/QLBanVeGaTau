@@ -73,6 +73,11 @@ public class HoaDonService {
 
 	public KetQuaLapHoaDon lapHoaDonBanVe(String maNV, String maKH, String maKM, String maCT, String maToa,
 			List<String> viTriGheList, BigDecimal giaVe) {
+		return lapHoaDonBanVe(maNV, maKH, maKM, maCT, maToa, viTriGheList, giaVe, null);
+	}
+
+	public KetQuaLapHoaDon lapHoaDonBanVe(String maNV, String maKH, String maKM, String maCT, String maToa,
+			List<String> viTriGheList, BigDecimal giaVe, Set<String> gheBoQuaKiemTra) {
 		KetQuaLapHoaDon ketQua = new KetQuaLapHoaDon();
 		if (maNV == null || maNV.isBlank()) {
 			ketQua.thongBao = "Mã nhân viên không được để trống";
@@ -107,6 +112,13 @@ public class HoaDonService {
 		}
 
 		Set<String> daDat = veTauDAO.layGheDaDat(maCT, maToa);
+		if (gheBoQuaKiemTra != null && !gheBoQuaKiemTra.isEmpty()) {
+			for (String gheBoQua : gheBoQuaKiemTra) {
+				if (gheBoQua != null) {
+					daDat.remove(gheBoQua.trim().toUpperCase());
+				}
+			}
+		}
 		for (String ghe : gheHopLe) {
 			if (daDat.contains(ghe)) {
 				ketQua.thongBao = "Ghế " + ghe + " đã có người đặt. Vui lòng chọn ghế khác.";

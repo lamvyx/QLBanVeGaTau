@@ -21,8 +21,8 @@ public class KhachHangController {
 				chuanHoaChuoiRongThanhNull(diaChi), gioiTinh, loaiKH);
 	}
 
-	public List<KhachHang> timKiemKhachHang(String maKH, String tenKH) {
-		return khachHangService.timKiemKhachHang(chuanHoaChuoiRongThanhNull(maKH), chuanHoaChuoiRongThanhNull(tenKH));
+	public List<KhachHang> timKiemKhachHang(String maKH, String tenKH, String sdt) {
+		return khachHangService.timKiemKhachHang(chuanHoaChuoiRongThanhNull(maKH), chuanHoaChuoiRongThanhNull(tenKH), chuanHoaChuoiRongThanhNull(sdt));
 	}
 
 	public List<KhachHang> layTatCaKhachHang() {
