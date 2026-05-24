@@ -10,6 +10,13 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.LinkedHashSet;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -18,30 +25,55 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
+import controller.ChuyenTauController;
+import controller.HoaDonController;
+import controller.ToaController;
+import entity.ChuyenTau;
+import entity.Toa;
 
 public class KiemTraChoTrongPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = AppTheme.PRIMARY;
 	private static final Color MAU_TEXT = AppTheme.TEXT_PRIMARY;
 	private static final Color MAU_XANH = Color.decode("#22C55E");
 	private static final Color MAU_DO = Color.decode("#EF4444");
 	private static final Color MAU_DANG_CHON = Color.decode("#3B82F6");
 
-	private final JLabel lblSoChoTrong = new JLabel("26");
-	private final JLabel lblSoChoDat = new JLabel("14");
-	private final JLabel lblSoChoDangChon = new JLabel("1");
-	private final JLabel lblToaDangXem = new JLabel("Toa 2 - Ghế mềm - 40 ghế");
-	private final JLabel lblNgayChieu = new JLabel("03/04/2026");
-	private final JLabel lblGioChieu = new JLabel("19:00");
-	private final JLabel lblTrangThai = new JLabel("Đang kiểm tra chỗ trống");
+	private final JLabel lblSoChoTrong = new JLabel("0");
+	private final JLabel lblSoChoDat = new JLabel("0");
+	private final JLabel lblSoChoDangChon = new JLabel("0");
+	private final JLabel lblToaDangXem = new JLabel("Chưa chọn toa");
+	private final JLabel lblNgayChieu = new JLabel("-");
+	private final JLabel lblGioChieu = new JLabel("-");
+	private final JLabel lblTrangThai = new JLabel("Vui lòng chọn chuyến tàu và toa");
+	
+	// Thống kê toàn chuyến
+	private final JLabel lblTongGheChuyen = new JLabel("0");
+	private final JLabel lblChoDaDatChuyen = new JLabel("0");
+	private final JLabel lblTiLeTrong = new JLabel("0%");
 
-	private String selectedSeat = "E03";
+	private JComboBox<ChuyenTauOption> cboChuyenTau;
+	private JComboBox<ToaOption> cboToaTau;
+	private JPanel seatGridContainer;
+	
+	private final ChuyenTauController chuyenTauController = new ChuyenTauController();
+	private final ToaController toaController = new ToaController();
+	private final HoaDonController hoaDonController = new HoaDonController();
+	
+	private final List<ChuyenTauOption> dsChuyenTau = new ArrayList<>();
+	private final Map<String, List<ToaOption>> toaTheoChuyen = new HashMap<>();
+	private final Set<String> bookedSeats = new LinkedHashSet<>();
+	
+	private String selectedMaCT;
+	private String selectedMaToa;
+	private int currentSeatCount = 0;
+	private String selectedSeat = "";
 
 	public KiemTraChoTrongPage() {
 		setLayout(new BorderLayout());
 		setBackground(AppTheme.PAGE_BG);
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoContent(), BorderLayout.CENTER);
+		taiDuLieuBanDau();
 	}
 
 	private JPanel taoHeader() {
@@ -91,16 +123,30 @@ public class KiemTraChoTrongPage extends JPanel {
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.weightx = 0.5;
 
-		addField(card, gbc, 0, 0, "Chuyến tàu", new JComboBox<>(new String[] {
-			"SE1-030426 - Sài Gòn - Hà Nội - 19:00",
-			"SE2-030426 - Sài Gòn - Đà Nẵng - 07:00",
-			"TN1-030426 - Sài Gòn - Nha Trang - 06:00"
-		}));
-		addField(card, gbc, 1, 0, "Toa tàu", new JComboBox<>(new String[] {
-			"Toa 1 - Ghế cứng - 40 ghế",
-			"Toa 2 - Ghế mềm - 40 ghế",
-			"Toa 3 - Nằm mềm - 24 ghế"
-		}));
+		cboChuyenTau = new JComboBox<>();
+		cboChuyenTau.addActionListener(e -> {
+			ChuyenTauOption ct = (ChuyenTauOption) cboChuyenTau.getSelectedItem();
+			if (ct != null) {
+				selectedMaCT = ct.maCT;
+				lblNgayChieu.setText(ct.thoiGianKhoiHanh.split(" ")[0]);
+				lblGioChieu.setText(ct.thoiGianKhoiHanh.split(" ").length > 1 ? ct.thoiGianKhoiHanh.split(" ")[1] : "-");
+				taiToaTheoChuyen(ct);
+			}
+		});
+		addField(card, gbc, 0, 0, "Chuyến tàu", cboChuyenTau);
+
+		cboToaTau = new JComboBox<>();
+		cboToaTau.addActionListener(e -> {
+			ToaOption toa = (ToaOption) cboToaTau.getSelectedItem();
+			if (toa != null) {
+				selectedMaToa = toa.maToa;
+				currentSeatCount = toa.soGhe;
+				lblToaDangXem.setText(toa.toString());
+				capNhatGheDaDat();
+				refreshSeatGrid();
+			}
+		});
+		addField(card, gbc, 1, 0, "Toa tàu", cboToaTau);
 		addField(card, gbc, 0, 1, "Ngày chạy", new JComboBox<>(new String[] {
 			LocalDate.now().toString(),
 			"2026-04-03",
@@ -158,6 +204,14 @@ public class KiemTraChoTrongPage extends JPanel {
 		statGrid.add(createMiniStat("Đang chọn", lblSoChoDangChon, MAU_DANG_CHON));
 		card.add(statGrid, BorderLayout.CENTER);
 
+		JPanel trainStats = new JPanel(new GridLayout(3, 1, 4, 4));
+		trainStats.setOpaque(false);
+		trainStats.setBorder(new EmptyBorder(10, 0, 0, 0));
+		
+		trainStats.add(createTrainStatRow("Tổng ghế toàn tàu:", lblTongGheChuyen));
+		trainStats.add(createTrainStatRow("Tổng ghế đã đặt:", lblChoDaDatChuyen));
+		trainStats.add(createTrainStatRow("Tỷ lệ trống:", lblTiLeTrong));
+		
 		JPanel info = new JPanel(new GridBagLayout());
 		info.setOpaque(false);
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -167,8 +221,27 @@ public class KiemTraChoTrongPage extends JPanel {
 		addInfo(info, gbc, 1, "Ngày:", lblNgayChieu);
 		addInfo(info, gbc, 2, "Giờ:", lblGioChieu);
 		addInfo(info, gbc, 3, "Trạng thái:", lblTrangThai);
-		card.add(info, BorderLayout.SOUTH);
+		
+		JPanel southPanel = new JPanel(new BorderLayout());
+		southPanel.setOpaque(false);
+		southPanel.add(trainStats, BorderLayout.NORTH);
+		southPanel.add(info, BorderLayout.CENTER);
+		
+		card.add(southPanel, BorderLayout.SOUTH);
 		return card;
+	}
+
+	private JPanel createTrainStatRow(String label, JLabel value) {
+		JPanel row = new JPanel(new BorderLayout());
+		row.setOpaque(false);
+		JLabel lbl = new JLabel(label);
+		lbl.setFont(AppTheme.font(Font.PLAIN, 12));
+		lbl.setForeground(AppTheme.TEXT_MUTED);
+		row.add(lbl, BorderLayout.WEST);
+		value.setFont(AppTheme.font(Font.BOLD, 12));
+		value.setForeground(AppTheme.TEXT_PRIMARY);
+		row.add(value, BorderLayout.EAST);
+		return row;
 	}
 
 	private JPanel createMiniStat(String label, JLabel value, Color color) {
@@ -231,13 +304,15 @@ public class KiemTraChoTrongPage extends JPanel {
 
 		JPanel grid = new JPanel(new BorderLayout(0, 10));
 		grid.setOpaque(false);
+		grid.setPreferredSize(new Dimension(0, 300));
+		seatGridContainer = grid;
 		grid.add(createSeatGrid(), BorderLayout.CENTER);
-		JLabel hint = new JLabel("Chọn ghế trống để xem vị trí còn khả dụng");
+		JLabel hint = new JLabel("Ghế xanh là trống, ghế đỏ đã có người đặt");
 		hint.setFont(AppTheme.font(Font.ITALIC, 12));
 		hint.setForeground(AppTheme.TEXT_MUTED);
 		hint.setHorizontalAlignment(SwingConstants.CENTER);
 		grid.add(hint, BorderLayout.SOUTH);
-		card.add(new JScrollPane(grid), BorderLayout.CENTER);
+		card.add(grid, BorderLayout.CENTER);
 		return card;
 	}
 
@@ -259,48 +334,49 @@ public class KiemTraChoTrongPage extends JPanel {
 	private JPanel createSeatGrid() {
 		JPanel wrap = new JPanel(new BorderLayout());
 		wrap.setOpaque(false);
-		JPanel cols = new JPanel(new GridLayout(1, 4, 8, 8));
-		cols.setOpaque(false);
-		for (String col : new String[] { "A", "B", "C", "D" }) {
-			JLabel lbl = new JLabel(col, SwingConstants.CENTER);
-			lbl.setFont(new Font("Segoe UI", Font.BOLD, 13));
-			lbl.setForeground(MAU_TEXT);
-			cols.add(lbl);
-		}
-		wrap.add(cols, BorderLayout.NORTH);
-
-		JPanel seats = new JPanel(new GridLayout(8, 4, 8, 8));
+		
+		int colsCount = 4;
+		int rowsCount = Math.max(1, (int) Math.ceil((double) currentSeatCount / colsCount));
+		
+		int index = 0;
+		JPanel seats = new JPanel(new GridLayout(rowsCount, colsCount, 8, 8));
 		seats.setOpaque(false);
-		for (int row = 0; row < 8; row++) {
-			for (int col = 0; col < 4; col++) {
-				JButton seat = new JButton(String.format("%02d", row + 1));
+		
+		for (int r = 0; r < rowsCount; r++) {
+			for (int c = 0; c < colsCount; c++) {
+				if (index >= currentSeatCount) break;
+				
+				String seatCode = String.valueOf((char) ('A' + c)) + String.format("%02d", r + 1);
+				JButton seat = new JButton(seatCode);
 				seat.setFont(new Font("Segoe UI", Font.BOLD, 12));
 				seat.setFocusPainted(false);
-				seat.setPreferredSize(new Dimension(42, 34));
-				seat.setBorder(BorderFactory.createLineBorder(MAU_XANH, 2));
-				seat.setBackground(Color.WHITE);
-				seat.setForeground(MAU_TEXT);
-				if ((row == 0 && (col == 1 || col == 3)) || (row == 1 && col == 2) || (row == 3 && col == 1) || (row == 5 && col != 0) || (row == 6 && (col == 0 || col == 2 || col == 3)) || (row == 7 && col == 1)) {
+				seat.setPreferredSize(new Dimension(60, 40));
+				
+				String finalCode = chuanHoaMaGhe(seatCode);
+				if (bookedSeats.contains(finalCode)) {
 					seat.setBackground(new Color(255, 235, 235));
 					seat.setForeground(MAU_DO);
 					seat.setBorder(BorderFactory.createLineBorder(MAU_DO, 2));
+				} else {
+					seat.setBackground(Color.WHITE);
+					seat.setForeground(MAU_TEXT);
+					seat.setBorder(BorderFactory.createLineBorder(MAU_XANH, 2));
 				}
-				if (row == 2 && col == 2) {
-					seat.setBackground(MAU_DANG_CHON);
-					seat.setForeground(Color.WHITE);
-					seat.setBorder(BorderFactory.createLineBorder(MAU_DANG_CHON.darker(), 2));
-					selectedSeat = "E03";
-				}
+				
 				seat.addActionListener(e -> {
-					if (!seat.getBackground().equals(new Color(255, 235, 235))) {
-						selectedSeat = "E" + seat.getText();
+					if (!bookedSeats.contains(finalCode)) {
+						selectedSeat = seatCode;
 						lblTrangThai.setText("Ghế " + selectedSeat + " đang khả dụng");
 						lblSoChoDangChon.setText("1");
-						for (java.awt.Component component : seats.getComponents()) {
-							if (component instanceof JButton other && !other.getBackground().equals(new Color(255, 235, 235))) {
-								other.setBackground(Color.WHITE);
-								other.setForeground(MAU_TEXT);
-								other.setBorder(BorderFactory.createLineBorder(MAU_XANH, 2));
+						// Reset other selections
+						for (java.awt.Component comp : seats.getComponents()) {
+							if (comp instanceof JButton btn) {
+								String btnCode = chuanHoaMaGhe(btn.getText());
+								if (!bookedSeats.contains(btnCode)) {
+									btn.setBackground(Color.WHITE);
+									btn.setForeground(MAU_TEXT);
+									btn.setBorder(BorderFactory.createLineBorder(MAU_XANH, 2));
+								}
 							}
 						}
 						seat.setBackground(MAU_DANG_CHON);
@@ -309,10 +385,131 @@ public class KiemTraChoTrongPage extends JPanel {
 					}
 				});
 				seats.add(seat);
+				index++;
 			}
 		}
-		wrap.add(seats, BorderLayout.CENTER);
+		
+		wrap.add(new JScrollPane(seats), BorderLayout.CENTER);
 		return wrap;
+	}
+
+	private void taiDuLieuBanDau() {
+		dsChuyenTau.clear();
+		for (ChuyenTau ct : chuyenTauController.timKiemChuyenTau("")) {
+			dsChuyenTau.add(new ChuyenTauOption(ct.getMaCT(), ct.getMaTau(), ct.getMaTuyenTau(), ct.getNgayKhoiHanh().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))));
+		}
+		cboChuyenTau.removeAllItems();
+		for (ChuyenTauOption opt : dsChuyenTau) {
+			cboChuyenTau.addItem(opt);
+		}
+
+		toaTheoChuyen.clear();
+		List<Toa> dsToa = toaController.timKiemToa(null);
+		for (Toa toa : dsToa) {
+			toaTheoChuyen.computeIfAbsent(toa.getMaTau(), k -> new ArrayList<>()).add(new ToaOption(toa.getMaToa(), toa.getLoaiToa(), toa.getSoGhe()));
+		}
+		
+		if (cboChuyenTau.getItemCount() > 0) {
+			cboChuyenTau.setSelectedIndex(0);
+		}
+	}
+
+	private void taiToaTheoChuyen(ChuyenTauOption ct) {
+		cboToaTau.removeAllItems();
+		List<ToaOption> toas = toaTheoChuyen.getOrDefault(ct.maTau, Collections.emptyList());
+		for (ToaOption toa : toas) {
+			cboToaTau.addItem(toa);
+		}
+		if (cboToaTau.getItemCount() > 0) {
+			cboToaTau.setSelectedIndex(0);
+		}
+	}
+
+	private void capNhatGheDaDat() {
+		bookedSeats.clear();
+		if (selectedMaCT != null && selectedMaToa != null) {
+			Set<String> daDat = hoaDonController.layGheDaDat(selectedMaCT, selectedMaToa);
+			for (String s : daDat) {
+				bookedSeats.add(chuanHoaMaGhe(s));
+			}
+		}
+		lblSoChoDat.setText(String.valueOf(bookedSeats.size()));
+		lblSoChoTrong.setText(String.valueOf(currentSeatCount - bookedSeats.size()));
+		lblSoChoDangChon.setText("0");
+		lblTrangThai.setText("Đang xem " + currentSeatCount + " ghế của " + selectedMaToa);
+		
+		capNhatThongKeToanChuyen();
+	}
+
+	private String chuanHoaMaGhe(String raw) {
+		if (raw == null) return "";
+		String value = raw.trim().toUpperCase();
+		// Format ColumnRow (A01, B05...)
+		if (value.matches("[A-Z]\\d+")) {
+			char cot = value.charAt(0);
+			int row = Integer.parseInt(value.substring(1));
+			return cot + String.format("%02d", row);
+		}
+		// Format RowColumn (5A, 12B...)
+		if (value.matches("\\d+[A-Z]")) {
+			char cot = value.charAt(value.length() - 1);
+			int row = Integer.parseInt(value.substring(0, value.length() - 1));
+			return cot + String.format("%02d", row);
+		}
+		// Standard numeric (07, 15...)
+		if (value.matches("\\d+")) {
+			return String.format("%02d", Integer.parseInt(value));
+		}
+		return value;
+	}
+
+	private void capNhatThongKeToanChuyen() {
+		ChuyenTauOption ct = (ChuyenTauOption) cboChuyenTau.getSelectedItem();
+		if (ct == null) return;
+		
+		int tongGhe = 0;
+		int tongDaDat = 0;
+		
+		List<ToaOption> dsToa = toaTheoChuyen.getOrDefault(ct.maTau, Collections.emptyList());
+		for (ToaOption toa : dsToa) {
+			tongGhe += toa.soGhe;
+			Set<String> daDat = hoaDonController.layGheDaDat(ct.maCT, toa.maToa);
+			tongDaDat += daDat.size();
+		}
+		
+		lblTongGheChuyen.setText(String.valueOf(tongGhe));
+		lblChoDaDatChuyen.setText(String.valueOf(tongDaDat));
+		if (tongGhe > 0) {
+			double phanTramTrong = ((double)(tongGhe - tongDaDat) / tongGhe) * 100;
+			lblTiLeTrong.setText(String.format("%.1f%%", phanTramTrong));
+		} else {
+			lblTiLeTrong.setText("0%");
+		}
+	}
+
+	private void refreshSeatGrid() {
+		if (seatGridContainer != null) {
+			seatGridContainer.removeAll();
+			seatGridContainer.add(createSeatGrid(), BorderLayout.CENTER);
+			seatGridContainer.revalidate();
+			seatGridContainer.repaint();
+		}
+	}
+
+	private static class ChuyenTauOption {
+		String maCT, maTau, maTuyen, thoiGianKhoiHanh;
+		ChuyenTauOption(String maCT, String maTau, String maTuyen, String thoiGian) {
+			this.maCT = maCT; this.maTau = maTau; this.maTuyen = maTuyen; this.thoiGianKhoiHanh = thoiGian;
+		}
+		@Override public String toString() { return maCT + " (" + thoiGianKhoiHanh + ")"; }
+	}
+
+	private static class ToaOption {
+		String maToa, loaiToa; int soGhe;
+		ToaOption(String maToa, String loai, int ghe) {
+			this.maToa = maToa; this.loaiToa = loai; this.soGhe = ghe;
+		}
+		@Override public String toString() { return maToa + " - " + loaiToa + " (" + soGhe + " ghế)"; }
 	}
 
 	private JPanel createDetailCard() {
@@ -369,9 +566,9 @@ public class KiemTraChoTrongPage extends JPanel {
 	}
 
 	private void capNhatTrangThai() {
-		lblTrangThai.setText("Đang xem chỗ trống của " + lblToaDangXem.getText());
-		lblNgayChieu.setText("03/04/2026");
-		lblGioChieu.setText("19:00");
+		capNhatGheDaDat();
+		refreshSeatGrid();
+		lblTrangThai.setText("Cập nhật dữ liệu lúc: " + java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm:ss")));
 	}
 
 	private void resetSeats() {

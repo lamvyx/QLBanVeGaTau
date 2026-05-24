@@ -1,5 +1,8 @@
 package view;
 
+import controller.TuyenTauController;
+import dao.TuyenTau_DAO;
+import entity.TuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,9 +12,16 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -19,6 +29,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import service.TuyenTauService.KetQuaXuLy;
 
 public class TuyenTauCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -26,9 +37,12 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 	private JTable table;
 	private JPanel formPanel;
+	private DefaultTableModel model;
 	
-	private JTextField txtMaTT, txtMaGaDi, txtMaGaDen, txtKhoangCach;
+	private JTextField txtMaTT, txtKhoangCach;
+	private JComboBox<String> cboMaGaDi, cboMaGaDen;
 	private JButton btnCapNhat, btnXoa, btnHuy;
+	private final TuyenTauController tuyenTauController = new TuyenTauController();
 
 	public TuyenTauCapNhatPage() {
 		setLayout(new BorderLayout());
@@ -64,19 +78,13 @@ public class TuyenTauCapNhatPage extends JPanel {
 		));
 
 		// Tạo bảng
-		String[] columns = { "Mã tuyến", "Ga đi", "Ga đến", "Khoảng cách (km)" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		String[] columns = { "#", "Mã tuyến", "Ga đi", "Ga đến", "Khoảng cách (km)" };
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { "TT001", "Sài Gòn", "Hà Nội", "1728" });
-		model.addRow(new Object[] { "TT002", "Sài Gòn", "Đà Nẵng", "962" });
-		model.addRow(new Object[] { "TT003", "Sài Gòn", "Nha Trang", "450" });
-		model.addRow(new Object[] { "TT004", "Hà Nội", "Hải Phòng", "120" });
-		model.addRow(new Object[] { "TT005", "Đà Nẵng", "Huế", "110" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -117,6 +125,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 		splitPane.setDividerLocation(250);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
+		taiDuLieuBang();
 
 		return content;
 	}
@@ -181,14 +190,10 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaGaDi = new JTextField(table.getValueAt(row, 2).toString());
-		txtMaGaDi.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtMaGaDi.setPreferredSize(new Dimension(200, 30));
-		txtMaGaDi.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 6, 6, 6)
-		));
-		formContainer.add(txtMaGaDi, gbc);
+		cboMaGaDi = new JComboBox<>();
+		cboMaGaDi.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		cboMaGaDi.setPreferredSize(new Dimension(200, 30));
+		formContainer.add(cboMaGaDi, gbc);
 
 		// Row 2: Mã ga đến
 		gbc.gridx = 0;
@@ -201,14 +206,10 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtMaGaDen = new JTextField(table.getValueAt(row, 3).toString());
-		txtMaGaDen.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtMaGaDen.setPreferredSize(new Dimension(200, 30));
-		txtMaGaDen.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 6, 6, 6)
-		));
-		formContainer.add(txtMaGaDen, gbc);
+		cboMaGaDen = new JComboBox<>();
+		cboMaGaDen.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		cboMaGaDen.setPreferredSize(new Dimension(200, 30));
+		formContainer.add(cboMaGaDen, gbc);
 
 		// Row 3: Khoảng cách
 		gbc.gridx = 0;
@@ -246,6 +247,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnCapNhat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatTuyenTau());
 		buttonPanel.add(btnCapNhat);
 
 		btnXoa = new JButton("Xóa");
@@ -255,6 +257,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnXoa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnXoa.addActionListener(e -> xuLyXoaTuyenTau());
 		buttonPanel.add(btnXoa);
 
 		btnHuy = new JButton("Hủy");
@@ -264,6 +267,7 @@ public class TuyenTauCapNhatPage extends JPanel {
 		btnHuy.setFocusPainted(false);
 		btnHuy.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnHuy.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnHuy.addActionListener(e -> formPanel.removeAll());
 		buttonPanel.add(btnHuy);
 
 		formContainer.add(buttonPanel, gbc);
@@ -274,5 +278,88 @@ public class TuyenTauCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+
+		// load station lists into combos and try select current
+		try {
+			TuyenTau_DAO dao = new TuyenTau_DAO();
+			List<TuyenTau> ds = dao.layTatCaTuyenTau();
+			Set<String> setGa = new HashSet<>();
+			for (TuyenTau tt : ds) {
+				if (tt.getMaGaDi() != null) setGa.add(tt.getMaGaDi());
+				if (tt.getMaGaDen() != null) setGa.add(tt.getMaGaDen());
+			}
+			List<String> sortedGa = new ArrayList<>(setGa);
+			Collections.sort(sortedGa);
+			cboMaGaDi.removeAllItems(); cboMaGaDen.removeAllItems();
+			cboMaGaDi.addItem("-- Chọn ga --"); cboMaGaDen.addItem("-- Chọn ga --");
+			for (String g : sortedGa) { cboMaGaDi.addItem(g); cboMaGaDen.addItem(g); }
+			// select current values
+			String curDi = table.getValueAt(row, 2).toString();
+			String curDen = table.getValueAt(row, 3).toString();
+			for (int i = 0; i < cboMaGaDi.getItemCount(); i++) if (cboMaGaDi.getItemAt(i).equals(curDi)) { cboMaGaDi.setSelectedIndex(i); break; }
+			for (int i = 0; i < cboMaGaDen.getItemCount(); i++) if (cboMaGaDen.getItemAt(i).equals(curDen)) { cboMaGaDen.setSelectedIndex(i); break; }
+		} catch (Exception ex) {}
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		List<TuyenTau> ds = tuyenTauController.timKiemTuyenTau(null, null, null);
+		int stt = 1;
+		for (TuyenTau tt : ds) {
+			model.addRow(new Object[] { stt++, tt.getMaTT(), tt.getMaGaDi(), tt.getMaGaDen(), tt.getKhoangCach() });
+		}
+	}
+
+	private void xuLyCapNhatTuyenTau() {
+		if (txtMaTT == null) {
+			return;
+		}
+		try {
+			double khoangCach = Double.parseDouble(txtKhoangCach.getText().trim());
+			String gaDi = (String) cboMaGaDi.getSelectedItem();
+			String gaDen = (String) cboMaGaDen.getSelectedItem();
+			if (gaDi != null && gaDi.startsWith("--")) gaDi = null;
+			if (gaDen != null && gaDen.startsWith("--")) gaDen = null;
+			if (gaDi == null || gaDen == null) {
+				JOptionPane.showMessageDialog(this, "Vui lòng chọn cả ga đi và ga đến.");
+				return;
+			}
+			KetQuaXuLy ketQua = tuyenTauController.capNhatTuyenTau(txtMaTT.getText(), gaDi, gaDen, khoangCach);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao);
+			if (ketQua.thanhCong) {
+				taiDuLieuBang();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Khoảng cách phải là số hợp lệ.");
+		}
+	}
+
+	private void xuLyXoaTuyenTau() {
+		if (txtMaTT == null || txtMaTT.getText().trim().isEmpty()) {
+			return;
+		}
+		String maTT = txtMaTT.getText().trim();
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa tuyến tàu " + maTT + " không?",
+				"Xác nhận xóa tuyến tàu",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		KetQuaXuLy ketQua = tuyenTauController.xoaTuyenTau(maTT);
+		JOptionPane.showMessageDialog(this, ketQua.thongBao,
+				ketQua.thanhCong ? "Thành công" : "Lỗi",
+				ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+		if (ketQua.thanhCong) {
+			taiDuLieuBang();
+			formPanel.removeAll();
+			formPanel.revalidate();
+			formPanel.repaint();
+		}
 	}
 }

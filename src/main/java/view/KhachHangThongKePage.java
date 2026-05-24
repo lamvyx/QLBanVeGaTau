@@ -4,17 +4,17 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.util.List;
+import java.util.Map;
 import javax.swing.JPanel;
+import controller.ThongKeController;
 
 public class KhachHangThongKePage extends ThongKeBaoCaoBasePage {
 	private static final long serialVersionUID = 1L;
+	private final ThongKeController thongKeController = new ThongKeController();
 
 	public KhachHangThongKePage() {
 		super("Thống kê khách hàng");
-	}
-
-	public KhachHangThongKePage(boolean chiThongKeTheoNgay) {
-		super("Thống kê khách hàng", chiThongKeTheoNgay);
 	}
 
 	@Override
@@ -57,21 +57,35 @@ public class KhachHangThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createMonthPanel() {
+		int totalCustomers = thongKeController.getTotalCustomers();
+		Map<String, Integer> newCustomersByMonth = thongKeController.getNewCustomersByMonth(2026);
+		int currentMonth = java.time.LocalDate.now().getMonthValue();
+		int newCustomersThisMonth = newCustomersByMonth.getOrDefault("T" + currentMonth, 0);
+		
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			spec("Tổng khách hàng", "1.850", "đang hoạt động", MAU_CHINH),
-			spec("Khách hàng mới", "286", "tháng này", new Color(34, 197, 94)),
-			spec("Tổng điểm tích lũy", "9.500", "điểm", new Color(245, 158, 11)),
-			spec("KH có điểm", "1.024", "55%", new Color(139, 92, 246))
+			spec("Tổng khách hàng", String.format("%, d", totalCustomers), "đang hoạt động", MAU_CHINH),
+			spec("Khách hàng mới", String.format("%, d", newCustomersThisMonth), "tháng này", new Color(34, 197, 94)),
+			spec("Tổng điểm tích lũy", "---", "điểm", new Color(245, 158, 11)),
+			spec("KH có điểm", "---", "55%", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(2, 1, 12, 12));
 		charts.setOpaque(false);
+		
+		int[] monthValues = new int[12];
+		String[] monthLabels = new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" };
+		int maxMonthValue = 0;
+		for (int i = 1; i <= 12; i++) {
+			String key = "T" + i;
+			monthValues[i - 1] = newCustomersByMonth.getOrDefault(key, 0);
+			if (monthValues[i - 1] > maxMonthValue) maxMonthValue = monthValues[i - 1];
+		}
+		if (maxMonthValue == 0) maxMonthValue = 120;
+		
 		charts.add(createChartCard("Khách hàng mới theo tháng", new BarChartPanel(
-			new long[] { 44L, 38L, 62L, 70L, 55L, 82L, 91L, 88L, 76L, 69L, 80L, 108L },
-			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
-			new Color(139, 92, 246), 120L)));
+			convertToLongArray(monthValues), monthLabels, new Color(139, 92, 246), maxMonthValue)));
 		charts.add(createChartCard("Top khách hàng (điểm tích lũy)", new RankingPanel(
 			new String[] { "Phạm Quốc Hùng", "Trần Văn Bình", "Hoàng Minh Tuấn", "Đặng Văn Nam", "Nguyễn Thị Lan" },
 			new int[] { 3200, 2100, 1250, 950, 800 }, new Color(245, 158, 11))));
@@ -80,20 +94,27 @@ public class KhachHangThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createQuarterPanel() {
+		Map<String, Integer> newCustomersByMonth = thongKeController.getNewCustomersByMonth(2026);
+		int q1 = newCustomersByMonth.getOrDefault("T1", 0) + newCustomersByMonth.getOrDefault("T2", 0) + newCustomersByMonth.getOrDefault("T3", 0);
+		int q2 = newCustomersByMonth.getOrDefault("T4", 0) + newCustomersByMonth.getOrDefault("T5", 0) + newCustomersByMonth.getOrDefault("T6", 0);
+		int q3 = newCustomersByMonth.getOrDefault("T7", 0) + newCustomersByMonth.getOrDefault("T8", 0) + newCustomersByMonth.getOrDefault("T9", 0);
+		int q4 = newCustomersByMonth.getOrDefault("T10", 0) + newCustomersByMonth.getOrDefault("T11", 0) + newCustomersByMonth.getOrDefault("T12", 0);
+		
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			spec("Khách mới quý", "684", "Q2/2026", MAU_CHINH),
-			spec("Khách quay lại", "412", "60%", new Color(34, 197, 94)),
-			spec("Điểm phát sinh", "2.860", "điểm", new Color(245, 158, 11)),
-			spec("Tỉ lệ giữ chân", "71%", "trung bình", new Color(139, 92, 246))
+			spec("Khách mới quý", String.format("%, d", q2), "Q2/2026", MAU_CHINH),
+			spec("Khách quay lại", "---", "60%", new Color(34, 197, 94)),
+			spec("Điểm phát sinh", "---", "điểm", new Color(245, 158, 11)),
+			spec("Tỉ lệ giữ chân", "---", "trung bình", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(1, 2, 12, 12));
 		charts.setOpaque(false);
+		int maxQuarter = Math.max(Math.max(q1, q2), Math.max(q3, q4));
 		charts.add(createChartCard("Khách mới theo quý", new BarChartPanel(
-			new long[] { 162L, 210L, 184L, 255L },
-			new String[] { "Q1", "Q2", "Q3", "Q4" }, new Color(139, 92, 246), 280L)));
+			new long[] { q1, q2, q3, q4 },
+			new String[] { "Q1", "Q2", "Q3", "Q4" }, new Color(139, 92, 246), maxQuarter > 0 ? maxQuarter : 280L)));
 		charts.add(createChartCard("Điểm tích lũy theo quý", new LineChartPanel(
 			new int[] { 540, 680, 720, 920 },
 			new String[] { "Q1", "Q2", "Q3", "Q4" }, new Color(245, 158, 11))));
@@ -102,30 +123,58 @@ public class KhachHangThongKePage extends ThongKeBaoCaoBasePage {
 	}
 
 	private JPanel createYearPanel() {
+		int totalCustomers = thongKeController.getTotalCustomers();
+		Map<String, Integer> newCustomersByMonth = thongKeController.getNewCustomersByMonth(2026);
+		int totalNewCustomers = newCustomersByMonth.values().stream().mapToInt(Integer::intValue).sum();
+		
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(createStatGrid(new StatSpec[] {
-			spec("Tổng khách hàng", "1.850", "Năm 2026", MAU_CHINH),
-			spec("Khách mới năm", "1.024", "56%", new Color(34, 197, 94)),
-			spec("Tổng điểm tích lũy", "9.500", "điểm", new Color(245, 158, 11)),
-			spec("KH có điểm", "1.024", "55%", new Color(139, 92, 246))
+			spec("Tổng khách hàng", String.format("%, d", totalCustomers), "Năm 2026", MAU_CHINH),
+			spec("Khách mới năm", String.format("%, d", totalNewCustomers), "56%", new Color(34, 197, 94)),
+			spec("Tổng điểm tích lũy", "---", "điểm", new Color(245, 158, 11)),
+			spec("KH có điểm", "---", "55%", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
+
+		List<Object[]> topKH = thongKeController.getTopCustomers(5);
+		String[] labels = new String[5];
+		int[] values = new int[5];
+		for (int i = 0; i < 5; i++) {
+			if (i < topKH.size()) {
+				labels[i] = (String) topKH.get(i)[0];
+				values[i] = (int) ((Double) topKH.get(i)[1] / 1000); // Scale to 'k' units or points
+			} else {
+				labels[i] = "---";
+				values[i] = 0;
+			}
+		}
 
 		JPanel charts = new JPanel(new GridLayout(2, 1, 12, 12));
 		charts.setOpaque(false);
+		
+		int[] monthValues = new int[12];
+		String[] monthLabels = new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" };
+		int maxMonthValue = 0;
+		for (int i = 1; i <= 12; i++) {
+			String key = "T" + i;
+			monthValues[i - 1] = newCustomersByMonth.getOrDefault(key, 0);
+			if (monthValues[i - 1] > maxMonthValue) maxMonthValue = monthValues[i - 1];
+		}
+		if (maxMonthValue == 0) maxMonthValue = 120;
+		
 		charts.add(createChartCard("Khách hàng mới theo tháng", new BarChartPanel(
-			new long[] { 44L, 38L, 62L, 70L, 55L, 82L, 91L, 88L, 76L, 69L, 80L, 108L },
-			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
-			new Color(139, 92, 246), 120L)));
-		charts.add(createChartCard("Top khách hàng", new RankingPanel(
-			new String[] { "Phạm Quốc Hùng", "Trần Văn Bình", "Hoàng Minh Tuấn", "Đặng Văn Nam", "Nguyễn Thị Lan" },
-			new int[] { 3200, 2100, 1250, 950, 800 }, new Color(245, 158, 11))));
+			convertToLongArray(monthValues), monthLabels, new Color(139, 92, 246), maxMonthValue)));
+		charts.add(createChartCard("Top khách hàng (Doanh thu kđ)", new RankingPanel(labels, values, new Color(245, 158, 11))));
 		wrap.add(charts, BorderLayout.CENTER);
 		return wrap;
 	}
 
-	private JPanel createRankingPanel(String[] labels, int[] values, Color color) {
-		return new RankingPanel(labels, values, color);
+	private long[] convertToLongArray(int[] arr) {
+		long[] result = new long[arr.length];
+		for (int i = 0; i < arr.length; i++) {
+			result[i] = arr[i];
+		}
+		return result;
 	}
 
 	private static final class RankingPanel extends JPanel {

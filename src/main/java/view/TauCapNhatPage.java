@@ -1,5 +1,7 @@
 package view;
 
+import controller.TauController;
+import entity.Tau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -9,16 +11,21 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import service.TauService.KetQuaXuLy;
 
 public class TauCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -26,9 +33,12 @@ public class TauCapNhatPage extends JPanel {
 
 	private JTable table;
 	private JPanel formPanel;
+	private DefaultTableModel model;
 	
-	private JTextField txtMaTau, txtTenTau, txtSoToa, txtSucChua, txtNamSX;
+	private JTextField txtMaTau, txtTenTau;
+	private JSpinner spnSoToa;
 	private JButton btnCapNhat, btnXoa, btnHuy;
+	private final TauController tauController = new TauController();
 
 	public TauCapNhatPage() {
 		setLayout(new BorderLayout());
@@ -63,18 +73,13 @@ public class TauCapNhatPage extends JPanel {
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
-		String[] columns = { "Mã tàu", "Tên tàu", "Số toa", "Sức chứa", "Năm sản xuất" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		String[] columns = { "#", "Mã tàu", "Tên tàu", "Số toa" };
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { "T001", "Tàu SE1", 8, "400 ghế", "2015" });
-		model.addRow(new Object[] { "T002", "Tàu SE2", 8, "400 ghế", "2018" });
-		model.addRow(new Object[] { "T003", "Tàu TN1", 6, "300 ghế", "2020" });
-		model.addRow(new Object[] { "T004", "Tàu HP1", 10, "500 ghế", "2019" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -112,6 +117,7 @@ public class TauCapNhatPage extends JPanel {
 		splitPane.setDividerLocation(250);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
+		taiDuLieuBang();
 
 		return content;
 	}
@@ -191,54 +197,15 @@ public class TauCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtSoToa = new JTextField(table.getValueAt(row, 3).toString());
-		txtSoToa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtSoToa.setPreferredSize(new Dimension(200, 30));
-		txtSoToa.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 6, 6, 6)
-		));
-		formContainer.add(txtSoToa, gbc);
-
-		// Sức chứa
-		gbc.gridx = 0;
-		gbc.gridy = 3;
-		lbl = new JLabel("Sức chứa *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		txtSucChua = new JTextField(table.getValueAt(row, 4).toString());
-		txtSucChua.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtSucChua.setPreferredSize(new Dimension(200, 30));
-		txtSucChua.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 6, 6, 6)
-		));
-		formContainer.add(txtSucChua, gbc);
-
-		// Năm sản xuất
-		gbc.gridx = 0;
-		gbc.gridy = 4;
-		lbl = new JLabel("Năm sản xuất *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		txtNamSX = new JTextField(table.getValueAt(row, 5).toString());
-		txtNamSX.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtNamSX.setPreferredSize(new Dimension(200, 30));
-		txtNamSX.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 6, 6, 6)
-		));
-		formContainer.add(txtNamSX, gbc);
+		spnSoToa = new JSpinner(new SpinnerNumberModel(Integer.parseInt(table.getValueAt(row, 3).toString()), 1, 100, 1));
+		spnSoToa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		spnSoToa.setPreferredSize(new Dimension(200, 30));
+		((JSpinner.DefaultEditor) spnSoToa.getEditor()).getTextField().setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		formContainer.add(spnSoToa, gbc);
 
 		// Buttons
 		gbc.gridx = 0;
-		gbc.gridy = 5;
+		gbc.gridy = 3;
 		gbc.gridwidth = 2;
 		gbc.insets = new Insets(12, 8, 8, 8);
 		JPanel buttonPanel = new JPanel();
@@ -252,6 +219,7 @@ public class TauCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnCapNhat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatTau());
 		buttonPanel.add(btnCapNhat);
 
 		btnXoa = new JButton("Xóa");
@@ -261,6 +229,7 @@ public class TauCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnXoa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnXoa.addActionListener(e -> xuLyXoaTau());
 		buttonPanel.add(btnXoa);
 
 		btnHuy = new JButton("Hủy");
@@ -270,6 +239,7 @@ public class TauCapNhatPage extends JPanel {
 		btnHuy.setFocusPainted(false);
 		btnHuy.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnHuy.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnHuy.addActionListener(e -> formPanel.removeAll());
 		buttonPanel.add(btnHuy);
 
 		formContainer.add(buttonPanel, gbc);
@@ -280,5 +250,59 @@ public class TauCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		List<Tau> ds = tauController.timKiemTau(null, null);
+		int stt = 1;
+		for (Tau tau : ds) {
+			model.addRow(new Object[] { stt++, tau.getMaTau(), tau.getTenTau(), tau.getSoLuongToa() });
+		}
+	}
+
+	private void xuLyCapNhatTau() {
+		if (txtMaTau == null) {
+			return;
+		}
+		try {
+			int soToa = (Integer) spnSoToa.getValue();
+			KetQuaXuLy ketQua = tauController.capNhatTau(txtMaTau.getText(), txtTenTau.getText(), soToa);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao);
+			if (ketQua.thanhCong) {
+				taiDuLieuBang();
+			}
+		} catch (ClassCastException ex) {
+			JOptionPane.showMessageDialog(this, "Số toa không hợp lệ.");
+		}
+	}
+
+	private void xuLyXoaTau() {
+		if (txtMaTau == null || txtMaTau.getText().trim().isEmpty()) {
+			return;
+		}
+		String maTau = txtMaTau.getText().trim();
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa tàu " + maTau + " không?",
+				"Xác nhận xóa tàu",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		KetQuaXuLy ketQua = tauController.xoaTau(maTau);
+		JOptionPane.showMessageDialog(this, ketQua.thongBao,
+				ketQua.thanhCong ? "Thành công" : "Lỗi",
+				ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+		if (ketQua.thanhCong) {
+			taiDuLieuBang();
+			formPanel.removeAll();
+			formPanel.revalidate();
+			formPanel.repaint();
+		}
 	}
 }

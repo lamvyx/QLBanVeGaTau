@@ -1,5 +1,7 @@
 package view;
 
+import controller.DoiTraController;
+import entity.VeTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -12,6 +14,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import service.DoiTraService.KetQuaXuLy;
 
 public class TraVePage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -24,6 +27,7 @@ public class TraVePage extends JPanel {
 	private final JLabel lblPhiHoan = taoValue("—");
 	private final JButton btnTraVe = new JButton("Xác nhận trả vé");
 	private String maVeDangXuLy;
+	private final DoiTraController doiTraController = new DoiTraController();
 
 	public TraVePage() {
 		setLayout(new BorderLayout(0, 16));
@@ -121,8 +125,8 @@ public class TraVePage extends JPanel {
 			JOptionPane.showMessageDialog(this, "Vui lòng nhập mã vé cần trả.");
 			return;
 		}
-
-		if (!"VE0001".equals(maVe) && !"VE0002".equals(maVe) && !"VE0003".equals(maVe)) {
+		VeTau ve = doiTraController.timVeTheoMa(maVe);
+		if (ve == null) {
 			lblTrangThai.setForeground(Color.decode("#B42318"));
 			lblTrangThai.setText("Không tìm thấy vé " + maVe + ".");
 			resetThongTin();
@@ -131,9 +135,9 @@ public class TraVePage extends JPanel {
 
 		maVeDangXuLy = maVe;
 		lblMaVe.setText(maVe);
-		lblKhachHang.setText("Nguyễn Văn Minh");
+		lblKhachHang.setText(ve.getMaKH());
 		lblTrangThaiVe.setText("Đã thanh toán - Có thể hoàn");
-		lblPhiHoan.setText("Hoàn 80%: 880.000đ");
+		lblPhiHoan.setText("Hoàn 80%: " + ve.getGiaVe().multiply(new java.math.BigDecimal("0.8")) + "đ");
 		btnTraVe.setEnabled(true);
 		lblTrangThai.setForeground(Color.decode("#027A48"));
 		lblTrangThai.setText("Đã tìm thấy vé. Kiểm tra thông tin và xác nhận trả vé.");
@@ -145,9 +149,17 @@ public class TraVePage extends JPanel {
 			return;
 		}
 
-		JOptionPane.showMessageDialog(this, "Trả vé thành công cho " + maVeDangXuLy + ".");
-		lblTrangThai.setForeground(Color.decode("#027A48"));
-		lblTrangThai.setText("Đã hoàn vé thành công. Có thể tìm mã vé khác.");
+		KetQuaXuLy taoDon = doiTraController.taoDonDoiTra(maVeDangXuLy, null, "TRA", "Trả vé tại quầy");
+		if (!taoDon.thanhCong) {
+			JOptionPane.showMessageDialog(this, taoDon.thongBao);
+			return;
+		}
+		KetQuaXuLy xacNhan = doiTraController.xacNhanDonDoiTra(taoDon.maThamChieu);
+		JOptionPane.showMessageDialog(this, xacNhan.thongBao);
+		if (xacNhan.thanhCong) {
+			lblTrangThai.setForeground(Color.decode("#027A48"));
+			lblTrangThai.setText("Đã hoàn vé thành công. Có thể tìm mã vé khác.");
+		}
 		resetThongTin();
 		txtMaVe.setText("");
 	}

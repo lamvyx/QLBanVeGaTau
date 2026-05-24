@@ -1,25 +1,41 @@
 package view;
 
+import controller.ChuyenTauController;
+import entity.ChuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import service.ChuyenTauService.KetQuaXuLy;
 
 public class ChuyenTauCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -27,9 +43,16 @@ public class ChuyenTauCapNhatPage extends JPanel {
 
 	private JTable table;
 	private JPanel formPanel;
+	private DefaultTableModel model;
+	private final ChuyenTauController chuyenTauController = new ChuyenTauController();
+	private static final DateTimeFormatter DATE_TIME_INPUT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+	private static final ImageIcon ICON_LICH = taiAnhIcon("/Image/icon_lich.png", 14, 14);
 	
-	private JTextField txtMaChuyenTau, txtGioKhoiHanh, txtGiaCoban;
-	private JComboBox<String> cbTau, cbTuyenTau;
+	private JTextField txtMaChuyenTau;
+	private JComboBox<String> cbTrangThai;
+	private JSpinner spnGioKhoiHanh;
+	private JComboBox<String> cbTau;
+	private JComboBox<TuyenOption> cbTuyenTau;
 	private JButton btnCapNhat, btnXoa, btnHuy;
 
 	public ChuyenTauCapNhatPage() {
@@ -65,18 +88,13 @@ public class ChuyenTauCapNhatPage extends JPanel {
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
-		String[] columns = { "Mã chuyến", "Tàu", "Tuyến", "Giờ khởi hành", "Giá cơ bản" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		String[] columns = { "#", "Mã chuyến", "Tàu", "Tuyến", "Giờ khởi hành", "Trạng thái" };
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { "SE1-020426", "SE1", "Sài Gòn - Hà Nội", "19:00:00", "850.000 đ" });
-		model.addRow(new Object[] { "SE1-030426", "SE1", "Sài Gòn - Hà Nội", "19:00:00", "850.000 đ" });
-		model.addRow(new Object[] { "SE2-020426", "SE2", "Sài Gòn - Đà Nẵng", "07:00:00", "530.000 đ" });
-		model.addRow(new Object[] { "TN1-020426", "TN1", "Sài Gòn - Nha Trang", "06:00:00", "280.000 đ" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -114,6 +132,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		splitPane.setDividerLocation(250);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
+		taiDuLieuBang();
 
 		return content;
 	}
@@ -132,6 +151,99 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		wrapper.add(lblHuongDan, BorderLayout.CENTER);
 
 		return wrapper;
+	}
+
+	private JSpinner taoDateTimePicker() {
+		JSpinner spinner = new JSpinner(new SpinnerDateModel());
+		JSpinner.DateEditor editor = new JSpinner.DateEditor(spinner, "dd/MM/yyyy HH:mm");
+		spinner.setEditor(editor);
+		spinner.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		spinner.setPreferredSize(new Dimension(200, 30));
+		spinner.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(2, 2, 2, 2)
+		));
+		return spinner;
+	}
+
+	private JPanel taoPanelChonNgayNhanh(JSpinner spn) {
+		JPanel wrap = new JPanel(new BorderLayout(5, 0));
+		wrap.setBackground(Color.WHITE);
+		wrap.add(spn, BorderLayout.CENTER);
+		
+		JPanel buttons = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 2, 0));
+		buttons.setBackground(Color.WHITE);
+		
+		JButton btnCalendar = new JButton(ICON_LICH);
+		btnCalendar.setToolTipText("Chọn từ lịch");
+		btnCalendar.setFocusPainted(false);
+		btnCalendar.setPreferredSize(new Dimension(28, 30));
+		btnCalendar.addActionListener(e -> {
+			LocalDate current = layLocalDateTimeTuSpinner(spn).toLocalDate();
+			CalendarDatePicker picker = new CalendarDatePicker(current, date -> {
+				LocalDateTime time = layLocalDateTimeTuSpinner(spn);
+				spn.setValue(Date.from(date.atTime(time.toLocalTime()).atZone(ZoneId.systemDefault()).toInstant()));
+			});
+			picker.showPopup(btnCalendar, 0, btnCalendar.getHeight());
+		});
+		buttons.add(btnCalendar);
+
+		JButton btnNow = new JButton("Nay");
+		btnNow.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		btnNow.setMargin(new Insets(2, 5, 2, 5));
+		btnNow.addActionListener(e -> spn.setValue(new Date()));
+		
+		JButton btnTomorrow = new JButton("Mai");
+		btnTomorrow.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		btnTomorrow.setMargin(new Insets(2, 5, 2, 5));
+		btnTomorrow.addActionListener(e -> {
+			Calendar cal = Calendar.getInstance();
+			cal.add(Calendar.DAY_OF_YEAR, 1);
+			spn.setValue(cal.getTime());
+		});
+
+		JButton btnPlus1h = new JButton("+1h");
+		btnPlus1h.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		btnPlus1h.setMargin(new Insets(2, 5, 2, 5));
+		btnPlus1h.addActionListener(e -> {
+			Calendar cal = Calendar.getInstance();
+			cal.setTime((Date) spn.getValue());
+			cal.add(Calendar.HOUR_OF_DAY, 1);
+			spn.setValue(cal.getTime());
+		});
+
+		JButton btnPlus3h = new JButton("+3h");
+		btnPlus3h.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+		btnPlus3h.setMargin(new Insets(2, 5, 2, 5));
+		btnPlus3h.addActionListener(e -> {
+			Calendar cal = Calendar.getInstance();
+			cal.setTime((Date) spn.getValue());
+			cal.add(Calendar.HOUR_OF_DAY, 3);
+			spn.setValue(cal.getTime());
+		});
+		
+		buttons.add(btnNow);
+		buttons.add(btnTomorrow);
+		buttons.add(btnPlus1h);
+		buttons.add(btnPlus3h);
+		wrap.add(buttons, BorderLayout.EAST);
+		return wrap;
+	}
+
+	private static ImageIcon taiAnhIcon(String path, int w, int h) {
+		try {
+			java.net.URL url = ChuyenTauCapNhatPage.class.getResource(path);
+			if (url != null) {
+				Image img = new ImageIcon(url).getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
+				return new ImageIcon(img);
+			}
+		} catch (Exception e) {}
+		return null;
+	}
+
+	private LocalDateTime layLocalDateTimeTuSpinner(JSpinner spn) {
+		Date date = (Date) spn.getValue();
+		return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
 	}
 
 	private void displayForm(int row) {
@@ -177,8 +289,8 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		gbc.gridx = 1;
 		cbTau = new JComboBox<>();
 		cbTau.addItem(table.getValueAt(row, 2).toString());
-		cbTau.addItem("T001");
-		cbTau.addItem("T002");
+		cbTau.addItem("TAU001");
+		cbTau.addItem("TAU002");
 		cbTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		cbTau.setPreferredSize(new Dimension(200, 30));
 		formContainer.add(cbTau, gbc);
@@ -193,9 +305,26 @@ public class ChuyenTauCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		cbTuyenTau = new JComboBox<>();
-		cbTuyenTau.addItem(table.getValueAt(row, 3).toString());
-		cbTuyenTau.addItem("Sài Gòn - Hà Nội");
-		cbTuyenTau.addItem("Sài Gòn - Đà Nẵng");
+		// load all routes and show as "GaDi → GaDen"
+		try {
+			dao.TuyenTau_DAO dao = new dao.TuyenTau_DAO();
+			java.util.List<entity.TuyenTau> ds = dao.layTatCaTuyenTau();
+			for (entity.TuyenTau tt : ds) {
+				cbTuyenTau.addItem(new TuyenOption(tt.getMaTT(), tt.getMaGaDi(), tt.getMaGaDen()));
+			}
+			// try to select current value from table
+			String current = table.getValueAt(row, 3).toString();
+			for (int i = 0; i < cbTuyenTau.getItemCount(); i++) {
+				TuyenOption opt = cbTuyenTau.getItemAt(i);
+				if (opt != null && opt.maTT != null && opt.maTT.equals(current)) {
+					cbTuyenTau.setSelectedIndex(i);
+					break;
+				}
+			}
+		} catch (Exception e) {
+			// fallback: show raw code
+			cbTuyenTau.addItem(new TuyenOption(table.getValueAt(row, 3).toString(), "", ""));
+		}
 		cbTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		cbTuyenTau.setPreferredSize(new Dimension(200, 30));
 		formContainer.add(cbTuyenTau, gbc);
@@ -209,32 +338,31 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtGioKhoiHanh = new JTextField(table.getValueAt(row, 4).toString());
-		txtGioKhoiHanh.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtGioKhoiHanh.setPreferredSize(new Dimension(200, 30));
-		txtGioKhoiHanh.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 6, 6, 6)
-		));
-		formContainer.add(txtGioKhoiHanh, gbc);
+		spnGioKhoiHanh = taoDateTimePicker();
+		try {
+			String val = table.getValueAt(row, 4).toString();
+			spnGioKhoiHanh.setValue(Date.from(LocalDateTime.parse(val, DATE_TIME_INPUT).atZone(ZoneId.systemDefault()).toInstant()));
+		} catch (Exception e) {}
+		formContainer.add(taoPanelChonNgayNhanh(spnGioKhoiHanh), gbc);
 
-		// Giá cơ bản
+		// Trạng thái
 		gbc.gridx = 0;
 		gbc.gridy = 4;
-		lbl = new JLabel("Giá cơ bản (VND) *");
+		lbl = new JLabel("Trạng thái *");
 		lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
 		lbl.setForeground(Color.decode("#2B4B74"));
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtGiaCoban = new JTextField(table.getValueAt(row, 5).toString());
-		txtGiaCoban.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtGiaCoban.setPreferredSize(new Dimension(200, 30));
-		txtGiaCoban.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 6, 6, 6)
-		));
-		formContainer.add(txtGiaCoban, gbc);
+		cbTrangThai = new JComboBox<>();
+		cbTrangThai.addItem("Hoạt động");
+		cbTrangThai.addItem("Ngưng hoạt động");
+		String currentStatus = table.getValueAt(row, 5) == null ? "" : table.getValueAt(row, 5).toString();
+		if ("Hoạt động".equals(currentStatus)) cbTrangThai.setSelectedItem("Hoạt động");
+		else if ("Ngưng hoạt động".equals(currentStatus)) cbTrangThai.setSelectedItem("Ngưng hoạt động");
+		cbTrangThai.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		cbTrangThai.setPreferredSize(new Dimension(200, 30));
+		formContainer.add(cbTrangThai, gbc);
 
 		// Buttons
 		gbc.gridx = 0;
@@ -252,6 +380,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnCapNhat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatChuyenTau());
 		buttonPanel.add(btnCapNhat);
 
 		btnXoa = new JButton("Xóa");
@@ -261,6 +390,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnXoa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnXoa.addActionListener(e -> xuLyXoaChuyenTau());
 		buttonPanel.add(btnXoa);
 
 		btnHuy = new JButton("Hủy");
@@ -270,6 +400,7 @@ public class ChuyenTauCapNhatPage extends JPanel {
 		btnHuy.setFocusPainted(false);
 		btnHuy.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnHuy.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnHuy.addActionListener(e -> formPanel.removeAll());
 		buttonPanel.add(btnHuy);
 
 		formContainer.add(buttonPanel, gbc);
@@ -280,5 +411,72 @@ public class ChuyenTauCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		List<ChuyenTau> ds = chuyenTauController.timKiemChuyenTau(null);
+		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+		int stt = 1;
+		for (ChuyenTau ct : ds) {
+			String ngayGio = ct.getNgayKhoiHanh() == null ? "" : ct.getNgayKhoiHanh().format(dtf);
+			String trangThai = ct.isTrangThai() ? "Hoạt động" : "Ngưng hoạt động";
+			model.addRow(new Object[] { stt++, ct.getMaCT(), ct.getMaTau(), ct.getMaTuyenTau(), ngayGio, trangThai });
+		}
+	}
+
+	private void xuLyCapNhatChuyenTau() {
+		if (txtMaChuyenTau == null) {
+			return;
+		}
+		try {
+			LocalDateTime ngayGio = layLocalDateTimeTuSpinner(spnGioKhoiHanh);
+			    String maTauSel = String.valueOf(cbTau.getSelectedItem());
+			    String maTuyenSel = null;
+			    TuyenOption to = (TuyenOption) cbTuyenTau.getSelectedItem();
+			    if (to != null) maTuyenSel = to.maTT;
+				boolean trangThai = true;
+				if (cbTrangThai != null) {
+					Object sel = cbTrangThai.getSelectedItem();
+					trangThai = "Hoạt động".equals(sel);
+				}
+				KetQuaXuLy ketQua = chuyenTauController.capNhatChuyenTau(txtMaChuyenTau.getText(),
+					maTauSel, maTuyenSel, ngayGio, trangThai);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao);
+			if (ketQua.thanhCong) {
+				taiDuLieuBang();
+			}
+		} catch (DateTimeParseException ex) {
+			JOptionPane.showMessageDialog(this, "Giờ khởi hành không hợp lệ (dd/MM/yyyy HH:mm).");
+		}
+	}
+
+	private void xuLyXoaChuyenTau() {
+		if (txtMaChuyenTau == null || txtMaChuyenTau.getText().trim().isEmpty()) {
+			return;
+		}
+		String maCT = txtMaChuyenTau.getText().trim();
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa chuyến tàu " + maCT + " không?",
+				"Xác nhận xóa chuyến tàu",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		KetQuaXuLy ketQua = chuyenTauController.xoaChuyenTau(maCT);
+		JOptionPane.showMessageDialog(this, ketQua.thongBao,
+				ketQua.thanhCong ? "Thành công" : "Lỗi",
+				ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+		if (ketQua.thanhCong) {
+			taiDuLieuBang();
+			formPanel.removeAll();
+			formPanel.revalidate();
+			formPanel.repaint();
+		}
 	}
 }

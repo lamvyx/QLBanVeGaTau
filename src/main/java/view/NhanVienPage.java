@@ -1,10 +1,14 @@
 package view;
 
+import controller.NhanVienController;
+import entity.NhanVien;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +21,9 @@ import javax.swing.table.DefaultTableModel;
 public class NhanVienPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = AppTheme.PRIMARY;
+	private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private final NhanVienController nhanVienController = new NhanVienController();
+	private DefaultTableModel model;
 
 	public NhanVienPage() {
 		setLayout(new BorderLayout());
@@ -57,14 +64,9 @@ public class NhanVienPage extends JPanel {
 		content.setBackground(AppTheme.PAGE_BG);
 		content.setBorder(new EmptyBorder(12, 16, 12, 16));
 
-		// Tạo bảng nhân viên
-		String[] columns = { "ID", "Họ tên", "Email", "Số điện thoại", "Chức vụ", "Ngày vào làm" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0);
-
-		// Sample data
-		model.addRow(new Object[] { 1, "Nguyễn Văn A", "a@email.com", "0912345678", "Nhân viên", "2023-01-15" });
-		model.addRow(new Object[] { 2, "Trần Thị B", "b@email.com", "0923456789", "Trưởng ca", "2022-05-20" });
-		model.addRow(new Object[] { 3, "Phạm Văn C", "c@email.com", "0934567890", "Nhân viên", "2023-06-10" });
+		String[] columns = { "maNV", "tenNV", "sdt", "gioiTinh", "ngaySinh", "ngayVaoLam", "trangThai", "email", "chucVu", "username" };
+		model = new DefaultTableModel(columns, 0);
+		loadDataFromDatabase();
 
 		JTable table = new JTable(model);
 		AppTheme.styleTable(table);
@@ -75,5 +77,17 @@ public class NhanVienPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<NhanVien> danhSach = nhanVienController.layTatCaNhanVien();
+		for (NhanVien nv : danhSach) {
+			model.addRow(new Object[] { nv.getMaNV(), nv.getTenNV(), nv.getSdt(), nv.isGioiTinh() ? "Nam" : "Nữ",
+					nv.getNgaySinh() != null ? nv.getNgaySinh().format(DATE_FMT) : "",
+					nv.getNgayVaoLam() != null ? nv.getNgayVaoLam().format(DATE_FMT) : "",
+					nv.isTrangThai() ? "1" : "0", nhanVienController.layEmailTheoUsername(nv.getUsername()),
+					nv.getChucVu(), nv.getUsername() });
+		}
 	}
 }

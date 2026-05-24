@@ -1,110 +1,181 @@
-# QLBanVeGaTau - Huong Dan Lam Viec Nhom Bang Git
+Các hành động đã thực hiện để rút gọn code:
+Tách các thành phần giao diện phức tạp (Component Extraction):
 
-Tai lieu nay dung cho nhom 4 nguoi de lam viec chung tren GitHub, commit dung quy tac va merge code qua Pull Request.
+Tạo BanVeSuccessPanel.java: Chuyển toàn bộ logic vẽ giao diện "Lập hóa đơn thành công" sang một lớp riêng.
+Tạo BanVePrintPanel.java: Chuyển toàn bộ giao diện "In vé / Hóa đơn" sang một lớp riêng.
+Việc này giúp BanVePage không còn phải chứa hàng trăm dòng code boilerplate (khởi tạo Label, Button, layout) cho các màn hình phụ này.
+Tách biệt Model dữ liệu:
 
-## 1. Cau truc nhanh duoc dung
+Tạo BanVeOptionModels.java: Chuyển các lớp hỗ trợ như KhachHangOption, ChuyenTauOption, và ToaOption (dùng cho JComboBox) ra tệp riêng.
+Tối ưu hóa Logic trong BanVePage:
 
-- Nhanh chinh: `main`
-- Nhanh theo thanh vien:
-- `dev/member1-auth-user`
-- `dev/member2-ticket-invoice`
-- `dev/member3-train-route-schedule`
-- `dev/member4-report-promotion-service`
+Sử dụng các Component mới thông qua các Interface/Lambda đơn giản để xử lý sự kiện (như quay lại hoặc bán vé mới), giúp code xử lý luồng (Flow logic) trở nên rõ ràng hơn.
+Dọn dẹp mã nguồn:
 
-Quy uoc: Moi nguoi lam viec tren nhanh rieng, khong commit truc tiep vao `main`.
+Xóa bỏ các trường (field) không sử dụng, các import dư thừa và các khối mã bị trùng lặp sau khi refactor.
 
-## 2. Chia viec cho 4 thanh vien (goi y)
+Các thành phần mới đã được tách:
+Giao diện & Thành phần UI (Modular UI Components):
+--------------------------------------------------------------------------------
 
-- Thanh vien 1 (`dev/member1-auth-user`): Dang nhap, TaiKhoan, NhanVien, KhachHang
-- Thanh vien 2 (`dev/member2-ticket-invoice`): Ban ve, lap hoa don, chi tiet hoa don
-- Thanh vien 3 (`dev/member3-train-route-schedule`): TuyenTau, Tau, Toa, ChuyenTau
-- Thanh vien 4 (`dev/member4-report-promotion-service`): KhuyenMai, DichVu, thong ke bao cao
+BanVeSeatPanel.java: Quản lý toàn bộ lưới chọn ghế, chú thích (legend) và trạng thái hiển thị của các nút ghế.
 
-Neu thay doi lien quan nhieu phan, tao branch feature moi tu branch ca nhan:
-- `feature/member2/payment-refactor`
+BanVeSummaryPanel.java: Quản lý phần Tóm tắt đơn hàng và Chi tiết giá cả (bên phải giao diện), bao gồm cả các nút bấm "Lập hóa đơn" và "Làm mới".
 
-## 3. Quy tac commit (bat buoc)
+BanVeSuccessPanel.java: Giao diện thông báo thành công.
 
-Dung Conventional Commits:
+BanVePrintPanel.java: Giao diện xem trước hóa đơn và in vé.
+Logic Nghiệp vụ & Tiện ích (Pure Logic & Utils):
 
-- `feat(module): mo ta tinh nang`
-- `fix(module): mo ta loi da sua`
-- `refactor(module): mo ta toi uu`
-- `docs(git): cap nhat huong dan`
-- `chore(build): cap nhat cau hinh`
 
-Vi du:
-- `feat(ticket): them validate cho chon cho ngoi`
-- `fix(invoice): sua loi tinh tong tien sau thue`
-- `docs(git): them quy trinh tao pull request`
+BanVeUtils.java: Chứa các logic không liên quan đến giao diện như: định dạng tiền tệ, chuẩn hóa mã ghế (String manipulation), và quy tắc xác định giá vé theo loại toa.
 
-## 4. Quy trinh lam viec hang ngay
+BanVeOptionModels.java: Các mô hình dữ liệu dùng cho các JComboBox (KhachHang, ChuyenTau, Toa).
+Kết quả trên 
+--------------------------------------------------------------------------------
 
-### Buoc 1: Lay code moi nhat
 
-```bash
-git checkout main
-git pull origin main
+## Chức năng Thống kê (Statistics Module)
+
+Chức năng thống kê được thiết kế theo kiến trúc MVC (Model-View-Controller) để đảm bảo tách biệt giữa dữ liệu, logic nghiệp vụ và giao diện người dùng.
+
+### Cấu trúc luồng dữ liệu:
+
+```
+Database (SQL Server)
+    ↓
+DAO Layer (ThongKe_DAO.java)
+    ↓
+Service Layer (ThongKeService.java)
+    ↓
+Controller Layer (ThongKeController.java)
+    ↓
+View Layer (ThongKePage.java, DoanhThuThongKePage.java, v.v.)
 ```
 
-### Buoc 2: Chuyen sang nhanh ca nhan
+### 1. DAO Layer - Truy xuất dữ liệu từ Database
 
-```bash
-git checkout dev/member1-auth-user
-```
+**File:** `dao/ThongKe_DAO.java`
 
-### Buoc 3: Lam viec va commit
+Đây là lớp chịu trách nhiệm kết nối và truy vấn dữ liệu trực tiếp từ SQL Server database. Các methods chính:
 
-```bash
-git add .
-git commit -m "feat(auth): them dang nhap bang username"
-```
+- `getRevenueByPeriod(String period)` - Lấy doanh thu theo ngày/tháng/năm
+  - Truy vấn view `v_TongTienHoaDon` và bảng `HoaDon`
+  - Lọc theo trạng thái thanh toán và thời gian
 
-### Buoc 4: Day nhanh len GitHub
+- `getTicketStatusCounts()` - Lấy số lượng vé theo trạng thái
+  - Truy vấn bảng `VeTau`, group by `trangThai`
 
-```bash
-git push -u origin dev/member1-auth-user
-```
+- `getDailyRevenueChart(int days)` - Lấy doanh thu theo ngày cho biểu đồ
+  - Truy vấn view `v_TongTienHoaDon`, group by ngày
 
-## 5. Tao Pull Request de merge code
+- `getTopCustomers(int limit)` - Lấy top khách hàng theo doanh thu
+  - Join các bảng: `v_TongTienHoaDon`, `HoaDon`, `KhachHang`
 
-1. Vao repo GitHub: `https://github.com/lamvyx/QLBanVeGaTau`
-2. Chon `Compare & pull request` tu branch cua ban
-3. Base: `main`, Compare: branch cua ban
-4. Dien template PR (tom tat thay doi, cach test, anh huong)
-5. Gan reviewer it nhat 1 thanh vien
-6. Chi merge khi:
-- Da review xong
-- Khong co conflict
-- Da test chuc nang lien quan
+- `getTripOccupancy()` - Lấy tỷ lệ lấp đầy của các chuyến tàu
+  - Join bảng `ChuyenTau`, `VeTau`, `Toa`
 
-## 6. Quy tac review va merge
+- `getTicketsByCarriageType()` - Lấy số vé theo loại toa
+  - Join bảng `Toa` và `VeTau`
 
-- Khong tu merge PR cua chinh minh neu chua co review
-- Moi PR nen nho, de doc (duoi 300 dong thay doi neu co the)
-- Neu co conflict, nguoi tao PR tu resolve conflict
-- Merge bang `Squash and merge` de lich su commit gon
+- `getNewCustomersByMonth(int year)` - Lấy số khách hàng mới theo tháng
+  - Truy vấn bảng `KhachHang`
 
-## 7. Lenh nhanh thuong dung
+- `getTotalCustomers()` - Lấy tổng số khách hàng
+- `getTripCountByRoute()` - Lấy số chuyến theo tuyến đường
+- `getRevenueByMonth(int year)` - Lấy doanh thu theo tháng
+- `getRevenueByQuarter(int year)` - Lấy doanh thu theo quý
+- `getTotalTrips()` - Lấy tổng số chuyến tàu
 
-```bash
-git status
-git branch
-git switch <branch>
-git pull --rebase origin main
-git log --oneline --graph --decorate -n 20
-```
+**Đặc điểm:** Tất cả methods đều trả về dữ liệu thực từ database, không có dữ liệu giả (mock data).
 
-## 8. Xu ly loi thuong gap
+### 2. Service Layer - Logic nghiệp vụ
 
-- Push bi reject: chay `git pull --rebase origin <branch>` roi push lai
-- Commit nham file: dung `git restore --staged <file>` truoc khi commit
-- Sai message commit: `git commit --amend -m "fix(module): ..."` (chi dung khi chua push)
+**File:** `service/ThongKeService.java`
 
-## 9. Checklist truoc khi tao PR
+Lớp này đóng vai trò trung gian, chứa logic nghiệp vụ và gọi các methods từ DAO:
 
-- Da pull code moi nhat tu `main`
-- Da chay va test chuc nang co lien quan
-- Commit dung quy tac
-- Khong con file tam, file build khong can thiet
-- Mota PR ro rang, co buoc test
+- Khởi tạo các DAO objects: `VeTau_DAO`, `HoaDon_DAO`, `ThongKe_DAO`
+- Cung cấp các methods business logic như `thongKeSoLuongVe()`, `thongKeDoanhThu()`
+- Định nghĩa class inner `ThongKeSoLuongVe` để đóng gói dữ liệu thống kê số lượng vé
+
+**Đặc điểm:** Không có logic phức tạp, chủ yếu pass-through dữ liệu từ DAO lên Controller.
+
+### 3. Controller Layer - Điều phối
+
+**File:** `controller/ThongKeController.java`
+
+Lớp này đóng vai trò điều phối giữa Service và View:
+
+- Khởi tạo `ThongKeService`
+- Expose các methods tương ứng từ Service cho View gọi
+- Không chứa logic nghiệp vụ, chỉ điều phối luồng dữ liệu
+
+### 4. View Layer - Hiển thị và Vẽ biểu đồ
+
+**Các file View:**
+- `view/ThongKePage.java` - Trang thống kê tổng hợp (Dashboard)
+- `view/DoanhThuThongKePage.java` - Trang thống kê doanh thu chi tiết
+- `view/VeThongKePage.java` - Trang thống kê vé
+- `view/KhachHangThongKePage.java` - Trang thống kê khách hàng
+- `view/ChuyenTauThongKePage.java` - Trang thống kê chuyến tàu
+
+**Cách hoạt động:**
+
+1. **Khởi tạo Controller:** Mỗi View đều có một instance của `ThongKeController`
+
+2. **Gọi dữ liệu:** Khi cần hiển thị, View gọi methods từ Controller:
+   ```java
+   BigDecimal doanhThu = thongKeController.getRevenueByPeriod("month");
+   ThongKeSoLuongVe stats = thongKeController.thongKeSoLuongVe();
+   Map<String, Integer> ticketsByType = thongKeController.getTicketsByCarriageType();
+   ```
+
+3. **Vẽ biểu đồ:** Dữ liệu được truyền vào các custom panel để vẽ biểu đồ:
+   - `BarChartPanel` - Biểu đồ cột
+   - `LineChartPanel` - Biểu đồ đường
+   - `HorizontalBarChartPanel` - Biểu đồ cột ngang
+   - `TicketStatusPanel` - Biểu đồ tròn (pie chart) trạng thái vé
+   - `RankingPanel` - Biểu đồ xếp hạng
+
+4. **Fallback khi không có dữ liệu:** Nếu database trống, các biểu đồ sẽ hiển thị giá trị mặc định (0) để đảm bảo UI vẫn hoạt động.
+
+### Ví dụ luồng dữ liệu cụ thể:
+
+**Để hiển thị doanh thu theo tháng:**
+
+1. `DoanhThuThongKePage.createMonthPanel()` gọi `thongKeController.getRevenueByMonth(2026)`
+2. `ThongKeController.getRevenueByMonth()` gọi `thongKeService.getRevenueByMonth(2026)`
+3. `ThongKeService.getRevenueByMonth()` gọi `thongKeDAO.getRevenueByMonth(2026)`
+4. `ThongKe_DAO.getRevenueByMonth()` thực thi SQL query:
+   ```sql
+   SELECT MONTH(h.thoiGian) as month, SUM(v.tongThanhToan)
+   FROM HoaDon h JOIN v_TongTienHoaDon v ON h.maHD = v.maHD
+   WHERE h.trangThaiThanhToan = 1 AND YEAR(h.thoiGian) = ?
+   GROUP BY MONTH(h.thoiGian)
+   ```
+5. Kết quả trả về là `Map<String, Long>` với key là "T1", "T2", ..., "T12"
+6. View chuyển đổi Map thành mảng và truyền vào `BarChartPanel` để vẽ biểu đồ
+
+### Lợi ích của kiến trúc này:
+
+- **Tách biệt trách nhiệm:** Mỗi layer có nhiệm vụ riêng, dễ bảo trì
+- **Dữ liệu thực:** Tất cả thống kê đều lấy từ database, không có dữ liệu giả
+- **Dễ mở rộng:** Muốn thêm thống kê mới chỉ cần thêm method ở DAO, Service, Controller
+- **Dễ test:** Có thể test từng layer độc lập
+
+### Các thống kê đã được cập nhật sử dụng dữ liệu thực:
+
+ Doanh thu (ngày/tháng/năm/quý)  
+ Số lượng vé theo trạng thái  
+ Số vé theo loại toa  
+ Top khách hàng theo doanh thu  
+ Tỷ lệ lấp đầy chuyến tàu  
+ Số khách hàng mới theo tháng  
+ Số chuyến tàu theo tuyến đường  
+
+### Các thống kê cần database thêm:
+
+ Tỷ lệ đúng giờ/trễ chuyến (cần bảng tracking thời gian thực tế)  
+ Tỉ lệ hài lòng khách hàng (cần bảng khảo sát)  
+ Điểm tích lũy khách hàng (cần bảng loyalty points)

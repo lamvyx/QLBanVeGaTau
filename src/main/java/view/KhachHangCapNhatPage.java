@@ -1,5 +1,7 @@
 package view;
 
+import controller.KhachHangController;
+import entity.KhachHang;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,29 +9,27 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.util.regex.Pattern;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.RowFilter;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
 
 public class KhachHangCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private final KhachHangController khachHangController = new KhachHangController();
 
 	private JTable table;
-	private TableRowSorter<DefaultTableModel> sorter;
+	private DefaultTableModel model;
 	private JPanel formPanel;
 	
 	private JTextField txtTen, txtSdt, txtCccd, txtEmail, txtDiaChi;
@@ -43,6 +43,109 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoContent(), BorderLayout.CENTER);
+	}
+
+	private JPanel taoSearchPanel() {
+		JPanel panel = new JPanel(new java.awt.GridBagLayout());
+		panel.setBackground(Color.WHITE);
+		panel.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
+			new EmptyBorder(12, 12, 12, 12)
+		));
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(6, 8, 6, 8);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.anchor = GridBagConstraints.WEST;
+
+		JLabel lblMa = new JLabel("Mã khách hàng:");
+		lblMa.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		lblMa.setForeground(Color.decode("#2B4B74"));
+		gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
+		panel.add(lblMa, gbc);
+
+		JTextField txtMa = new JTextField();
+		txtMa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		txtMa.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(6, 8, 6, 8)
+		));
+		gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1;
+		panel.add(txtMa, gbc);
+
+		JLabel lblTen = new JLabel("Tên khách hàng:");
+		lblTen.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		lblTen.setForeground(Color.decode("#2B4B74"));
+		gbc.gridx = 2; gbc.gridy = 0; gbc.weightx = 0;
+		panel.add(lblTen, gbc);
+
+		JTextField txtTen = new JTextField();
+		txtTen.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		txtTen.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(6, 8, 6, 8)
+		));
+		gbc.gridx = 3; gbc.gridy = 0; gbc.weightx = 1;
+		panel.add(txtTen, gbc);
+
+		JLabel lblSdt = new JLabel("Số ĐT:");
+		lblSdt.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		lblSdt.setForeground(Color.decode("#2B4B74"));
+		gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
+		panel.add(lblSdt, gbc);
+
+		JTextField txtSdt = new JTextField();
+		txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+		txtSdt.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(6, 8, 6, 8)
+		));
+		gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 1;
+		panel.add(txtSdt, gbc);
+
+		JButton btnTimKiem = new JButton("Tìm kiếm");
+		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		btnTimKiem.setBackground(MAU_CHINH);
+		btnTimKiem.setForeground(Color.WHITE);
+		btnTimKiem.setFocusPainted(false);
+		btnTimKiem.setBorder(new EmptyBorder(6, 12, 6, 12));
+
+		btnTimKiem.addActionListener(e -> {
+			String ma = txtMa.getText().trim();
+			String ten = txtTen.getText().trim();
+			String sdt = txtSdt.getText().trim();
+			model.setRowCount(0);
+			List<KhachHang> results = khachHangController.timKiemKhachHang(ma, ten, sdt);
+			for (int i = 0; i < results.size(); i++) {
+				KhachHang kh = results.get(i);
+				model.addRow(new Object[] { i + 1, kh.getMaKH(), kh.getTenKH(), kh.getSdt(), kh.getEmail(), kh.getCccd(), kh.isLoaiKH() ? "VIP" : "Thường" });
+			}
+		});
+
+		JButton btnLamMoi = new JButton("Làm mới");
+		btnLamMoi.setFont(new Font("Segoe UI", Font.BOLD, 12));
+		btnLamMoi.setBackground(Color.WHITE);
+		btnLamMoi.setForeground(Color.decode("#3A4D66"));
+		btnLamMoi.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(6, 12, 6, 12)
+		));
+
+		btnLamMoi.addActionListener(e -> {
+			txtMa.setText(""); txtTen.setText(""); txtSdt.setText("");
+			loadDataFromDatabase();
+		});
+
+		java.awt.FlowLayout fl = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0);
+		JPanel buttonPanel = new JPanel(fl);
+		buttonPanel.setOpaque(false);
+		buttonPanel.add(btnTimKiem);
+		buttonPanel.add(btnLamMoi);
+
+		gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 4; gbc.weightx = 1; gbc.fill = GridBagConstraints.NONE;
+		panel.add(buttonPanel, gbc);
+
+		return panel;
 	}
 
 	private JPanel taoHeader() {
@@ -69,24 +172,22 @@ public class KhachHangCapNhatPage extends JPanel {
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
+		// Phần tìm kiếm
+		JPanel searchPanel = taoSearchPanel();
+		content.add(searchPanel, BorderLayout.NORTH);
+
 		// Tạo bảng
-		String[] columns = { "Mã KH", "Tên khách hàng", "Số ĐT", "Email", "CCCD", "Loại KH" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		String[] columns = { "#", "Mã KH", "Tên khách hàng", "Số ĐT", "Email", "CCCD", "Loại KH" };
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { "KH001", "Trần Văn A", "0901234567", "tryvana@email.com", "012345678901", "Thường" });
-		model.addRow(new Object[] { "KH002", "Nguyễn Thị B", "0912345678", "nguyenb@email.com", "012345678902", "VIP" });
-		model.addRow(new Object[] { "KH003", "Phạm Văn C", "0923456789", "phamvan@email.com", "012345678903", "Thường" });
-		model.addRow(new Object[] { "KH004", "Hoàng Thị D", "0934567890", "hoang.d@email.com", "012345678904", "Doanh nghiệp" });
-		model.addRow(new Object[] { "KH005", "Võ Văn E", "0945678901", "vo.van.e@email.com", "012345678905", "VIP" });
+
+		loadDataFromDatabase();
 
 		table = new JTable(model);
-		sorter = new TableRowSorter<>(model);
-		table.setRowSorter(sorter);
 		table.setRowHeight(50);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		table.getTableHeader().setBackground(MAU_CHINH);
@@ -95,45 +196,38 @@ public class KhachHangCapNhatPage extends JPanel {
 		table.setGridColor(Color.decode("#E4EBF3"));
 		table.setSelectionBackground(Color.decode("#B3D9FF"));
 
-		// Xử lý click vào hàng
-		table.addMouseListener(new MouseListener() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
+		table.getSelectionModel().addListSelectionListener(e -> {
+			if (!e.getValueIsAdjusting()) {
 				int row = table.getSelectedRow();
 				if (row >= 0) {
 					displayForm(row);
 				}
 			}
-			@Override
-			public void mouseEntered(MouseEvent e) {}
-			@Override
-			public void mouseExited(MouseEvent e) {}
-			@Override
-			public void mousePressed(MouseEvent e) {}
-			@Override
-			public void mouseReleased(MouseEvent e) {}
 		});
 
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setBorder(BorderFactory.createLineBorder(Color.decode("#DCE3EC")));
 
-		JPanel searchPanel = taoSearchPanel();
-
 		// Form panel
 		formPanel = taoFormPanel();
 
 		// Split pane
-		JPanel topWrap = new JPanel(new BorderLayout(0, 12));
-		topWrap.setBackground(Color.WHITE);
-		topWrap.add(searchPanel, BorderLayout.NORTH);
-		topWrap.add(scrollPane, BorderLayout.CENTER);
-
-		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topWrap, formPanel);
+		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPane, formPanel);
 		splitPane.setDividerLocation(300);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<KhachHang> danhSach = khachHangController.layTatCaKhachHang();
+		for (int i = 0; i < danhSach.size(); i++) {
+			KhachHang kh = danhSach.get(i);
+			model.addRow(new Object[] { i + 1, kh.getMaKH(), kh.getTenKH(), kh.getSdt(), kh.getEmail(),
+					kh.getCccd(), kh.isLoaiKH() ? "VIP" : "Thường" });
+		}
 	}
 
 	private JPanel taoFormPanel() {
@@ -153,55 +247,16 @@ public class KhachHangCapNhatPage extends JPanel {
 		return wrapper;
 	}
 
-	private JPanel taoSearchPanel() {
-		JPanel panel = new JPanel(new BorderLayout(10, 0));
-		panel.setBackground(Color.WHITE);
-		panel.setBorder(new EmptyBorder(0, 0, 10, 0));
-
-		JLabel lbl = new JLabel("Tra cứu theo số điện thoại:");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		panel.add(lbl, BorderLayout.WEST);
-
-		JPanel right = new JPanel(new BorderLayout(8, 0));
-		right.setOpaque(false);
-
-		JTextField txtSdtSearch = new JTextField();
-		txtSdtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtSdtSearch.setPreferredSize(new Dimension(260, 35));
-		txtSdtSearch.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		right.add(txtSdtSearch, BorderLayout.CENTER);
-
-		JButton btnTimKiem = new JButton("Tìm kiếm");
-		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 13));
-		btnTimKiem.setBackground(MAU_CHINH);
-		btnTimKiem.setForeground(Color.WHITE);
-		btnTimKiem.setFocusPainted(false);
-		btnTimKiem.setBorder(new EmptyBorder(8, 16, 8, 16));
-		right.add(btnTimKiem, BorderLayout.EAST);
-
-		panel.add(right, BorderLayout.EAST);
-
-		btnTimKiem.addActionListener(e -> {
-			String sdt = txtSdtSearch.getText().trim();
-			if (sdt.isEmpty()) {
-				sorter.setRowFilter(null);
-				return;
-			}
-			sorter.setRowFilter(RowFilter.regexFilter(Pattern.quote(sdt), 3));
-		});
-
-		txtSdtSearch.addActionListener(e -> btnTimKiem.doClick());
-		return panel;
-	}
-
 	private void displayForm(int row) {
 		formPanel.removeAll();
 		formPanel.setLayout(new BorderLayout());
 		formPanel.setBackground(Color.WHITE);
+
+		String maKH = table.getValueAt(row, 1).toString();
+		KhachHang khachHang = timKhachHangTheoMa(maKH);
+		if (khachHang == null) {
+			return;
+		}
 
 		// Form chính
 		JPanel formContainer = new JPanel(new GridBagLayout());
@@ -221,7 +276,7 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtTen = new JTextField(table.getValueAt(row, 2).toString());
+		txtTen = new JTextField(khachHang.getTenKH());
 		txtTen.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtTen.setPreferredSize(new Dimension(250, 35));
 		txtTen.setBorder(BorderFactory.createCompoundBorder(
@@ -241,7 +296,7 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtSdt = new JTextField(table.getValueAt(row, 3).toString());
+		txtSdt = new JTextField(khachHang.getSdt() != null ? khachHang.getSdt() : "");
 		txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtSdt.setPreferredSize(new Dimension(250, 35));
 		txtSdt.setBorder(BorderFactory.createCompoundBorder(
@@ -261,7 +316,7 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtCccd = new JTextField(table.getValueAt(row, 5).toString());
+		txtCccd = new JTextField(khachHang.getCccd() != null ? khachHang.getCccd() : "");
 		txtCccd.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtCccd.setPreferredSize(new Dimension(250, 35));
 		txtCccd.setBorder(BorderFactory.createCompoundBorder(
@@ -281,7 +336,7 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtEmail = new JTextField(table.getValueAt(row, 4).toString());
+		txtEmail = new JTextField(khachHang.getEmail() != null ? khachHang.getEmail() : "");
 		txtEmail.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtEmail.setPreferredSize(new Dimension(250, 35));
 		txtEmail.setBorder(BorderFactory.createCompoundBorder(
@@ -301,7 +356,7 @@ public class KhachHangCapNhatPage extends JPanel {
 
 		gbc.gridx = 1;
 		gbc.weightx = 0.7;
-		txtDiaChi = new JTextField();
+		txtDiaChi = new JTextField(khachHang.getDiaChi() != null ? khachHang.getDiaChi() : "");
 		txtDiaChi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtDiaChi.setPreferredSize(new Dimension(250, 35));
 		txtDiaChi.setBorder(BorderFactory.createCompoundBorder(
@@ -324,6 +379,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		cbGioiTinh = new JComboBox<>(new String[]{"Nam", "Nữ", "Khác"});
 		cbGioiTinh.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		cbGioiTinh.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
+		cbGioiTinh.setSelectedIndex(khachHang.isGioiTinh() ? 0 : 1);
 		formContainer.add(cbGioiTinh, gbc);
 
 		// Row 6: Loại khách hàng
@@ -340,6 +396,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		cbLoaiKH = new JComboBox<>(new String[]{"Khách hàng thường", "Khách hàng VIP", "Khách hàng doanh nghiệp"});
 		cbLoaiKH.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		cbLoaiKH.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
+		cbLoaiKH.setSelectedIndex(khachHang.isLoaiKH() ? 1 : 0);
 		formContainer.add(cbLoaiKH, gbc);
 
 		JPanel scrollWrapper = new JPanel(new BorderLayout());
@@ -361,6 +418,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(8, 20, 8, 20));
 		btnCapNhat.setPreferredSize(new Dimension(120, 40));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatKhachHang(maKH));
 
 		btnXoa = new JButton("Xóa");
 		btnXoa.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -369,6 +427,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(8, 20, 8, 20));
 		btnXoa.setPreferredSize(new Dimension(100, 40));
+		btnXoa.addActionListener(e -> xuLyXoaKhachHang(maKH));
 
 		btnHuy = new JButton("Hủy");
 		btnHuy.setFont(new Font("Segoe UI", Font.BOLD, 14));
@@ -380,16 +439,7 @@ public class KhachHangCapNhatPage extends JPanel {
 		));
 		btnHuy.setPreferredSize(new Dimension(100, 40));
 
-		btnHuy.addActionListener(e -> {
-			formPanel.removeAll();
-			formPanel.setLayout(new BorderLayout());
-			JLabel lblHuongDan = new JLabel("Chọn khách hàng từ bảng trên để chỉnh sửa");
-			lblHuongDan.setFont(new Font("Segoe UI", Font.ITALIC, 14));
-			lblHuongDan.setForeground(Color.decode("#8B95A7"));
-			formPanel.add(lblHuongDan, BorderLayout.CENTER);
-			formPanel.revalidate();
-			formPanel.repaint();
-		});
+		btnHuy.addActionListener(e -> resetFormPanel());
 
 		actions.add(btnCapNhat);
 		actions.add(btnXoa);
@@ -399,5 +449,57 @@ public class KhachHangCapNhatPage extends JPanel {
 		formPanel.add(actions, BorderLayout.SOUTH);
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void xuLyCapNhatKhachHang(String maKH) {
+		boolean gioiTinh = "Nam".equals(cbGioiTinh.getSelectedItem());
+		boolean loaiKH = cbLoaiKH.getSelectedIndex() > 0;
+
+		service.KhachHangService.KetQuaXuLy ketQua = khachHangController.capNhatKhachHang(maKH,
+				txtTen.getText(), txtSdt.getText(), txtCccd.getText(), txtEmail.getText(), txtDiaChi.getText(),
+				gioiTinh, loaiKH);
+
+		if (ketQua.thanhCong) {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Thành công", JOptionPane.INFORMATION_MESSAGE);
+			loadDataFromDatabase();
+		} else {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Lỗi", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void xuLyXoaKhachHang(String maKH) {
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa khách hàng " + maKH + " không?",
+				"Xác nhận xóa khách hàng",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		service.KhachHangService.KetQuaXuLy ketQua = khachHangController.xoaKhachHang(maKH);
+		if (ketQua.thanhCong) {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Thành công", JOptionPane.INFORMATION_MESSAGE);
+			loadDataFromDatabase();
+			resetFormPanel();
+		} else {
+			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Lỗi", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	private void resetFormPanel() {
+		formPanel.removeAll();
+		formPanel.setLayout(new BorderLayout());
+		JLabel lblHuongDan = new JLabel("Chọn khách hàng từ bảng trên để chỉnh sửa");
+		lblHuongDan.setFont(new Font("Segoe UI", Font.ITALIC, 14));
+		lblHuongDan.setForeground(Color.decode("#8B95A7"));
+		formPanel.add(lblHuongDan, BorderLayout.CENTER);
+		formPanel.revalidate();
+		formPanel.repaint();
+	}
+
+	private KhachHang timKhachHangTheoMa(String maKH) {
+		List<KhachHang> danhSach = khachHangController.timKiemKhachHang(maKH, null, null);
+		return danhSach.isEmpty() ? null : danhSach.get(0);
 	}
 }

@@ -1,5 +1,6 @@
 package view;
 
+import controller.TauController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -10,15 +11,21 @@ import java.awt.Insets;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
+import service.TauService.KetQuaXuLy;
 
 public class TauThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
 	
-	private JTextField txtMaTau, txtTenTau, txtSoLuongToa, txtSucChua, txtNamSanXuat;
+	private JTextField txtMaTau, txtTenTau;
+	private JSpinner spnSoLuongToa;
+	private final TauController tauController = new TauController();
 
 	public TauThemPage() {
 		setLayout(new BorderLayout());
@@ -26,7 +33,7 @@ public class TauThemPage extends JPanel {
 		setBorder(new EmptyBorder(14, 14, 14, 14));
 
 		add(taoHeader(), BorderLayout.NORTH);
-		add(AppTheme.topAlignedFormPage(taoForm()), BorderLayout.CENTER);
+		add(taoForm(), BorderLayout.CENTER);
 	}
 
 	private JPanel taoHeader() {
@@ -69,13 +76,15 @@ public class TauThemPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtMaTau = new JTextField();
+		txtMaTau = new JTextField("Tự sinh sau khi lưu");
 		txtMaTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		txtMaTau.setPreferredSize(new Dimension(250, 35));
 		txtMaTau.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(8, 8, 8, 8)
 		));
+		txtMaTau.setEditable(false);
+		txtMaTau.setBackground(new Color(245, 247, 250));
 		formContainer.add(txtMaTau, gbc);
 
 		// Row 1: Tên tàu
@@ -105,57 +114,24 @@ public class TauThemPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
-		txtSoLuongToa = new JTextField();
-		txtSoLuongToa.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtSoLuongToa.setPreferredSize(new Dimension(250, 35));
-		txtSoLuongToa.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		txtSoLuongToa.setText("0");
-		formContainer.add(txtSoLuongToa, gbc);
+		spnSoLuongToa = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
+		spnSoLuongToa.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		spnSoLuongToa.setPreferredSize(new Dimension(250, 35));
+		((JSpinner.DefaultEditor) spnSoLuongToa.getEditor()).getTextField().setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		formContainer.add(spnSoLuongToa, gbc);
 
-		// Row 3: Sức chứa
+		// Row 3: Ghi chú nghiệp vụ
 		gbc.gridx = 0;
 		gbc.gridy = 3;
-		lbl = new JLabel("Sức chứa (hành khách) *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
+		gbc.gridwidth = 2;
+		JLabel note = new JLabel("Mã tàu tự sinh, chỉ cần nhập tên tàu và số lượng toa.");
+		note.setFont(new Font("Segoe UI", Font.ITALIC, 13));
+		note.setForeground(Color.decode("#6B7A90"));
+		formContainer.add(note, gbc);
 
-		gbc.gridx = 1;
-		txtSucChua = new JTextField();
-		txtSucChua.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtSucChua.setPreferredSize(new Dimension(250, 35));
-		txtSucChua.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		txtSucChua.setText("0");
-		formContainer.add(txtSucChua, gbc);
-
-		// Row 4: Năm sản xuất
+		// Row 4: Buttons
 		gbc.gridx = 0;
 		gbc.gridy = 4;
-		lbl = new JLabel("Năm sản xuất");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		txtNamSanXuat = new JTextField();
-		txtNamSanXuat.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtNamSanXuat.setPreferredSize(new Dimension(250, 35));
-		txtNamSanXuat.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		txtNamSanXuat.setText("2024");
-		formContainer.add(txtNamSanXuat, gbc);
-
-		// Row 5: Buttons
-		gbc.gridx = 0;
-		gbc.gridy = 5;
 		gbc.gridwidth = 2;
 		gbc.insets = new Insets(15, 10, 10, 10);
 		JPanel buttonPanel = new JPanel();
@@ -169,6 +145,7 @@ public class TauThemPage extends JPanel {
 		btnThem.setFocusPainted(false);
 		btnThem.setBorder(new EmptyBorder(8, 24, 8, 24));
 		btnThem.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnThem.addActionListener(e -> xuLyThemTau());
 		buttonPanel.add(btnThem);
 
 		JButton btnLamMoi = new JButton("Làm mới");
@@ -178,6 +155,7 @@ public class TauThemPage extends JPanel {
 		btnLamMoi.setFocusPainted(false);
 		btnLamMoi.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnLamMoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnLamMoi.addActionListener(e -> lamMoiForm());
 		buttonPanel.add(btnLamMoi);
 
 		formContainer.add(buttonPanel, gbc);
@@ -188,5 +166,24 @@ public class TauThemPage extends JPanel {
 
 		wrapper.add(scrollWrapper, BorderLayout.CENTER);
 		return wrapper;
+	}
+
+	private void xuLyThemTau() {
+		try {
+			int soToa = (Integer) spnSoLuongToa.getValue();
+			KetQuaXuLy ketQua = tauController.themTau(txtTenTau.getText(), soToa);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao + (ketQua.thanhCong ? " (" + ketQua.maThamChieu + ")" : ""));
+			if (ketQua.thanhCong) {
+				lamMoiForm();
+			}
+		} catch (ClassCastException ex) {
+			JOptionPane.showMessageDialog(this, "Số lượng toa không hợp lệ.");
+		}
+	}
+
+	private void lamMoiForm() {
+		txtMaTau.setText("Tự sinh sau khi lưu");
+		txtTenTau.setText("");
+		spnSoLuongToa.setValue(1);
 	}
 }

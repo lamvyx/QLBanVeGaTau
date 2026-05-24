@@ -1,10 +1,13 @@
 package view;
 
+import controller.DichVuController;
+import entity.DichVu;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +20,8 @@ import javax.swing.table.DefaultTableModel;
 public class DichVuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final DichVuController dichVuController = new DichVuController();
+	private DefaultTableModel model;
 
 	public DichVuPage() {
 		setLayout(new BorderLayout());
@@ -63,11 +68,9 @@ public class DichVuPage extends JPanel {
 		content.setBackground(Color.decode("#F0F5F9"));
 		content.setBorder(new EmptyBorder(12, 16, 12, 16));
 
-		String[] columns = { "Mã DV", "Tên dịch vụ", "Mô tả", "Giá", "Trạng thái" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0);
-
-		model.addRow(new Object[] { "DV001", "Suất ăn", "Bữa ăn trong chuyến", "50000", "Hoạt động" });
-		model.addRow(new Object[] { "DV002", "Nước uống", "Nước khoáng", "10000", "Hoạt động" });
+		String[] columns = { "maDV", "tenDV", "giaTien", "trangThai" };
+		model = new DefaultTableModel(columns, 0);
+		loadDataFromDatabase();
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,5 +83,13 @@ public class DichVuPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<DichVu> danhSach = dichVuController.timKiemDichVu(null, null);
+		for (DichVu dv : danhSach) {
+			model.addRow(new Object[] { dv.getMaDV(), dv.getTenDV(), dv.getGiaDV(), dv.isTrangThai() ? "1" : "0" });
+		}
 	}
 }

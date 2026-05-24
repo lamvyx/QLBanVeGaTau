@@ -1,17 +1,28 @@
 package view;
 
+import controller.KhuyenMaiController;
+import entity.KhuyenMai;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -19,6 +30,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
+import service.KhuyenMaiService.KetQuaXuLy;
 
 public class KhuyenMaiCapNhatPage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -26,9 +38,12 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 
 	private JTable table;
 	private JPanel formPanel;
+	private DefaultTableModel model;
 	
 	private JTextField txtMaKM, txtTenKM, txtTyLeKM, txtNgayBD, txtNgayKT;
 	private JButton btnCapNhat, btnXoa, btnHuy;
+	private final KhuyenMaiController khuyenMaiController = new KhuyenMaiController();
+	private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
 	public KhuyenMaiCapNhatPage() {
 		setLayout(new BorderLayout());
@@ -63,19 +78,13 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
-		String[] columns = { "Mã KM", "Tên KM", "Tỷ lệ (%)", "Ngày BĐ", "Ngày KT", "Trạng thái" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0) {
+		String[] columns = { "#", "Mã KM", "Tên KM", "Tỷ lệ (%)", "Ngày BĐ", "Ngày KT", "Trạng thái" };
+		model = new DefaultTableModel(columns, 0) {
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
 			}
 		};
-		
-		model.addRow(new Object[] { "KM001", "Hè 2024", "10%", "01/06/2024", "31/08/2024", "Đang chạy" });
-		model.addRow(new Object[] { "KM002", "Thu 2024", "15%", "01/09/2024", "30/11/2024", "Sắp diễn ra" });
-		model.addRow(new Object[] { "KM003", "Tết 2024", "20%", "01/01/2024", "31/01/2024", "Kết thúc" });
-		model.addRow(new Object[] { "KM004", "Sinh nhật công ty", "5%", "01/04/2024", "30/04/2024", "Kết thúc" });
-		model.addRow(new Object[] { "KM005", "Black Friday", "25%", "01/11/2024", "30/11/2024", "Sắp diễn ra" });
 
 		table = new JTable(model);
 		table.setRowHeight(40);
@@ -113,6 +122,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		splitPane.setDividerLocation(280);
 		splitPane.setBorder(null);
 		content.add(splitPane, BorderLayout.CENTER);
+		taiDuLieuBang();
 
 		return content;
 	}
@@ -201,23 +211,22 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		));
 		formContainer.add(txtTyLeKM, gbc);
 
-		// Ngày bắt đầu
-		gbc.gridx = 0;
-		gbc.gridy = 3;
-		lbl = new JLabel("Ngày bắt đầu *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
 		gbc.gridx = 1;
+		JPanel pnlNgayBD = new JPanel(new BorderLayout(5, 0));
+		pnlNgayBD.setBackground(Color.WHITE);
 		txtNgayBD = new JTextField(table.getValueAt(row, 4).toString());
 		txtNgayBD.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtNgayBD.setPreferredSize(new Dimension(200, 30));
+		txtNgayBD.setPreferredSize(new Dimension(160, 30));
 		txtNgayBD.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 6, 6, 6)
 		));
-		formContainer.add(txtNgayBD, gbc);
+		txtNgayBD.setEditable(false);
+		pnlNgayBD.add(txtNgayBD, BorderLayout.CENTER);
+		
+		JButton btnLichBD = taoNutLich(date -> txtNgayBD.setText(date.format(DATE_FORMAT)));
+		pnlNgayBD.add(btnLichBD, BorderLayout.EAST);
+		formContainer.add(pnlNgayBD, gbc);
 
 		// Ngày kết thúc
 		gbc.gridx = 0;
@@ -228,14 +237,21 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		formContainer.add(lbl, gbc);
 
 		gbc.gridx = 1;
+		JPanel pnlNgayKT = new JPanel(new BorderLayout(5, 0));
+		pnlNgayKT.setBackground(Color.WHITE);
 		txtNgayKT = new JTextField(table.getValueAt(row, 5).toString());
 		txtNgayKT.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtNgayKT.setPreferredSize(new Dimension(200, 30));
+		txtNgayKT.setPreferredSize(new Dimension(160, 30));
 		txtNgayKT.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 6, 6, 6)
 		));
-		formContainer.add(txtNgayKT, gbc);
+		txtNgayKT.setEditable(false);
+		pnlNgayKT.add(txtNgayKT, BorderLayout.CENTER);
+		
+		JButton btnLichKT = taoNutLich(date -> txtNgayKT.setText(date.format(DATE_FORMAT)));
+		pnlNgayKT.add(btnLichKT, BorderLayout.EAST);
+		formContainer.add(pnlNgayKT, gbc);
 
 		// Buttons
 		gbc.gridx = 0;
@@ -253,6 +269,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		btnCapNhat.setFocusPainted(false);
 		btnCapNhat.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnCapNhat.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnCapNhat.addActionListener(e -> xuLyCapNhatKhuyenMai());
 		buttonPanel.add(btnCapNhat);
 
 		btnXoa = new JButton("Xóa");
@@ -262,6 +279,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		btnXoa.setFocusPainted(false);
 		btnXoa.setBorder(new EmptyBorder(6, 16, 6, 16));
 		btnXoa.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnXoa.addActionListener(e -> xuLyXoaKhuyenMai());
 		buttonPanel.add(btnXoa);
 
 		btnHuy = new JButton("Hủy");
@@ -271,6 +289,7 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 		btnHuy.setFocusPainted(false);
 		btnHuy.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnHuy.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnHuy.addActionListener(e -> formPanel.removeAll());
 		buttonPanel.add(btnHuy);
 
 		formContainer.add(buttonPanel, gbc);
@@ -281,5 +300,98 @@ public class KhuyenMaiCapNhatPage extends JPanel {
 
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private JButton taoNutLich(java.util.function.Consumer<LocalDate> target) {
+		JButton btn = new JButton();
+		try {
+			ImageIcon icon = new ImageIcon(getClass().getResource("/Image/icon_lich.png"));
+			Image img = icon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH);
+			btn.setIcon(new ImageIcon(img));
+		} catch (Exception e) {
+			btn.setText("📅");
+		}
+		btn.setPreferredSize(new Dimension(30, 30));
+		btn.setBackground(Color.WHITE);
+		btn.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
+		btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+		btn.setFocusPainted(false);
+		
+		btn.addActionListener(e -> {
+			CalendarDatePicker picker = new CalendarDatePicker(LocalDate.now(), target);
+			picker.showPopup(btn, 0, btn.getHeight());
+		});
+		return btn;
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		List<KhuyenMai> ds = khuyenMaiController.timKiemKhuyenMai(null, null);
+		int stt = 1;
+		LocalDate homNay = LocalDate.now();
+		for (KhuyenMai km : ds) {
+			String trangThai;
+			if (homNay.isBefore(km.getNgayBD())) {
+				trangThai = "Sắp diễn ra";
+			} else if (homNay.isAfter(km.getNgayKT())) {
+				trangThai = "Kết thúc";
+			} else {
+				trangThai = "Đang chạy";
+			}
+			model.addRow(new Object[] { stt++, km.getMaKM(), km.getTenKM(), km.getTyLeKM(),
+					km.getNgayBD().format(DATE_FORMAT), km.getNgayKT().format(DATE_FORMAT), trangThai });
+		}
+	}
+
+	private void xuLyCapNhatKhuyenMai() {
+		if (txtMaKM == null) {
+			return;
+		}
+		try {
+			String tyLeText = txtTyLeKM.getText().replace("%", "").trim();
+			BigDecimal tyLe = new BigDecimal(tyLeText);
+			LocalDate ngayBD = LocalDate.parse(txtNgayBD.getText().trim(), DATE_FORMAT);
+			LocalDate ngayKT = LocalDate.parse(txtNgayKT.getText().trim(), DATE_FORMAT);
+			KetQuaXuLy ketQua = khuyenMaiController.capNhatKhuyenMai(txtMaKM.getText(), txtTenKM.getText(), tyLe, ngayBD, ngayKT);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao,
+					ketQua.thanhCong ? "Thành công" : "Lỗi",
+					ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+			if (ketQua.thanhCong) {
+				taiDuLieuBang();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Tỷ lệ khuyến mãi không hợp lệ.");
+		} catch (DateTimeParseException ex) {
+			JOptionPane.showMessageDialog(this, "Ngày không hợp lệ (định dạng dd/MM/yyyy).");
+		}
+	}
+
+	private void xuLyXoaKhuyenMai() {
+		if (txtMaKM == null || txtMaKM.getText().trim().isEmpty()) {
+			return;
+		}
+		String maKM = txtMaKM.getText().trim();
+		int xacNhan = JOptionPane.showConfirmDialog(this,
+				"Bạn có chắc muốn xóa khuyến mãi " + maKM + " không?",
+				"Xác nhận xóa khuyến mãi",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+		if (xacNhan != JOptionPane.YES_OPTION) {
+			return;
+		}
+
+		KetQuaXuLy ketQua = khuyenMaiController.xoaKhuyenMai(maKM);
+		JOptionPane.showMessageDialog(this, ketQua.thongBao,
+				ketQua.thanhCong ? "Thành công" : "Lỗi",
+				ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+		if (ketQua.thanhCong) {
+			taiDuLieuBang();
+			formPanel.removeAll();
+			formPanel.revalidate();
+			formPanel.repaint();
+		}
 	}
 }

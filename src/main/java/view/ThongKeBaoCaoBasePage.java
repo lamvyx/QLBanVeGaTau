@@ -13,10 +13,11 @@ import java.awt.GridLayout;
 import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 public abstract class ThongKeBaoCaoBasePage extends JPanel {
@@ -28,20 +29,25 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 
 	private final CardLayout cardLayout = new CardLayout();
 	private final JPanel cardPanel = new JPanel(cardLayout);
+	private final JPanel bodyHost = new JPanel(new BorderLayout());
 	private final JComboBox<String> cboTongHop = new JComboBox<>(new String[] { "Ngày", "Tháng", "Quý", "Năm" });
 	private final JComboBox<String> cboNam = new JComboBox<>(new String[] { "2024", "2025", "2026" });
-	private final boolean chiThongKeTheoNgay;
 
 	protected ThongKeBaoCaoBasePage(String title) {
-		this(title, false);
-	}
-
-	protected ThongKeBaoCaoBasePage(String title, boolean chiThongKeTheoNgay) {
-		this.chiThongKeTheoNgay = chiThongKeTheoNgay;
 		setLayout(new BorderLayout());
 		setBackground(MAU_NEN);
 		add(taoHeaderPanel(title), BorderLayout.NORTH);
-		add(taoBodyPanel(), BorderLayout.CENTER);
+		bodyHost.setOpaque(false);
+		add(bodyHost, BorderLayout.CENTER);
+		SwingUtilities.invokeLater(this::khoiTaoNoiDungSau);
+	}
+
+	private void khoiTaoNoiDungSau() {
+		bodyHost.removeAll();
+		bodyHost.add(taoBodyPanel(), BorderLayout.CENTER);
+		bodyHost.revalidate();
+		bodyHost.repaint();
+		showPeriod((String) cboTongHop.getSelectedItem());
 	}
 
 	private JPanel taoHeaderPanel(String titleText) {
@@ -68,10 +74,6 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		cboTongHop.setSelectedItem("Tháng");
 		cboTongHop.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboTongHop.setPreferredSize(new Dimension(96, 28));
-		if (chiThongKeTheoNgay) {
-			cboTongHop.setModel(new DefaultComboBoxModel<>(new String[] { "Ngày" }));
-			cboTongHop.setSelectedItem("Ngày");
-		}
 		right.add(cboTongHop);
 
 		JLabel lblNam = new JLabel("Năm:");
@@ -82,7 +84,6 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		cboNam.setSelectedItem("2026");
 		cboNam.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboNam.setPreferredSize(new Dimension(72, 28));
-		cboNam.setEnabled(!chiThongKeTheoNgay);
 		right.add(cboNam);
 
 		JPanel exportWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
@@ -94,7 +95,7 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		btnExcel.setFocusPainted(false);
 		btnExcel.setBorder(new EmptyBorder(6, 12, 6, 12));
 		btnExcel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnExcel.addActionListener(e -> {});
+		btnExcel.addActionListener(e -> hienThiThongBaoXuatExcel());
 		exportWrap.add(btnExcel);
 		right.add(exportWrap);
 		header.add(right, BorderLayout.EAST);
@@ -127,9 +128,6 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		JLabel sub = new JLabel("Dùng bộ lọc Tổng hợp để chuyển giữa Ngày, Tháng, Quý, Năm");
 		sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		sub.setForeground(new Color(108, 122, 138));
-		if (chiThongKeTheoNgay) {
-			sub.setText("Nhân viên chỉ xem thống kê theo Ngày");
-		}
 		bar.add(sub);
 		return bar;
 	}
@@ -145,6 +143,13 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 
 	private void showPeriod(String period) {
 		cardLayout.show(cardPanel, period == null ? "Tháng" : period);
+	}
+
+	private void hienThiThongBaoXuatExcel() {
+		JOptionPane.showMessageDialog(this,
+				"Đã ghi nhận yêu cầu xuất Excel cho báo cáo đang mở.",
+				"Xuất Excel",
+				JOptionPane.INFORMATION_MESSAGE);
 	}
 
 	protected abstract JPanel createPeriodPanel(String periodKey);

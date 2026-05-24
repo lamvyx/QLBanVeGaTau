@@ -5,7 +5,6 @@ import java.time.LocalDate;
 public class NhanVien {
 	private String maNV;
 	private String tenNV;
-	private String email;
 	private String sdt;
 	private boolean gioiTinh;
 	private LocalDate ngaySinh;
@@ -13,16 +12,14 @@ public class NhanVien {
 	private String chucVu;
 	private boolean trangThai;
 	private String username;
-	private String hinhAnh;
 
 	public NhanVien() {
 	}
 
-	public NhanVien(String maNV, String tenNV, String email, String sdt, boolean gioiTinh, LocalDate ngaySinh,
-			LocalDate ngayVaoLam, String chucVu, boolean trangThai, String username, String hinhAnh) {
+	public NhanVien(String maNV, String tenNV, String sdt, boolean gioiTinh, LocalDate ngaySinh,
+			LocalDate ngayVaoLam, String chucVu, boolean trangThai, String username) {
 		this.maNV = maNV;
 		this.tenNV = tenNV;
-		this.email = email;
 		this.sdt = sdt;
 		this.gioiTinh = gioiTinh;
 		this.ngaySinh = ngaySinh;
@@ -30,15 +27,12 @@ public class NhanVien {
 		this.chucVu = chucVu;
 		this.trangThai = trangThai;
 		this.username = username;
-		this.hinhAnh = hinhAnh;
 	}
 
 	public String getMaNV() { return maNV; }
 	public void setMaNV(String maNV) { this.maNV = maNV; }
 	public String getTenNV() { return tenNV; }
 	public void setTenNV(String tenNV) { this.tenNV = tenNV; }
-	public String getEmail() { return email; }
-	public void setEmail(String email) { this.email = email; }
 	public String getSdt() { return sdt; }
 	public void setSdt(String sdt) { this.sdt = sdt; }
 	public boolean isGioiTinh() { return gioiTinh; }
@@ -52,7 +46,5 @@ public class NhanVien {
 	public boolean isTrangThai() { return trangThai; }
 	public void setTrangThai(boolean trangThai) { this.trangThai = trangThai; }
 	public String getUsername() { return username; }
-	public String getHinhAnh() { return hinhAnh; }
-	public void setHinhAnh(String hinhAnh) { this.hinhAnh = hinhAnh; }
 	public void setUsername(String username) { this.username = username; }
 }

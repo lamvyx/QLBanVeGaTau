@@ -1,9 +1,12 @@
 package view;
 
+import controller.TauController;
+import entity.Tau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -12,6 +15,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 public class TauTraCuuPage extends JPanel {
@@ -22,6 +27,7 @@ public class TauTraCuuPage extends JPanel {
 	private JComboBox<String> cbSapXep;
 	private JTable tableTau;
 	private DefaultTableModel model;
+	private final TauController tauController = new TauController();
 
 	public TauTraCuuPage() {
 		setLayout(new BorderLayout());
@@ -31,6 +37,8 @@ public class TauTraCuuPage extends JPanel {
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoSearchPanel(), BorderLayout.WEST);
 		add(taoTablePanel(), BorderLayout.CENTER);
+		caiDatTimKiem();
+		taiDuLieuBang();
 	}
 
 	private JPanel taoHeader() {
@@ -70,7 +78,6 @@ public class TauTraCuuPage extends JPanel {
 			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
 			new EmptyBorder(6, 8, 6, 8)
 		));
-		txtTimKiem.setText("Tìm kiếm...");
 		searchPanel.add(txtTimKiem);
 
 		JLabel lblSapXep = new JLabel("Sắp xếp:");
@@ -79,11 +86,11 @@ public class TauTraCuuPage extends JPanel {
 
 		cbSapXep = new JComboBox<>();
 		cbSapXep.addItem("Tất cả");
-		cbSapXep.addItem("Hoạt động");
-		cbSapXep.addItem("Bảo trì");
-		cbSapXep.addItem("Ngừng hoạt động");
+		cbSapXep.addItem("Mã tàu");
+		cbSapXep.addItem("Tên tàu");
 		cbSapXep.setFont(new Font("Segoe UI", Font.PLAIN, 12));
 		cbSapXep.setPreferredSize(new Dimension(200, 32));
+		cbSapXep.addActionListener(e -> taiDuLieuBang());
 		searchPanel.add(cbSapXep);
 
 		return searchPanel;
@@ -97,7 +104,7 @@ public class TauTraCuuPage extends JPanel {
 			new EmptyBorder(12, 14, 12, 14)
 		));
 
-		String[] columns = { "Mã tàu", "Tên tàu", "Số toa", "Sức chứa", "Năm sản xuất", "Trạng thái" };
+		String[] columns = { "#", "Mã tàu", "Tên tàu", "Số toa" };
 		model = new DefaultTableModel(columns, 0) {
 			private static final long serialVersionUID = 1L;
 			@Override
@@ -105,13 +112,6 @@ public class TauTraCuuPage extends JPanel {
 				return false;
 			}
 		};
-
-		// Sample data
-		model.addRow(new Object[] { "T001", "Tàu hỏa XP1", 8, 320, 2015, "Hoạt động" });
-		model.addRow(new Object[] { "T002", "Tàu hỏa SB2", 10, 400, 2018, "Hoạt động" });
-		model.addRow(new Object[] { "T003", "Tàu Sapa Express", 12, 480, 2019, "Hoạt động" });
-		model.addRow(new Object[] { "T004", "Tàu Nightly", 8, 320, 2016, "Bảo trí" });
-		model.addRow(new Object[] { "T005", "Tàu Hỏa Thường", 6, 240, 2014, "NgẺ ng hoạt động" });
 
 		tableTau = new JTable(model);
 		tableTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -128,5 +128,45 @@ public class TauTraCuuPage extends JPanel {
 		tablePanel.add(scrollPane, BorderLayout.CENTER);
 
 		return tablePanel;
+	}
+
+	private void caiDatTimKiem() {
+		txtTimKiem.getDocument().addDocumentListener(new DocumentListener() {
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				taiDuLieuBang();
+			}
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				taiDuLieuBang();
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				taiDuLieuBang();
+			}
+		});
+	}
+
+	private void taiDuLieuBang() {
+		if (model == null) {
+			return;
+		}
+		model.setRowCount(0);
+		String keyword = txtTimKiem == null ? null : txtTimKiem.getText();
+		String cheDo = cbSapXep == null ? "Tất cả" : String.valueOf(cbSapXep.getSelectedItem());
+		List<Tau> ds;
+		if (keyword == null || keyword.trim().isEmpty()) {
+			ds = tauController.timKiemTau(null, null);
+		} else if ("Mã tàu".equals(cheDo)) {
+			ds = tauController.timKiemTau(keyword.trim(), null);
+		} else {
+			ds = tauController.timKiemTau(null, keyword.trim());
+		}
+		int stt = 1;
+		for (Tau tau : ds) {
+			model.addRow(new Object[] { stt++, tau.getMaTau(), tau.getTenTau(), tau.getSoLuongToa() });
+		}
 	}
 }

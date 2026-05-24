@@ -2,15 +2,15 @@
 -- HỆ THỐNG QUẢN LÝ VÉ TÀU (NỘI BỘ NHÂN VIÊN)
 -- SQL Server Version
 -- ============================================
-CREATE DATABASE QuanLyVeTau
-USE QuanLyVeTau;
+CREATE DATABASE QLBANVETAU
+USE QLBANVETAU;
 GO
 
 -- ============================================
 -- 1. THUE
 -- ============================================
 CREATE TABLE Thue (
-    maThue      VARCHAR(20)     NOT NULL,
+    maThue      VARCHAR(10)     NOT NULL,
     tenThue     NVARCHAR(100)   NOT NULL,
     phamTram    FLOAT           NOT NULL,
     moTa        NVARCHAR(255)   NULL,
@@ -23,7 +23,7 @@ GO
 -- 2. TUYEN_TAU
 -- ============================================
 CREATE TABLE TuyenTau (
-    maTT        VARCHAR(20)     NOT NULL,
+    maTT        VARCHAR(10)     NOT NULL,
     maGaDi      NVARCHAR(100)   NOT NULL,
     maGaDen     NVARCHAR(100)   NOT NULL,
     khoangCach  INT             NOT NULL,
@@ -36,7 +36,7 @@ GO
 -- 3. TAU
 -- ============================================
 CREATE TABLE Tau (
-    maTau       VARCHAR(20)     NOT NULL,
+    maTau       VARCHAR(10)     NOT NULL,
     tenTau      NVARCHAR(100)   NOT NULL,
     soLuongToa  INT             NOT NULL,
     CONSTRAINT PK_Tau PRIMARY KEY (maTau),
@@ -48,11 +48,11 @@ GO
 -- 4. TOA
 -- ============================================
 CREATE TABLE Toa (
-    maToa       VARCHAR(20)     NOT NULL,
-    maTau       VARCHAR(20)     NOT NULL,
+    maToa       VARCHAR(10)     NOT NULL,
+    maTau       VARCHAR(10)     NOT NULL,
     loaiToa     NVARCHAR(50)    NOT NULL,
     soGhe       INT             NOT NULL,
-    viTriToa    NVARCHAR(20)    NULL,
+    viTriToa    NVARCHAR(10)    NULL,
     trangThai   BIT             NOT NULL DEFAULT 1,
     CONSTRAINT PK_Toa PRIMARY KEY (maToa),
     CONSTRAINT FK_Toa_Tau FOREIGN KEY (maTau) REFERENCES Tau(maTau),
@@ -64,9 +64,9 @@ GO
 -- 5. CHUYEN_TAU
 -- ============================================
 CREATE TABLE ChuyenTau (
-    maCT            VARCHAR(20)     NOT NULL,
-    maTau           VARCHAR(20)     NOT NULL,
-    maTuyenTau      VARCHAR(20)     NOT NULL,
+    maCT            VARCHAR(10)     NOT NULL,
+    maTau           VARCHAR(10)     NOT NULL,
+    maTuyenTau      VARCHAR(10)     NOT NULL,
     ngayKhoiHanh    DATE            NOT NULL,
     gioKhoiHanh     TIME            NOT NULL,
     trangThai       BIT             NOT NULL DEFAULT 1,
@@ -80,7 +80,7 @@ GO
 -- 6. DICH_VU
 -- ============================================
 CREATE TABLE DichVu (
-    maDV        VARCHAR(20)     NOT NULL,
+    maDV        VARCHAR(10)     NOT NULL,
     tenDV       NVARCHAR(100)   NOT NULL,
     trangThai   BIT             NOT NULL DEFAULT 1,
     giaTien     FLOAT           NOT NULL,
@@ -105,7 +105,7 @@ GO
 -- 8. NHAN_VIEN
 -- ============================================
 CREATE TABLE NhanVien (
-    maNV        VARCHAR(20)     NOT NULL,
+    maNV        VARCHAR(10)     NOT NULL,
     tenNV       NVARCHAR(100)   NOT NULL,
     sdt         VARCHAR(15)     NULL,
     gioiTinh    BIT             NULL,
@@ -125,9 +125,9 @@ GO
 -- 9. KHACH_HANG (do nhân viên tạo, không có tài khoản)
 -- ============================================
 CREATE TABLE KhachHang (
-    maKH        VARCHAR(20)     NOT NULL,
+    maKH        VARCHAR(10)     NOT NULL,
     tenKH       NVARCHAR(100)   NOT NULL,
-    sdt         VARCHAR(15)     NULL,
+    sdt         VARCHAR(15)     NOT NULL,
     CCCD        VARCHAR(20)     NULL,
     diaChi      NVARCHAR(255)   NULL,
     email       NVARCHAR(100)   NULL,
@@ -143,7 +143,7 @@ GO
 -- 10. KHUYEN_MAI
 -- ============================================
 CREATE TABLE KhuyenMai (
-    maKM            VARCHAR(20)     NOT NULL,
+    maKM            VARCHAR(10)     NOT NULL,
     tenKM           NVARCHAR(100)   NOT NULL,
     tyLeKM          FLOAT           NOT NULL,
     ngayBD          DATE            NOT NULL,
@@ -159,16 +159,19 @@ GO
 -- 11. VE_TAU
 -- ============================================
 CREATE TABLE VeTau (
-    maVeTau     VARCHAR(20)     NOT NULL,
-    maKH        VARCHAR(20)     NOT NULL,
-    maCT        VARCHAR(20)     NOT NULL,
-    maToa       VARCHAR(20)     NOT NULL,
-    giaVe       FLOAT           NOT NULL,
-    trangThai   VARCHAR(20)     NOT NULL DEFAULT 'CHO_THANH_TOAN',
+    maVeTau     VARCHAR(10)     NOT NULL,
+    maKH        VARCHAR(10)     NOT NULL,
+    maCT        VARCHAR(10)     NOT NULL,
+    maToa       VARCHAR(10)     NOT NULL,
+    viTriGhe     VARCHAR(10)    NULL,
+    loaiVe       VARCHAR(20)    NULL,
+    giaVe        FLOAT          NOT NULL,
+    trangThai    VARCHAR(20)    NOT NULL DEFAULT 'CHO_THANH_TOAN',
     CONSTRAINT PK_VeTau PRIMARY KEY (maVeTau),
     CONSTRAINT FK_VeTau_KhachHang FOREIGN KEY (maKH) REFERENCES KhachHang(maKH),
     CONSTRAINT FK_VeTau_ChuyenTau FOREIGN KEY (maCT) REFERENCES ChuyenTau(maCT),
     CONSTRAINT FK_VeTau_Toa FOREIGN KEY (maToa) REFERENCES Toa(maToa),
+    CONSTRAINT CHK_VeTau_LoaiVe CHECK (loaiVe IN ('NGUOI_LON', 'TRE_EM', 'NGUOI_CAO_TUOI') OR loaiVe IS NULL),
     CONSTRAINT CHK_VeTau_TrangThai CHECK (trangThai IN (
         'CHO_THANH_TOAN', 'DA_THANH_TOAN', 'DA_HOAN', 'DA_SU_DUNG'
     )),
@@ -176,36 +179,17 @@ CREATE TABLE VeTau (
 );
 GO
 
--- ============================================
--- 12. CHI_TIET_VE_TAU
--- ============================================
-CREATE TABLE ChiTietVeTau (
-    maChiTiet       VARCHAR(20)     NOT NULL,
-    maVeTau         VARCHAR(20)     NOT NULL,
-    tenHanhKhach    NVARCHAR(100)   NOT NULL,
-    CCCD            VARCHAR(20)     NOT NULL,
-    ngaySinh        DATE            NOT NULL,
-    viTriGhe        VARCHAR(20)     NOT NULL,
-    loaiVe          VARCHAR(20)     NOT NULL,
-    giaVeTheoLoai   FLOAT           NOT NULL,
-    CONSTRAINT PK_ChiTietVeTau PRIMARY KEY (maChiTiet),
-    CONSTRAINT FK_ChiTietVeTau_VeTau FOREIGN KEY (maVeTau) REFERENCES VeTau(maVeTau),
-    CONSTRAINT CHK_ChiTietVeTau_LoaiVe CHECK (loaiVe IN (
-        'NGUOI_LON', 'TRE_EM', 'NGUOI_CAO_TUOI'
-    )),
-    CONSTRAINT CHK_ChiTietVeTau_Gia CHECK (giaVeTheoLoai >= 0)
-);
-GO
+-- (ChiTietVeTau removed per class diagram: each `VeTau` now contains passenger details)
 
 -- ============================================
 -- 13. HOA_DON
 -- ============================================
 CREATE TABLE HoaDon (
-    maHD                VARCHAR(20)     NOT NULL,
-    maNV                VARCHAR(20)     NOT NULL,
-    maKH                VARCHAR(20)     NOT NULL,
-    maKM                VARCHAR(20)     NULL,
-    maThue              VARCHAR(20)     NULL,
+    maHD                VARCHAR(10)     NOT NULL,
+    maNV                VARCHAR(10)     NOT NULL,
+    maKH                VARCHAR(10)     NOT NULL,
+    maKM                VARCHAR(10)     NULL,
+    maThue              VARCHAR(10)     NULL,
     thoiGian            DATE            NOT NULL DEFAULT CAST(GETDATE() AS DATE),
     phuongThucThanhToan VARCHAR(20)     NULL,
     ngayThanhToan       DATE            NULL,
@@ -224,24 +208,73 @@ GO
 -- ============================================
 -- 14. CHI_TIET_HOA_DON
 -- ============================================
-CREATE TABLE ChiTietHoaDon (
-    maCTHD      VARCHAR(20)     NOT NULL,
-    maHD        VARCHAR(20)     NOT NULL,
-    maVeTau     VARCHAR(20)     NULL,
-    maDV        VARCHAR(20)     NULL,
+-- Chi tiết hóa đơn split into Vé và Dịch vụ so each PK can be composite FKs
+CREATE TABLE ChiTietHoaDon_Ve (
+    maHD        VARCHAR(10)     NOT NULL,
+    maVeTau     VARCHAR(10)     NOT NULL,
     soLuong     INT             NOT NULL DEFAULT 1,
     donGia      FLOAT           NOT NULL,
-    CONSTRAINT PK_ChiTietHoaDon PRIMARY KEY (maCTHD),
-    CONSTRAINT FK_ChiTietHoaDon_HoaDon FOREIGN KEY (maHD)    REFERENCES HoaDon(maHD),
-    CONSTRAINT FK_ChiTietHoaDon_VeTau  FOREIGN KEY (maVeTau) REFERENCES VeTau(maVeTau),
-    CONSTRAINT FK_ChiTietHoaDon_DichVu FOREIGN KEY (maDV)    REFERENCES DichVu(maDV),
-    CONSTRAINT CHK_ChiTietHoaDon_SoLuong CHECK (soLuong > 0),
-    CONSTRAINT CHK_ChiTietHoaDon_DonGia CHECK (donGia >= 0),
-    CONSTRAINT CHK_ChiTietHoaDon_LoaiDong CHECK (
-        (maVeTau IS NOT NULL AND maDV IS NULL) OR
-        (maVeTau IS NULL AND maDV IS NOT NULL)
-    )
+    CONSTRAINT PK_ChiTietHoaDon_Ve PRIMARY KEY (maHD, maVeTau),
+    CONSTRAINT FK_ChiTietHoaDonVe_HoaDon FOREIGN KEY (maHD)   REFERENCES HoaDon(maHD),
+    CONSTRAINT FK_ChiTietHoaDonVe_VeTau FOREIGN KEY (maVeTau) REFERENCES VeTau(maVeTau),
+    CONSTRAINT CHK_ChiTietHoaDonVe_SoLuong CHECK (soLuong > 0),
+    CONSTRAINT CHK_ChiTietHoaDonVe_DonGia CHECK (donGia >= 0)
 );
+
+CREATE TABLE ChiTietHoaDon_DichVu (
+    maHD        VARCHAR(10)     NOT NULL,
+    maDV        VARCHAR(10)     NOT NULL,
+    soLuong     INT             NOT NULL DEFAULT 1,
+    donGia      FLOAT           NOT NULL,
+    CONSTRAINT PK_ChiTietHoaDon_DV PRIMARY KEY (maHD, maDV),
+    CONSTRAINT FK_ChiTietHoaDonDV_HoaDon FOREIGN KEY (maHD)  REFERENCES HoaDon(maHD),
+    CONSTRAINT FK_ChiTietHoaDonDV_DichVu FOREIGN KEY (maDV)  REFERENCES DichVu(maDV),
+    CONSTRAINT CHK_ChiTietHoaDonDV_SoLuong CHECK (soLuong > 0),
+    CONSTRAINT CHK_ChiTietHoaDonDV_DonGia CHECK (donGia >= 0)
+);
+GO
+
+-- ============================================
+-- 15. PHIEU_DAT_VE (Reservation)
+-- ============================================
+CREATE TABLE PhieuDatVe (
+    maPhieu     VARCHAR(10)     NOT NULL,
+    maKH        VARCHAR(10)     NOT NULL,
+    maNV        VARCHAR(10)     NULL,
+    ngayDat     DATE            NOT NULL DEFAULT CAST(GETDATE() AS DATE),
+    hanThanhToan DATE           NULL,
+    trangThai   BIT             NOT NULL DEFAULT 1,
+    CONSTRAINT PK_PhieuDatVe PRIMARY KEY (maPhieu),
+    CONSTRAINT FK_PhieuDatVe_KhachHang FOREIGN KEY (maKH) REFERENCES KhachHang(maKH),
+    CONSTRAINT FK_PhieuDatVe_NhanVien  FOREIGN KEY (maNV) REFERENCES NhanVien(maNV)
+);
+GO
+
+-- ============================================
+-- 16. CHI_TIET_PHIEU_DAT (Reservation details)
+-- ============================================
+CREATE TABLE ChiTietPhieuDat (
+    maPhieu     VARCHAR(10)     NOT NULL,
+    maCT        VARCHAR(10)     NOT NULL, -- ChuyenTau
+    maToa       VARCHAR(10)     NOT NULL,
+    viTriGhe    NVARCHAR(100)   NOT NULL,
+    giaVe       FLOAT           NOT NULL,
+    ghiChu      NVARCHAR(255)   NULL,
+    CONSTRAINT PK_ChiTietPhieuDat PRIMARY KEY (maPhieu, maCT, maToa, viTriGhe),
+    CONSTRAINT FK_ChiTietPhieuDat_PhieuDat FOREIGN KEY (maPhieu) REFERENCES PhieuDatVe(maPhieu),
+    CONSTRAINT FK_ChiTietPhieuDat_ChuyenTau FOREIGN KEY (maCT) REFERENCES ChuyenTau(maCT),
+    CONSTRAINT FK_ChiTietPhieuDat_Toa FOREIGN KEY (maToa) REFERENCES Toa(maToa),
+    CONSTRAINT CHK_ChiTietPhieuDat_GiaVe CHECK (giaVe >= 0)
+);
+GO
+
+-- ============================================
+-- SAMPLE DATA: reservations
+-- ============================================
+INSERT INTO PhieuDatVe VALUES ('PDV001', 'KH002', 'NV002', '2026-04-08', '2026-04-09', 1);
+GO
+
+INSERT INTO ChiTietPhieuDat (maPhieu, maCT, maToa, viTriGhe, giaVe, ghiChu) VALUES ('PDV001', 'CT001', 'TOA001', N'12B', 900000, N'Yêu cầu ghế gần cửa sổ');
 GO
 
 -- ============================================
@@ -251,16 +284,31 @@ GO
 -- Tính thành tiền chi tiết hóa đơn (có thuế)
 CREATE VIEW v_ChiTietHoaDon AS
 SELECT
-    ct.maCTHD,
-    ct.maHD,
-    ct.maVeTau,
-    ct.maDV,
-    ct.soLuong,
-    ct.donGia,
-    (ct.soLuong * ct.donGia)                                                AS thanhTien,
-    (ct.soLuong * ct.donGia * (1 + ISNULL(t.phamTram, 0) / 100.0))        AS thanhTienSauThue
-FROM ChiTietHoaDon ct
-JOIN  HoaDon hd  ON ct.maHD   = hd.maHD
+    CAST(NULL AS VARCHAR(10)) AS maCTHD,
+    v.maHD,
+    v.maVeTau,
+    CAST(NULL AS VARCHAR(10)) AS maDV,
+    v.soLuong,
+    v.donGia,
+    (v.soLuong * v.donGia)                                                AS thanhTien,
+    (v.soLuong * v.donGia * (1 + ISNULL(t.phamTram, 0) / 100.0))        AS thanhTienSauThue
+FROM ChiTietHoaDon_Ve v
+JOIN HoaDon hd ON v.maHD = hd.maHD
+LEFT JOIN Thue t ON hd.maThue = t.maThue
+
+UNION ALL
+
+SELECT
+    CAST(NULL AS VARCHAR(10)) AS maCTHD,
+    d.maHD,
+    CAST(NULL AS VARCHAR(10)) AS maVeTau,
+    d.maDV,
+    d.soLuong,
+    d.donGia,
+    (d.soLuong * d.donGia)                                                AS thanhTien,
+    (d.soLuong * d.donGia * (1 + ISNULL(t.phamTram, 0) / 100.0))        AS thanhTienSauThue
+FROM ChiTietHoaDon_DichVu d
+JOIN HoaDon hd ON d.maHD = hd.maHD
 LEFT JOIN Thue t ON hd.maThue = t.maThue;
 GO
 
@@ -276,7 +324,7 @@ SELECT
     SUM(ct.soLuong * ct.donGia * (1 + ISNULL(t.phamTram, 0) / 100.0))
         * (1 - ISNULL(km.tyLeKM, 0) / 100.0)                               AS tongThanhToan
 FROM HoaDon hd
-JOIN  ChiTietHoaDon ct ON hd.maHD   = ct.maHD
+JOIN  v_ChiTietHoaDon ct ON hd.maHD   = ct.maHD
 LEFT JOIN Thue t        ON hd.maThue = t.maThue
 LEFT JOIN KhuyenMai km  ON hd.maKM   = km.maKM
 GROUP BY hd.maHD, hd.maNV, hd.maKH, km.tyLeKM;
@@ -289,14 +337,21 @@ SELECT
     toa.maToa,
     toa.loaiToa,
     toa.soGhe,
-    COUNT(v.maVeTau)                    AS soVeDaBan,
-    (toa.soGhe - COUNT(v.maVeTau))      AS soChoCon
+        COUNT(DISTINCT v.maVeTau)           AS soVeDaBan,
+        COUNT(DISTINCT v.maVeTau)
+            + COUNT(DISTINCT CASE WHEN pd.trangThai = 1 THEN ctpd.maPhieu + N'|' + ctpd.viTriGhe END) AS soVeDaBanVaGiu,
+        (toa.soGhe - (
+                COUNT(DISTINCT v.maVeTau)
+            + COUNT(DISTINCT CASE WHEN pd.trangThai = 1 THEN ctpd.maPhieu + N'|' + ctpd.viTriGhe END)
+        )) AS soChoCon
 FROM ChuyenTau ct
 JOIN  Tau tau  ON ct.maTau   = tau.maTau
 JOIN  Toa toa  ON toa.maTau  = tau.maTau
 LEFT JOIN VeTau v ON v.maCT  = ct.maCT
     AND v.maToa = toa.maToa
     AND v.trangThai != 'DA_HOAN'
+LEFT JOIN ChiTietPhieuDat ctpd ON ctpd.maCT = ct.maCT AND ctpd.maToa = toa.maToa
+LEFT JOIN PhieuDatVe pd ON pd.maPhieu = ctpd.maPhieu
 GROUP BY ct.maCT, toa.maToa, toa.loaiToa, toa.soGhe;
 GO
 
@@ -348,7 +403,7 @@ INSERT INTO DichVu VALUES
 GO
 
 INSERT INTO TaiKhoan VALUES
-    ('admin',   '123456', 'ADMIN'),
+    ('admin01', '123456', 'ADMIN'),
     ('nv001',   '123456', 'NHAN_VIEN'),
     ('nv002',   '123456', 'NHAN_VIEN');
 GO
@@ -356,7 +411,7 @@ GO
 INSERT INTO NhanVien VALUES
     ('NV001', N'Nguyễn Văn An', '0901234567', 1, '1990-05-15', '2020-01-01', 1, 'nva@tau.vn', N'Nhân viên bán vé',  'nv001'),
     ('NV002', N'Trần Thị Bích', '0912345678', 0, '1995-03-20', '2021-06-01', 1, 'ttb@tau.vn', N'Nhân viên bán vé',  'nv002'),
-    ('NV003', N'Lê Văn Cường',  '0923456789', 1, '1988-11-10', '2018-03-15', 1, 'lvc@tau.vn', N'Quản trị hệ thống', 'admin');
+    ('NV003', N'Lê Văn Cường',  '0923456789', 1, '1988-11-10', '2018-03-15', 1, 'lvc@tau.vn', N'Quản trị hệ thống', 'admin01');
 GO
 
 INSERT INTO KhachHang VALUES
@@ -370,44 +425,23 @@ INSERT INTO KhuyenMai VALUES
 GO
 
 INSERT INTO VeTau VALUES
-    ('VE001', 'KH001', 'CT001', 'TOA002', 850000, 'DA_THANH_TOAN'),
-    ('VE002', 'KH002', 'CT001', 'TOA001', 900000, 'CHO_THANH_TOAN');
+    ('VE001', 'KH001', 'CT001', 'TOA002', '5A', 'NGUOI_LON', 850000, 'DA_THANH_TOAN'),
+    ('VE002', 'KH002', 'CT001', 'TOA001', '12B', 'NGUOI_LON', 900000, 'CHO_THANH_TOAN');
 GO
 
--- Chi tiết từng hành khách trên vé
-INSERT INTO ChiTietVeTau VALUES
-    ('CTVE001', 'VE001', N'Phạm Văn Dũng', '012345678901', '1992-07-25', '5A',  'NGUOI_LON',      850000),
-    ('CTVE002', 'VE002', N'Ngô Thị Lan',   '012345678902', '1998-02-14', '12B', 'NGUOI_LON',      450000),
-    ('CTVE003', 'VE002', N'Ngô Văn Minh',  '012345678903', '2018-05-10', '12C', 'TRE_EM',         225000),
-    ('CTVE004', 'VE002', N'Ngô Thị Hoa',   '012345678904', '1955-03-20', '12D', 'NGUOI_CAO_TUOI', 225000);
-GO
+-- (Previously ChiTietVeTau data removed; passenger details are stored in `VeTau` now.)
 
 INSERT INTO HoaDon VALUES
     ('HD001', 'NV001', 'KH001', NULL,   'T001', '2026-04-09', 'CHUYEN_KHOAN', '2026-04-09', 1),
     ('HD002', 'NV002', 'KH002', 'KM002','T001', '2026-04-09', 'TIEN_MAT',      NULL,         0);
 GO
 
-INSERT INTO ChiTietHoaDon VALUES
-    ('CTHD001', 'HD001', 'VE001', NULL,    1, 850000),
-    ('CTHD002', 'HD002', 'VE002', NULL,    1, 900000),
-    ('CTHD003', 'HD001', NULL,    'DV001', 2, 50000);
-GO
+INSERT INTO ChiTietHoaDon_Ve VALUES
+    ('HD001', 'VE001', 1, 850000),
+    ('HD002', 'VE002', 1, 900000);
 
--- ============================================
--- BỔ SUNG NHÂN VIÊN MỚI (insert đơn giản)
--- ============================================
-INSERT INTO TaiKhoan (username, password, vaiTro)
-VALUES ('vylam12005', '123456', 'NHAN_VIEN');
-GO
-
-INSERT INTO NhanVien (
-    maNV, tenNV, sdt, gioiTinh, ngaySinh, ngayVaoLam,
-    trangThai, email, chucVu, username
-)
-VALUES (
-    'NV004', N'Vy Lam', '0900001205', 1, '2005-01-12', CAST(GETDATE() AS DATE),
-    1, 'vylam.12005@gmail.com', N'Nhân viên bán vé', 'vylam12005'
-);
+INSERT INTO ChiTietHoaDon_DichVu VALUES
+    ('HD001', 'DV001', 2, 50000);
 GO
 
 PRINT N'Tạo CSDL QuanLyVeTau thành công!';

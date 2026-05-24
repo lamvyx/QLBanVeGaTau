@@ -1,10 +1,13 @@
 package view;
 
+import controller.TuyenTauController;
+import entity.TuyenTau;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -17,6 +20,8 @@ import javax.swing.table.DefaultTableModel;
 public class TuyenTauPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private final TuyenTauController tuyenTauController = new TuyenTauController();
+	private DefaultTableModel model;
 
 	public TuyenTauPage() {
 		setLayout(new BorderLayout());
@@ -63,11 +68,9 @@ public class TuyenTauPage extends JPanel {
 		content.setBackground(Color.decode("#F0F5F9"));
 		content.setBorder(new EmptyBorder(12, 16, 12, 16));
 
-		String[] columns = { "Mã tuyến", "Từ", "Đến", "Khoảng cách", "Thời gian", "Trạng thái" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0);
-
-		model.addRow(new Object[] { "TT1", "TP.HCM", "Hà Nội", "1728 km", "30 giờ", "Hoạt động" });
-		model.addRow(new Object[] { "TT2", "TP.HCM", "Hải Phòng", "1820 km", "36 giờ", "Hoạt động" });
+		String[] columns = { "maTT", "maGaDi", "maGaDen", "khoangCach" };
+		model = new DefaultTableModel(columns, 0);
+		loadDataFromDatabase();
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,5 +83,13 @@ public class TuyenTauPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<TuyenTau> danhSach = tuyenTauController.timKiemTuyenTau(null, null, null);
+		for (TuyenTau tt : danhSach) {
+			model.addRow(new Object[] { tt.getMaTT(), tt.getMaGaDi(), tt.getMaGaDen(), tt.getKhoangCach() });
+		}
 	}
 }
