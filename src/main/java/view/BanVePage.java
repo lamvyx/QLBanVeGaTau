@@ -88,8 +88,8 @@ public class BanVePage extends JPanel {
     }
 
     public BanVePage(PhieuDatVeInfo phieuDatVeInfo) {
-        this.successCard = new BanVeSuccessPanel(() -> hienThiCard(printCard), this::resetForm);
-        this.printCard = new BanVePrintPanel(() -> hienThiCard(successCard), this::resetForm);
+        this.successCard = new BanVeSuccessPanel(() -> hienThiCard(printCard), this::startNewSale);
+        this.printCard = new BanVePrintPanel(this::startNewSale);
         this.seatPanel = new BanVeSeatPanel(selectedSeats, bookedSeats, this::onSelectionChanged);
         this.summaryPanel = new BanVeSummaryPanel(this::confirmSale, this::resetForm);
         this.searchPanel = new BanVeSearchPanel(this::onSearchTrips);
@@ -136,6 +136,7 @@ public class BanVePage extends JPanel {
         return contentPanel;
     }
 
+    // Chỗ lắp ráp các Panel con
     private void buildSaleCard() {
         saleCard.setOpaque(false);
         saleCard.setLayout(new BorderLayout(16, 16));
@@ -485,5 +486,10 @@ public class BanVePage extends JPanel {
         contentPanel.add(card, BorderLayout.CENTER);
         contentPanel.revalidate();
         contentPanel.repaint();
+    }
+
+    private void startNewSale() {
+        resetForm();
+        hienThiCard(saleCard);
     }
 }

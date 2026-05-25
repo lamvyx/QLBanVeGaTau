@@ -21,10 +21,9 @@ public class BanVePrintPanel extends JPanel {
     private static final Color MAU_TEXT = Color.decode("#35506B");
 
     private JLabel lblMaHD, lblSoVe, lblKhachHang, lblChuyenTau, lblTuyen, lblKhoiHanh, lblToaGhe, lblGia, lblTrangThai;
-    private Runnable onBack, onNewSale;
+    private Runnable onNewSale;
 
-    public BanVePrintPanel(Runnable onBack, Runnable onNewSale) {
-        this.onBack = onBack;
+    public BanVePrintPanel(Runnable onNewSale) {
         this.onNewSale = onNewSale;
         setLayout(new BorderLayout());
         setOpaque(false);
@@ -35,9 +34,8 @@ public class BanVePrintPanel extends JPanel {
         JPanel wrapper = new JPanel(new BorderLayout(0, 12));
         wrapper.setBackground(Color.WHITE);
         wrapper.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Color.decode("#DDE5F2")),
-            new EmptyBorder(24, 24, 24, 24)
-        ));
+                BorderFactory.createLineBorder(Color.decode("#DDE5F2")),
+                new EmptyBorder(24, 24, 24, 24)));
 
         JLabel title = new JLabel("In vé / Hóa đơn");
         title.setFont(new Font("Segoe UI", Font.BOLD, 18));
@@ -63,20 +61,21 @@ public class BanVePrintPanel extends JPanel {
 
         JPanel footer = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
         footer.setOpaque(false);
+
         JButton btnIn = new JButton("In hóa đơn");
         stylePrimary(btnIn);
         btnIn.addActionListener(e -> JOptionPane.showMessageDialog(this, "Đã gửi lệnh in."));
 
-        JButton btnBack = new JButton("Quay lại");
-        styleSecondary(btnBack);
-        btnBack.addActionListener(e -> onBack.run());
+        // JButton btnBack = new JButton("Quay lại");
+        // styleSecondary(btnBack);
+        // btnBack.addActionListener(e -> onBack.run());
 
         JButton btnMoi = new JButton("Bán vé mới");
         styleSecondary(btnMoi);
         btnMoi.addActionListener(e -> onNewSale.run());
 
         footer.add(btnIn);
-        footer.add(btnBack);
+        // footer.add(btnBack);
         footer.add(btnMoi);
         wrapper.add(footer, BorderLayout.SOUTH);
 
@@ -84,13 +83,16 @@ public class BanVePrintPanel extends JPanel {
     }
 
     private JLabel addReceiptRow(JPanel parent, GridBagConstraints gbc, int row, String label) {
-        gbc.gridx = 0; gbc.gridy = row; gbc.weightx = 0.28;
+        gbc.gridx = 0;
+        gbc.gridy = row;
+        gbc.weightx = 0.28;
         JLabel lbl = new JLabel(label + ":");
         lbl.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         lbl.setForeground(MAU_TEXT);
         parent.add(lbl, gbc);
 
-        gbc.gridx = 1; gbc.weightx = 0.72;
+        gbc.gridx = 1;
+        gbc.weightx = 0.72;
         JLabel val = new JLabel("—");
         val.setFont(new Font("Segoe UI", Font.BOLD, 13));
         val.setForeground(MAU_TEXT);
@@ -115,7 +117,8 @@ public class BanVePrintPanel extends JPanel {
         b.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
     }
 
-    public void updateData(String maHD, String soVe, String kh, String chuyen, String tuyen, String khoiHanh, String toaGhe, String gia, String trangThai) {
+    public void updateData(String maHD, String soVe, String kh, String chuyen, String tuyen, String khoiHanh,
+            String toaGhe, String gia, String trangThai) {
         lblMaHD.setText(maHD);
         lblSoVe.setText(soVe);
         lblKhachHang.setText(kh);
