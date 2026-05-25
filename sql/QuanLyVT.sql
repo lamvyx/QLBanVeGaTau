@@ -3,7 +3,7 @@
 -- SQL Server Version
 -- ============================================
 CREATE DATABASE QLBANVETAU
-USE QLBANVETAU;
+USE QLBANVETAU_New;
 GO
 
 -- ============================================
@@ -376,14 +376,55 @@ GO
 INSERT INTO Thue VALUES ('T001', N'VAT', 10, N'Thuế giá trị gia tăng');
 GO
 
+DELETE FROM VeTau;
+GO
+
+DELETE FROM ChuyenTau;
+GO
+
+DELETE FROM TuyenTau;
+GO
+
+DELETE FROM ChiTietHoaDon_DichVu;
+GO
+
+DELETE FROM ChiTietHoaDon_Ve;
+GO
+
+DELETE FROM HoaDon;
+GO
+
 INSERT INTO TuyenTau VALUES
-    ('TT001', N'Hồ Chí Minh', N'Hà Nội',  1726),
-    ('TT002', N'Hồ Chí Minh', N'Đà Nẵng', 935);
+	('TT001', N'Hồ Chí Minh', N'Hà Nội',  1726),
+    ('TT002', N'Hồ Chí Minh', N'Đà Nẵng', 935),
+    ('TT003', N'Hồ Chí Minh', N'Nha Trang', 411),
+    ('TT004', N'Hồ Chí Minh', N'Vinh', 939),
+
+    ('TT005', N'Nha Trang', N'Đà Nẵng', 528),
+    ('TT006', N'Nha Trang', N'Hà Nội', 1315),
+
+    ('TT007', N'Đà Nẵng', N'Huế', 103),
+    ('TT008', N'Đà Nẵng', N'Hà Nội', 791),
+
+    ('TT009', N'Hà Nội', N'Hải Phòng', 102),
+    ('TT010', N'Hà Nội', N'Vinh', 319),
+	('TT011', N'Hà Nội', N'Huế', 979),
+
+    ('TT012', N'Vinh', N'Hồ Chí Minh', 1407),
+
+    ('TT013', N'Huế', N'Hồ Chí Minh', 978),
+
+    ('TT014', N'Hải Phòng', N'Hà Nội', 102),
+
+    ('TT015', N'Đà Nẵng', N'Nha Trang', 528);
 GO
 
 INSERT INTO Tau VALUES
-    ('TAU001', N'SE1', 14),
-    ('TAU002', N'SE3', 14);
+	('TAU001', N'SE1', 14),
+    ('TAU002', N'SE3', 14),
+    ('TAU003', N'SE5',  15),
+    ('TAU004', N'SE7',  16),
+    ('TAU005', N'TN1',  12);
 GO
 
 INSERT INTO Toa VALUES
@@ -392,9 +433,106 @@ INSERT INTO Toa VALUES
     ('TOA003', 'TAU002', N'Ngồi mềm',     64, N'1', 1);
 GO
 
+INSERT INTO Toa VALUES
+    ('TOA004', 'TAU001', N'Nằm điều hòa', 28, N'4', 1),
+    ('TOA005', 'TAU001', N'Ngồi cứng',    80, N'5', 1),
+    ('TOA006', 'TAU001', N'Nằm điều hòa', 32, N'6', 1),
+    ('TOA007', 'TAU001', N'Ngồi mềm',     56, N'7', 1),
+    ('TOA008', 'TAU001', N'Nằm thường',   48, N'8', 1),
+    ('TOA009', 'TAU001', N'Ngồi cứng',    72, N'9', 1),
+    ('TOA010', 'TAU001', N'Nằm điều hòa', 36, N'10', 1),
+    ('TOA011', 'TAU001', N'Ngồi mềm',     60, N'11', 1),
+    ('TOA012', 'TAU001', N'Ngồi cứng',     28, N'12', 1),
+    ('TOA013', 'TAU001', N'Nằm thường',   52, N'13', 1),
+    ('TOA014', 'TAU001', N'Ngồi cứng',    68, N'14', 1),
+	('TOA015', 'TAU001', N'Ngồi mềm',   64, N'1', 1),
+
+    ('TOA016', 'TAU002', N'Nằm điều hòa',28, N'2', 1),
+    ('TOA017', 'TAU002', N'Ngồi mềm',   60, N'3', 1),
+    ('TOA018', 'TAU002', N'Nằm điều hòa',32, N'4', 1),
+    ('TOA019', 'TAU002', N'Ngồi cứng',  80, N'5', 1),
+    ('TOA020', 'TAU002', N'Nằm thường', 48, N'6', 1),
+    ('TOA021', 'TAU002', N'Ngồi mềm',   56, N'7', 1),
+    ('TOA022', 'TAU002', N'Nằm điều hòa',36, N'8', 1),
+    ('TOA023', 'TAU002', N'Ngồi cứng',  72, N'9', 1),
+    ('TOA024', 'TAU002', N'Nằm thường', 44, N'10', 1),
+    ('TOA025', 'TAU002', N'Ngồi mềm',   64, N'11', 1),
+    ('TOA026', 'TAU002', N'Nằm điều hòa',30, N'12', 1),
+    ('TOA027', 'TAU002', N'Ngồi cứng',  76, N'13', 1),
+    ('TOA028', 'TAU002', N'Ngồi cứng',   28, N'14', 1),
+
+	('TOA029', 'TAU003', N'Ngồi mềm',   64, N'1', 1),
+    ('TOA030', 'TAU003', N'Nằm điều hòa',30, N'2', 1),
+    ('TOA031', 'TAU003', N'Ngồi cứng',  80, N'3', 1),
+    ('TOA032', 'TAU003', N'Nằm thường', 48, N'4', 1),
+    ('TOA033', 'TAU003', N'Ngồi mềm',   60, N'5', 1),
+    ('TOA034', 'TAU003', N'Nằm điều hòa',34, N'6', 1),
+    ('TOA035', 'TAU003', N'Ngồi cứng',  72, N'7', 1),
+    ('TOA036', 'TAU003', N'Nằm thường', 52, N'8', 1),
+    ('TOA037', 'TAU003', N'Ngồi mềm',   56, N'9', 1),
+    ('TOA038', 'TAU003', N'Nằm điều hòa',28, N'10', 1),
+    ('TOA039', 'TAU003', N'Ngồi cứng',  68, N'11', 1),
+    ('TOA040', 'TAU003', N'Ngồi cứng',  28, N'12', 1),
+    ('TOA041', 'TAU003', N'Nằm thường', 46, N'13', 1),
+    ('TOA042', 'TAU003', N'Ngồi mềm',   64, N'14', 1),
+    ('TOA043', 'TAU003', N'Nằm điều hòa',32, N'15', 1),
+
+	('TOA044', 'TAU004', N'Ngồi mềm',   60, N'1', 1),
+    ('TOA045', 'TAU004', N'Nằm điều hòa',28, N'2', 1),
+    ('TOA046', 'TAU004', N'Ngồi cứng',  76, N'3', 1),
+    ('TOA047', 'TAU004', N'Nằm thường', 50, N'4', 1),
+    ('TOA048', 'TAU004', N'Ngồi mềm',   64, N'5', 1),
+    ('TOA049', 'TAU004', N'Nằm điều hòa',32, N'6', 1),
+    ('TOA050', 'TAU004', N'Ngồi cứng',  80, N'7', 1),
+    ('TOA051', 'TAU004', N'Nằm thường', 44, N'8', 1),
+    ('TOA052', 'TAU004', N'Ngồi mềm',   56, N'9', 1),
+    ('TOA053', 'TAU004', N'Nằm điều hòa',36, N'10', 1),
+    ('TOA054', 'TAU004', N'Ngồi cứng',  72, N'11', 1),
+    ('TOA055', 'TAU004', N'Ngồi cứng',   28, N'12', 1),
+    ('TOA056', 'TAU004', N'Nằm thường', 52, N'13', 1),
+    ('TOA057', 'TAU004', N'Ngồi mềm',   60, N'14', 1),
+    ('TOA058', 'TAU004', N'Nằm điều hòa',30, N'15', 1),
+    ('TOA059', 'TAU004', N'Ngồi cứng',  68, N'16', 1),
+
+	('TOA060', 'TAU005', N'Ngồi mềm',   64, N'1', 1),
+    ('TOA061', 'TAU005', N'Nằm điều hòa',28, N'2', 1),
+    ('TOA062', 'TAU005', N'Ngồi cứng',  80, N'3', 1),
+    ('TOA063', 'TAU005', N'Nằm thường', 48, N'4', 1),
+    ('TOA064', 'TAU005', N'Ngồi mềm',   56, N'5', 1),
+    ('TOA065', 'TAU005', N'Nằm điều hòa',32, N'6', 1),
+    ('TOA066', 'TAU005', N'Ngồi cứng',  72, N'7', 1),
+    ('TOA067', 'TAU005', N'Ngồi cứng',   28, N'8', 1),
+    ('TOA068', 'TAU005', N'Nằm thường', 52, N'9', 1),
+    ('TOA069', 'TAU005', N'Ngồi mềm',   60, N'10', 1),
+    ('TOA070', 'TAU005', N'Nằm điều hòa',30, N'11', 1),
+    ('TOA071', 'TAU005', N'Ngồi cứng',  76, N'12', 1);
+
+GO
+
 INSERT INTO ChuyenTau VALUES
-    ('CT001', 'TAU001', 'TT001', '2026-04-10', '22:00:00', 1),
-    ('CT002', 'TAU002', 'TT002', '2026-04-11', '06:00:00', 1);
+    ('CT001', 'TAU001', 'TT001', '2026-05-29', '22:00:00', 1),
+    ('CT002', 'TAU002', 'TT002', '2026-05-30', '06:00:00', 1),
+    ('CT003', 'TAU003', 'TT003', '2026-05-29', '08:30:00', 1),
+    ('CT004', 'TAU004', 'TT005', '2026-06-30', '09:15:00', 1),
+    ('CT005', 'TAU005', 'TT007', '2026-04-29', '07:45:00', 1),
+
+    ('CT006', 'TAU001', 'TT008', '2026-05-29', '20:30:00', 1),
+    ('CT007', 'TAU002', 'TT009', '2026-05-29', '05:30:00', 1),
+    ('CT008', 'TAU003', 'TT010', '2026-05-30', '21:15:00', 1),
+    ('CT009', 'TAU004', 'TT011', '2026-05-29', '19:00:00', 1),
+    ('CT010', 'TAU005', 'TT012', '2026-06-01', '18:45:00', 1),
+
+    ('CT011', 'TAU001', 'TT013', '2026-05-30', '17:30:00', 1),
+    ('CT012', 'TAU002', 'TT014', '2026-05-29', '06:15:00', 1),
+    ('CT013', 'TAU003', 'TT015', '2026-05-29', '10:20:00', 1),
+    ('CT014', 'TAU004', 'TT001', '2026-05-29', '21:40:00', 1),
+    ('CT015', 'TAU005', 'TT002', '2026-05-30', '07:00:00', 1),
+
+    ('CT016', 'TAU001', 'TT003', '2026-05-30', '08:00:00', 1),
+    ('CT017', 'TAU002', 'TT006', '2026-05-29', '19:45:00', 1),
+    ('CT018', 'TAU003', 'TT008', '2026-05-30', '20:10:00', 1),
+    ('CT019', 'TAU004', 'TT010', '2026-05-29', '06:50:00', 1),
+    ('CT020', 'TAU005', 'TT015', '2026-05-30', '11:00:00', 1);
 GO
 
 INSERT INTO DichVu VALUES
@@ -403,20 +541,63 @@ INSERT INTO DichVu VALUES
 GO
 
 INSERT INTO TaiKhoan VALUES
-    ('admin01', '123456', 'ADMIN'),
+	('admin01', '123456', 'ADMIN'),
+	('admin02', '123456', 'ADMIN'),
     ('nv001',   '123456', 'NHAN_VIEN'),
-    ('nv002',   '123456', 'NHAN_VIEN');
+    ('nv002',   '123456', 'NHAN_VIEN'),
+    ('nv003',   '123456', 'NHAN_VIEN'),
+    ('nv004',   '123456', 'NHAN_VIEN'),
+    ('nv005',   '123456', 'NHAN_VIEN'),
+    ('nv006',   '123456', 'NHAN_VIEN'),
+    ('nv007',   '123456', 'NHAN_VIEN'),
+    ('nv008',   '123456', 'NHAN_VIEN'),
+    ('nv009',   '123456', 'NHAN_VIEN'),
+	('nv010', '123456', 'NHAN_VIEN'),
+    ('nv011', '123456', 'NHAN_VIEN'),
+    ('nv012', '123456', 'NHAN_VIEN'),
+    ('nv013', '123456', 'NHAN_VIEN'),
+    ('nv014', '123456', 'NHAN_VIEN');
 GO
 
 INSERT INTO NhanVien VALUES
-    ('NV001', N'Nguyễn Văn An', '0901234567', 1, '1990-05-15', '2020-01-01', 1, 'nva@tau.vn', N'Nhân viên bán vé',  'nv001'),
+	('NV001', N'Nguyễn Văn An', '0901234567', 1, '1990-05-15', '2020-01-01', 1, 'nva@tau.vn', N'Nhân viên bán vé',  'nv001'),
     ('NV002', N'Trần Thị Bích', '0912345678', 0, '1995-03-20', '2021-06-01', 1, 'ttb@tau.vn', N'Nhân viên bán vé',  'nv002'),
-    ('NV003', N'Lê Văn Cường',  '0923456789', 1, '1988-11-10', '2018-03-15', 1, 'lvc@tau.vn', N'Quản trị hệ thống', 'admin01');
+    ('NV003', N'Lê Văn Cường',  '0923456789', 1, '1988-11-10', '2018-03-15', 1, 'lvc@tau.vn', N'Quản trị hệ thống', 'admin01'),
+    ('NV004', N'Phạm Thị Dung',  '0934567890', 0, '1992-07-25', '2019-10-01', 1, 'ptdung@tau.vn', N'Nhân viên bán vé',  'nv004'),
+    ('NV005', N'Hoàng Văn Em',   '0945678901', 1, '1987-12-05', '2017-05-20', 1, 'hve@tau.vn',     N'Nhân viên bán vé',  'nv005'),
+    ('NV006', N'Vũ Thị Phượng',  '0956789012', 0, '1996-09-18', '2022-02-10', 1, 'vtphuong@tau.vn', N'Nhân viên bán vé',  'nv006'),
+    ('NV007', N'Đỗ Văn Giang',   '0967890123', 1, '1993-04-12', '2020-08-15', 0, 'dvgiang@tau.vn',  N'Nhân viên bán vé',  'nv007'),  -- nghỉ việc (TrangThai = 0)
+    ('NV008', N'Nguyễn Thị Hoa', '0978901234', 0, '1998-01-30', '2023-03-01', 1, 'nthoa@tau.vn',    N'Nhân viên bán vé',  'nv008'),
+    ('NV009', N'Bùi Văn Khánh',  '0989012345', 1, '1991-06-22', '2019-11-11', 1, 'bvkhanh@tau.vn',  N'Nhân viên bán vé',  'nv009'),
+    ('NV010', N'Trịnh Minh Tuấn','0990123456', 1, '1985-08-10', '2016-09-01', 1, 'admin02@tau.vn',  N'Quản trị hệ thống', 'admin02'),
+	('NV011', N'Lý Thị Ngọc',    '0901112223', 0, '1994-09-12', '2021-07-01', 1, 'ltngoc@tau.vn',  N'Nhân viên bán vé', 'nv010'),
+    ('NV012', N'Đinh Văn Hùng',   '0902223334', 1, '1989-11-20', '2019-04-15', 1, 'dvhung@tau.vn',  N'Nhân viên bán vé', 'nv011'),
+    ('NV013', N'Mai Thị Thanh',   '0903334445', 0, '1997-02-28', '2022-09-10', 1, 'mtthanh@tau.vn', N'Nhân viên bán vé', 'nv012'),
+    ('NV014', N'Lương Văn Tú',    '0904445556', 1, '1993-06-05', '2020-12-01', 1, 'lvtu@tau.vn',    N'Nhân viên bán vé', 'nv013'),
+    ('NV015', N'Vương Thị Hải',   '0905556667', 0, '1996-08-19', '2023-01-20', 1, 'vthai@tau.vn',   N'Nhân viên bán vé', 'nv014');
 GO
 
 INSERT INTO KhachHang VALUES
-    ('KH001', N'Phạm Văn Dũng', '0934567890', '012345678901', N'Hà Nội', 'pvd@gmail.com', 1, '1992-07-25', 0),
-    ('KH002', N'Ngô Thị Lan',   '0945678901', '012345678902', N'TP.HCM', 'ntl@gmail.com', 0, '1998-02-14', 1);
+	('KH001', N'Phạm Văn Dũng', '0934567890', '012345678901', N'Hà Nội', 'pvd@gmail.com', 1, '1992-07-25', 0),
+    ('KH002', N'Ngô Thị Lan',   '0945678901', '012345678902', N'TP.HCM', 'ntl@gmail.com', 0, '1998-02-14', 1),
+    ('KH003', N'Trần Thị Hương',   '0956789012', '012345678903', N'Đà Nẵng',       'tthuong@gmail.com',    0, '1995-12-10', 1),
+    ('KH004', N'Lê Văn An',        '0967890123', '012345678904', N'Hải Phòng',     'levana@gmail.com',     1, '1990-05-20', 1),
+    ('KH005', N'Hoàng Thị Bích',   '0978901234', '012345678905', N'Cần Thơ',       'htbich@gmail.com',     0, '1988-09-15', 0),
+    ('KH006', N'Vũ Văn Cường',     '0989012345', '012345678906', N'Hà Nội',        'vvc1992@gmail.com',    1, '1992-03-08', 1),
+    ('KH007', N'Phạm Thị Dung',    '0990123456', '012345678907', N'Bình Dương',     'ptdung@gmail.com',     0, '2000-07-30', 1),
+    ('KH008', N'Nguyễn Văn Em',    '0901234567', '012345678908', N'TP.HCM',        'nve@gmail.com',        1, '1996-11-22', 0),
+    ('KH009', N'Đỗ Thị Phượng',    '0912345678', '012345678909', N'Quảng Ninh',     'dtphuong@gmail.com',   0, '1993-04-05', 1),
+    ('KH010', N'Bùi Văn Giang',    '0923456789', '012345678910', N'Hà Nội',        'bvgiang@gmail.com',    1, '1985-08-17', 1),
+    ('KH011', N'Trịnh Thị Hoa',    '0934567891', '012345678911', N'Đà Nẵng',       'tthoa@gmail.com',      0, '1999-01-28', 0),
+    ('KH012', N'Đặng Văn Khánh',   '0945678902', '012345678912', N'Hải Phòng',     'dvkhanh@gmail.com',    1, '1994-06-12', 1),
+	('KH013', N'Nguyễn Thị Linh',    '0956789013', '012345678913', N'Bắc Ninh',      'ntlinh@gmail.com',     0, '1997-09-03', 1),
+    ('KH014', N'Phan Văn Minh',      '0967890124', '012345678914', N'Hưng Yên',      'pvminh@gmail.com',     1, '1991-12-19', 0),
+    ('KH015', N'Lý Thị Ngọc',        '0978901235', '012345678915', N'TP.HCM',        'ltngoc@gmail.com',     0, '2001-04-25', 1),
+    ('KH016', N'Đinh Văn Hùng',      '0989012346', '012345678916', N'Hà Nam',        'dvhung@gmail.com',     1, '1989-11-11', 1),
+    ('KH017', N'Mai Thị Thanh',      '0990123457', '012345678917', N'Thanh Hóa',     'mtthanh@gmail.com',    0, '1993-06-07', 0),
+    ('KH018', N'Lương Văn Tú',       '0901234568', '012345678918', N'Hà Tĩnh',       'lvtu@gmail.com',       1, '1995-02-28', 1),
+    ('KH019', N'Vương Thị Hải',      '0912345679', '012345678919', N'Nam Định',      'vthai@gmail.com',      0, '1998-08-14', 1),
+    ('KH020', N'Trương Văn Hiếu',    '0923456780', '012345678920', N'Quảng Nam',     'tvhieu@gmail.com',     1, '1990-10-01', 0);
 GO
 
 INSERT INTO KhuyenMai VALUES
@@ -424,24 +605,154 @@ INSERT INTO KhuyenMai VALUES
     ('KM002', N'Ưu đãi thành viên',  5, '2026-01-01', '2026-12-31', N'Áp dụng cho khách thành viên');
 GO
 
+
+
 INSERT INTO VeTau VALUES
-    ('VE001', 'KH001', 'CT001', 'TOA002', '5A', 'NGUOI_LON', 850000, 'DA_THANH_TOAN'),
-    ('VE002', 'KH002', 'CT001', 'TOA001', '12B', 'NGUOI_LON', 900000, 'CHO_THANH_TOAN');
+    ('VE001', 'KH001', 'CT001', 'TOA002', 'A01',  'NGUOI_LON',      850000, 'DA_THANH_TOAN'),
+    ('VE002', 'KH002', 'CT001', 'TOA001', 'B01', 'NGUOI_LON',      900000, 'CHO_THANH_TOAN'),
+
+    ('VE003', 'KH003', 'CT002', 'TOA016', 'C01',  'TRE_EM',         450000, 'DA_THANH_TOAN'),
+    ('VE004', 'KH004', 'CT002', 'TOA017', 'D01',  'NGUOI_LON',      920000, 'CHO_THANH_TOAN'),
+
+    ('VE005', 'KH005', 'CT003', 'TOA029', 'A01', 'NGUOI_CAO_TUOI', 350000, 'DA_THANH_TOAN'),
+    ('VE006', 'KH006', 'CT003', 'TOA030', 'A01',  'NGUOI_LON',      500000, 'DA_SU_DUNG'),
+
+    ('VE007', 'KH007', 'CT004', 'TOA044', 'A01', 'NGUOI_LON',      780000, 'CHO_THANH_TOAN'),
+    ('VE008', 'KH008', 'CT004', 'TOA045', 'A01',  'TRE_EM',         420000, 'DA_THANH_TOAN'),
+
+    ('VE009', 'KH009', 'CT006', 'TOA004', 'A01',  'NGUOI_LON',      1100000, 'DA_THANH_TOAN'),
+    ('VE010', 'KH010', 'CT006', 'TOA005', 'A01', 'NGUOI_LON',      980000, 'CHO_THANH_TOAN'),
+
+    ('VE011', 'KH001', 'CT007', 'TOA018', 'A01',  'NGUOI_CAO_TUOI', 300000, 'DA_THANH_TOAN'),
+    ('VE012', 'KH002', 'CT008', 'TOA031', 'A01', 'NGUOI_LON',      750000, 'DA_SU_DUNG'),
+
+    ('VE013', 'KH003', 'CT009', 'TOA046', 'A01',  'TRE_EM',         410000, 'CHO_THANH_TOAN'),
+    ('VE014', 'KH004', 'CT010', 'TOA060', 'A01',  'NGUOI_LON',      950000, 'DA_THANH_TOAN'),
+
+    ('VE015', 'KH005', 'CT011', 'TOA006', 'A01',  'NGUOI_CAO_TUOI', 650000, 'DA_HOAN'),
+    ('VE016', 'KH006', 'CT012', 'TOA019', 'A01', 'NGUOI_LON',      250000, 'DA_THANH_TOAN'),
+
+    ('VE017', 'KH007', 'CT013', 'TOA032', 'A01',  'TRE_EM',         390000, 'CHO_THANH_TOAN'),
+    ('VE018', 'KH008', 'CT014', 'TOA047', 'A01', 'NGUOI_LON',      1200000, 'DA_THANH_TOAN'),
+
+    ('VE019', 'KH009', 'CT015', 'TOA061', 'A01',  'NGUOI_CAO_TUOI', 500000, 'DA_SU_DUNG'),
+    ('VE020', 'KH010', 'CT016', 'TOA007', 'A01', 'NGUOI_LON',      470000, 'CHO_THANH_TOAN');
+GO
+
+INSERT INTO VeTau VALUES
+    ('VE021', 'KH001', 'CT017', 'TOA020', 'A02', 'NGUOI_LON',       820000, 'DA_THANH_TOAN'),
+    ('VE022', 'KH002', 'CT018', 'TOA033', 'B03', 'TRE_EM',          420000, 'CHO_THANH_TOAN'),
+    ('VE023', 'KH003', 'CT019', 'TOA048', 'C04', 'NGUOI_LON',       560000, 'DA_THANH_TOAN'),
+    ('VE024', 'KH004', 'CT020', 'TOA062', 'D05', 'NGUOI_CAO_TUOI',  390000, 'DA_SU_DUNG'),
+
+    ('VE025', 'KH005', 'CT001', 'TOA002', 'A06', 'NGUOI_LON',       850000, 'DA_THANH_TOAN'),
+    ('VE026', 'KH006', 'CT001', 'TOA001', 'B07', 'TRE_EM',          480000, 'CHO_THANH_TOAN'),
+    ('VE027', 'KH007', 'CT002', 'TOA016', 'C08', 'NGUOI_LON',       920000, 'DA_THANH_TOAN'),
+    ('VE028', 'KH008', 'CT002', 'TOA017', 'D09', 'NGUOI_LON',       910000, 'DA_SU_DUNG'),
+
+    ('VE029', 'KH009', 'CT003', 'TOA029', 'A10', 'NGUOI_CAO_TUOI',  340000, 'DA_THANH_TOAN'),
+    ('VE030', 'KH010', 'CT003', 'TOA030', 'B11', 'NGUOI_LON',       510000, 'CHO_THANH_TOAN'),
+
+    ('VE031', 'KH001', 'CT004', 'TOA044', 'C12', 'TRE_EM',          430000, 'DA_THANH_TOAN'),
+    ('VE032', 'KH002', 'CT004', 'TOA045', 'D13', 'NGUOI_LON',       780000, 'DA_THANH_TOAN'),
+
+    ('VE033', 'KH003', 'CT006', 'TOA004', 'A14', 'NGUOI_LON',       1100000, 'DA_SU_DUNG'),
+    ('VE034', 'KH004', 'CT006', 'TOA005', 'B15', 'NGUOI_CAO_TUOI',  890000, 'DA_THANH_TOAN'),
+
+    ('VE035', 'KH005', 'CT007', 'TOA018', 'C16', 'NGUOI_LON',       320000, 'CHO_THANH_TOAN'),
+    ('VE036', 'KH006', 'CT008', 'TOA031', 'D01', 'TRE_EM',          410000, 'DA_THANH_TOAN'),
+
+    ('VE037', 'KH007', 'CT009', 'TOA046', 'A03', 'NGUOI_LON',       760000, 'DA_THANH_TOAN'),
+    ('VE038', 'KH008', 'CT010', 'TOA060', 'B04', 'NGUOI_LON',       930000, 'DA_SU_DUNG'),
+
+    ('VE039', 'KH009', 'CT011', 'TOA006', 'C05', 'NGUOI_CAO_TUOI',  620000, 'DA_HOAN'),
+    ('VE040', 'KH010', 'CT012', 'TOA019', 'D06', 'NGUOI_LON',       260000, 'DA_THANH_TOAN'),
+
+    ('VE041', 'KH001', 'CT013', 'TOA032', 'A07', 'TRE_EM',          400000, 'CHO_THANH_TOAN'),
+    ('VE042', 'KH002', 'CT014', 'TOA047', 'B08', 'NGUOI_LON',       1180000, 'DA_THANH_TOAN'),
+
+    ('VE043', 'KH003', 'CT015', 'TOA061', 'C09', 'NGUOI_CAO_TUOI',  510000, 'DA_SU_DUNG'),
+    ('VE044', 'KH004', 'CT016', 'TOA007', 'D10', 'NGUOI_LON',       480000, 'CHO_THANH_TOAN'),
+
+    ('VE045', 'KH005', 'CT017', 'TOA020', 'A11', 'NGUOI_LON',       830000, 'DA_THANH_TOAN'),
+    ('VE046', 'KH006', 'CT018', 'TOA033', 'B12', 'TRE_EM',          415000, 'DA_THANH_TOAN'),
+
+    ('VE047', 'KH007', 'CT019', 'TOA048', 'C13', 'NGUOI_LON',       570000, 'DA_SU_DUNG'),
+    ('VE048', 'KH008', 'CT020', 'TOA062', 'D14', 'NGUOI_CAO_TUOI',  395000, 'CHO_THANH_TOAN'),
+
+    ('VE049', 'KH009', 'CT001', 'TOA002', 'A15', 'NGUOI_LON',       860000, 'DA_THANH_TOAN'),
+    ('VE050', 'KH010', 'CT002', 'TOA016', 'B16', 'TRE_EM',          440000, 'DA_THANH_TOAN');
 GO
 
 -- (Previously ChiTietVeTau data removed; passenger details are stored in `VeTau` now.)
 
 INSERT INTO HoaDon VALUES
-    ('HD001', 'NV001', 'KH001', NULL,   'T001', '2026-04-09', 'CHUYEN_KHOAN', '2026-04-09', 1),
-    ('HD002', 'NV002', 'KH002', 'KM002','T001', '2026-04-09', 'TIEN_MAT',      NULL,         0);
+    ('HD001', 'NV001', 'KH001', NULL,    'T001', '2026-05-20', 'CHUYEN_KHOAN', '2026-05-20', 1),
+    ('HD002', 'NV002', 'KH002', 'KM002', 'T001', '2026-05-20', 'TIEN_MAT',      NULL,         0),
+
+    ('HD003', 'NV003', 'KH003', NULL,    'T001', '2026-05-21', 'VI_DIEN_TU',    '2026-05-21', 1),
+    ('HD004', 'NV001', 'KH004', 'KM001', 'T001', '2026-05-21', 'CHUYEN_KHOAN',  '2026-05-21', 1),
+
+    ('HD005', 'NV002', 'KH005', NULL,    'T001', '2026-05-22', 'TIEN_MAT',      NULL,         0),
+    ('HD006', 'NV003', 'KH006', 'KM001', 'T001', '2026-05-22', 'VI_DIEN_TU',    '2026-05-22', 1),
+
+    ('HD007', 'NV004', 'KH007', NULL,    'T001', '2026-05-23', 'CHUYEN_KHOAN',  '2026-05-23', 1),
+    ('HD008', 'NV005', 'KH008', 'KM001', 'T001', '2026-05-23', 'TIEN_MAT',      NULL,         0),
+
+    ('HD009', 'NV001', 'KH009', NULL,    'T001', '2026-05-24', 'VI_DIEN_TU',    '2026-05-24', 1),
+    ('HD010', 'NV002', 'KH010', 'KM002', 'T001', '2026-05-24', 'CHUYEN_KHOAN',  '2026-05-24', 1),
+
+    ('HD011', 'NV003', 'KH001', NULL,    'T001', '2026-05-24', 'TIEN_MAT',      NULL,         0),
+    ('HD012', 'NV004', 'KH002', 'KM002', 'T001', '2026-05-24', 'VI_DIEN_TU',    '2026-05-24', 1),
+
+    ('HD013', 'NV005', 'KH003', NULL,    'T001', '2026-05-25', 'CHUYEN_KHOAN',  '2026-05-25', 1),
+    ('HD014', 'NV001', 'KH004', 'KM001', 'T001', '2026-05-25', 'TIEN_MAT',      NULL,         0),
+
+    ('HD015', 'NV002', 'KH005', NULL,    'T001', '2026-05-25', 'VI_DIEN_TU',    '2026-05-25', 1);
 GO
 
 INSERT INTO ChiTietHoaDon_Ve VALUES
     ('HD001', 'VE001', 1, 850000),
-    ('HD002', 'VE002', 1, 900000);
+    ('HD002', 'VE002', 1, 900000),
+    ('HD003', 'VE003', 1, 450000),
+    ('HD004', 'VE004', 1, 920000),
+    ('HD005', 'VE005', 1, 350000),
+    ('HD006', 'VE006', 1, 500000),
+    ('HD007', 'VE007', 1, 780000),
+    ('HD008', 'VE008', 1, 420000),
+    ('HD009', 'VE009', 1, 1100000),
+    ('HD010', 'VE010', 1, 980000),
+
+    ('HD011', 'VE011', 1, 300000),
+    ('HD012', 'VE012', 1, 750000),
+    ('HD013', 'VE013', 1, 410000),
+    ('HD014', 'VE014', 1, 950000),
+    ('HD015', 'VE015', 1, 650000);
+GO
 
 INSERT INTO ChiTietHoaDon_DichVu VALUES
-    ('HD001', 'DV001', 2, 50000);
+    ('HD001', 'DV001', 2, 50000),
+    ('HD002', 'DV002', 1, 30000),
+
+    ('HD003', 'DV001', 1, 50000),
+    ('HD004', 'DV002', 2, 30000),
+
+    ('HD005', 'DV001', 3, 50000),
+    ('HD006', 'DV002', 1, 30000),
+
+    ('HD007', 'DV001', 2, 50000),
+    ('HD008', 'DV002', 2, 30000),
+
+    ('HD009', 'DV001', 1, 50000),
+    ('HD010', 'DV002', 3, 30000),
+
+    ('HD011', 'DV001', 2, 50000),
+    ('HD012', 'DV002', 1, 30000),
+
+    ('HD013', 'DV001', 1, 50000),
+    ('HD014', 'DV002', 2, 30000),
+
+    ('HD015', 'DV001', 2, 50000);
 GO
 
 PRINT N'Tạo CSDL QuanLyVeTau thành công!';
