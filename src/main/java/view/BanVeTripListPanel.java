@@ -113,6 +113,6 @@ public class BanVeTripListPanel extends JPanel {
             }
             
             return panel;
-        }
+        }		
     }
 }

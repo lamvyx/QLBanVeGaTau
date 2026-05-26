@@ -151,6 +151,7 @@ public class BanVePage extends JPanel {
         JPanel centerWrap = new JPanel(new GridBagLayout());
         centerWrap.setOpaque(false);
         GridBagConstraints gbc = new GridBagConstraints();
+        
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
@@ -197,8 +198,7 @@ public class BanVePage extends JPanel {
         return wrap;
     }
 
-    private void addLabelField(JPanel p, GridBagConstraints gbc, int col, int row, String label,
-            java.awt.Component field) {
+    private void addLabelField(JPanel p, GridBagConstraints gbc, int col, int row, String label, java.awt.Component field) {
         gbc.gridy = row;
         gbc.gridx = col * 2;
         gbc.weightx = 0.15;
@@ -227,6 +227,7 @@ public class BanVePage extends JPanel {
         return wrap;
     }
 
+    //TẠO combobox và gắn sự kiện cho nó
     private JComboBox<KhachHangOption> createCustomerCombo() {
         cboKhachHang = new JComboBox<>();
         cboKhachHang.addActionListener(e -> {
@@ -239,7 +240,8 @@ public class BanVePage extends JPanel {
         });
         return cboKhachHang;
     }
-
+    
+    // Sự kiện khi nhấn nút tìm kiếm chuyến tàu
     private void onSearchTrips(String gaDi, String gaDen, java.time.LocalDate ngayDi) {
         List<ChuyenTau> trips = banVeService.searchTrips(gaDi, gaDen, ngayDi);
         tripListPanel.setTrips(trips);
@@ -249,6 +251,7 @@ public class BanVePage extends JPanel {
         }
     }
 
+    // Sự kiện khi chọn một chuyến tàu từ danh sách
     private void onTripSelected(ChuyenTau trip) {
         if (trip != null) {
             TripDetails details = banVeService.getTripDetails(trip);
@@ -261,7 +264,8 @@ public class BanVePage extends JPanel {
             refreshSummary();
         }
     }
-
+    
+    // Cập nhật danh sách toa khi chọn chuyến tàu
     private void taiToaChoTau(String maTau) {
         cboToaTau.removeAllItems();
         List<ToaOption> ds = banVeService.getToasForTrain(maTau, toaTheoChuyen);
@@ -307,7 +311,8 @@ public class BanVePage extends JPanel {
     private void onSelectionChanged() {
         refreshSummary();
     }
-
+    
+    // Cập nhật lại phần tổng hợp thông tin và giá khi có thay đổi
     private void refreshSummary() {
         String maKM = "";
         KhuyenMaiOption kmOpt = (KhuyenMaiOption) cboKhuyenMai.getSelectedItem();
@@ -329,6 +334,7 @@ public class BanVePage extends JPanel {
         repaint();
     }
 
+    // Xác nhận bán vé và lập hóa đơn
     private void confirmSale() {
         if (selectedSeats.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Vui lòng chọn ít nhất một chỗ ngồi.");
@@ -354,7 +360,8 @@ public class BanVePage extends JPanel {
             seatPanel.refreshUI();
             return;
         }
-
+        
+        // Nếu bán vé thành công mà có áp dụng phiếu đặt, thì cập nhật trạng thái phiếu đặt đã được sử dụng
         if (phieuDatDaNap != null && phieuDatDaNap.getPhieuDatVe() != null) {
             banVeService.updateReservationStatus(phieuDatDaNap.getPhieuDatVe().getMaPhieu(), false);
         }
@@ -424,6 +431,7 @@ public class BanVePage extends JPanel {
         refreshSummary();
     }
 
+    // getInitialData sẽ trả về tất cả dữ liệu cần thiết để khởi tạo form
     private void taiDuLieuBanDau() {
         InitialData data = banVeService.getInitialData();
 
@@ -439,6 +447,7 @@ public class BanVePage extends JPanel {
         toaTheoChuyen.putAll(data.coachesByTrain);
     }
 
+    // Cập nhật lại danh sách ghế đã được đặt cho toa tàu đã chọn, đồng thời loại bỏ những ghế đã được chọn trong phiếu đặt (nếu có)
     private void capNhatGheDaDatTheoToa() {
         bookedSeats.clear();
         if (selectedMaCT == null || selectedMaToa == null)
@@ -452,6 +461,7 @@ public class BanVePage extends JPanel {
             bookedSeats.add(BanVeUtils.chuanHoaMaGhe(g));
     }
 
+    // Áp dụng dữ liệu từ phiếu đặt vé vào form bán vé, cho phép người dùng dễ dàng chuyển đổi từ đặt vé sang bán vé
     private void apDungPhieuDat(PhieuDatVeInfo info) {
         ReservationData data = banVeService.parseReservation(info);
         phieuDatDaNap = info;

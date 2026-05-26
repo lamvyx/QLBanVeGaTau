@@ -20,9 +20,7 @@ public class BanVeService {
     private final ToaController toaController = new ToaController();
     private final TuyenTauController tuyenTauController = new TuyenTauController();
 
-    /**
-     * Tải dữ liệu ban đầu cho trang bán vé
-     */
+     // Tải dữ liệu ban đầu cho trang bán vé
     public InitialData getInitialData() {
         List<KhachHangOption> customers = new ArrayList<>();
         for (KhachHang kh : khachHangController.layTatCaKhachHang()) {
@@ -45,23 +43,18 @@ public class BanVeService {
         return new InitialData(customers, promos, coachesByTrain);
     }
 
-    /**
-     * Tra cứu chuyến tàu
-     */
+    
+     // Tra cứu chuyến tàu
     public List<ChuyenTau> searchTrips(String gaDi, String gaDen, java.time.LocalDate ngayDi) {
         return chuyenTauController.traCuuChuyenTau(gaDi, gaDen, ngayDi);
     }
 
-    /**
-     * Lấy danh sách toa cho một chuyến tàu
-     */
+     // Lấy danh sách toa cho một chuyến tàu
     public List<ToaOption> getToasForTrain(String maTau, Map<String, List<ToaOption>> toaTheoChuyen) {
         return toaTheoChuyen.getOrDefault(maTau, Collections.emptyList());
     }
 
-    /**
-     * Lấy thông tin chuyến tàu đã chọn
-     */
+     // Lấy thông tin chuyến tàu đã chọn
     public TripDetails getTripDetails(ChuyenTau trip) {
         String maCT = trip.getMaCT();
         String departureTime = trip.getNgayKhoiHanh().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
@@ -81,9 +74,7 @@ public class BanVeService {
         return new TripDetails(maCT, route, departureTime, trip.getMaTau());
     }
 
-    /**
-     * Tính toán chi tiết giá
-     */
+     // Tính toán chi tiết giá
     public PriceSummary calculatePrice(BigDecimal unitPrice, int seatCount, String maKM) {
         BigDecimal base = unitPrice.multiply(BigDecimal.valueOf(seatCount));
         BigDecimal vat = hoaDonController.tinhThueVAT(base);
@@ -92,9 +83,8 @@ public class BanVeService {
         return new PriceSummary(unitPrice, vat, discount, total);
     }
 
-    /**
-     * Thực hiện lập hóa đơn bán vé
-     */
+
+     // Thực hiện lập hóa đơn bán vé
     public KetQuaLapHoaDon confirmSale(String maNV, String maKH, String maKM, String maCT, String maToa,
             List<String> seats, BigDecimal unitPrice, Set<String> ignoredSeats) {
         if (ignoredSeats == null || ignoredSeats.isEmpty()) {
@@ -104,23 +94,17 @@ public class BanVeService {
         }
     }
 
-    /**
-     * Cập nhật trạng thái phiếu đặt vé
-     */
+     // Cập nhật trạng thái phiếu đặt vé
     public void updateReservationStatus(String maPhieu, boolean status) {
         phieuDatVeController.capNhatTrangThai(maPhieu, status);
     }
 
-    /**
-     * Lấy danh sách ghế đã đặt
-     */
+     // Lấy danh sách ghế đã đặt
     public Set<String> getBookedSeats(String maCT, String maToa) {
         return hoaDonController.layGheDaDat(maCT, maToa);
     }
 
-    /**
-     * Phân tích dữ liệu từ phiếu đặt vé
-     */
+     // Phân tích dữ liệu từ phiếu đặt vé
     public ReservationData parseReservation(PhieuDatVeInfo info) {
         String maKH = null;
         String tenKH = "Chưa chọn";

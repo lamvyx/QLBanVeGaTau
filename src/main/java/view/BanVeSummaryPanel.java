@@ -184,4 +184,8 @@ public class BanVeSummaryPanel extends JPanel {
         lblKM.setText(BanVeUtils.formatMoney(km));
         lblTongTien.setText(BanVeUtils.formatMoney(tong));
     }
+    public void hienThiGiaTien(BigDecimal Tong) {
+    	lblTongTien.setText(BanVeUtils.formatMoney(Tong));
+    }
 }
+

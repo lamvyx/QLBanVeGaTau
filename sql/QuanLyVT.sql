@@ -3,7 +3,7 @@
 -- SQL Server Version
 -- ============================================
 CREATE DATABASE QLBANVETAU
-USE QLBANVETAU_New;
+USE QLBANVETAU;
 GO
 
 -- ============================================
@@ -374,24 +374,6 @@ GO
 -- ============================================
 
 INSERT INTO Thue VALUES ('T001', N'VAT', 10, N'Thuế giá trị gia tăng');
-GO
-
-DELETE FROM VeTau;
-GO
-
-DELETE FROM ChuyenTau;
-GO
-
-DELETE FROM TuyenTau;
-GO
-
-DELETE FROM ChiTietHoaDon_DichVu;
-GO
-
-DELETE FROM ChiTietHoaDon_Ve;
-GO
-
-DELETE FROM HoaDon;
 GO
 
 INSERT INTO TuyenTau VALUES

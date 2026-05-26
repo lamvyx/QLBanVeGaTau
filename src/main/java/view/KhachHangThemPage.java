@@ -1,6 +1,8 @@
 package view;
 
 import controller.KhachHangController;
+import service.KhachHangService.KetQuaXuLy;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -257,7 +259,7 @@ public class KhachHangThemPage extends JPanel {
 		boolean gioiTinh = "Nam".equals(cbGioiTinh.getSelectedItem());
 		boolean loaiKH = cbLoaiKH.getSelectedIndex() > 0;
 
-		service.KhachHangService.KetQuaXuLy ketQua = khachHangController.themKhachHang(tenKH, sdt, cccd,
+		KetQuaXuLy ketQua = khachHangController.themKhachHang(tenKH, sdt, cccd,
 				email, diaChi, gioiTinh, loaiKH);
 
 		if (ketQua.thanhCong) {
