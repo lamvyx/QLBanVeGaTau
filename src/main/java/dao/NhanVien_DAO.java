@@ -134,7 +134,7 @@ public class NhanVien_DAO {
 			List<NhanVien> allNhanVien = database.getAllNhanVien();
 			
 			for (NhanVien nv : allNhanVien) {
-				if (nv.getSdt().equals(sdt)) {
+				if (nv.getSdt() != null && nv.getSdt().trim().equals(sdt.trim())) {
 					return nv;
 				}
 			}

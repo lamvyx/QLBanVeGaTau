@@ -15,7 +15,7 @@ public class DatabaseConnection {
     private static final String SERVER = "localhost";
     private static final String INSTANCE = "SQLEXPRESS";
     private static final String PORT = "1433";
-    private static final String DATABASE = "QLBANVETAU_New";
+    private static final String DATABASE = "QLBANVETAU";
 
     // SQL Server Authentication
     private static final String USERNAME = "sa";

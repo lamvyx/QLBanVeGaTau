@@ -1,15 +1,19 @@
 package view;
 
+import controller.NhanVienController;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.time.LocalDate;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -18,10 +22,13 @@ import javax.swing.border.EmptyBorder;
 public class NhanVienThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
+	private final NhanVienController nhanVienController = new NhanVienController();
+	
 	private JTextField txtTen, txtUsername, txtSdt, txtEmail, txtPassword;
+	private JTextField txtNgaySinh, txtNgayVaoLam;
 	private JComboBox<String> cbChucVu;
-	private JButton btnThem;
-	private JButton btnLamMoi;
+	private JCheckBox cbGioiTinh;
+	private JButton btnThem, btnLamMoi;
 
 	public NhanVienThemPage() {
 		setLayout(new BorderLayout());
@@ -71,19 +78,12 @@ public class NhanVienThemPage extends JPanel {
 		btnThem = new JButton("Thêm nhân viên");
 		AppTheme.stylePrimaryButton(btnThem);
 		btnThem.setPreferredSize(new Dimension(150, 40));
+		btnThem.addActionListener(e -> xuLyThemNhanVien());
 
 		btnLamMoi = new JButton("Làm mới");
 		AppTheme.styleSecondaryButton(btnLamMoi);
 		btnLamMoi.setPreferredSize(new Dimension(120, 40));
-
-		btnLamMoi.addActionListener(e -> {
-			txtTen.setText("");
-			txtUsername.setText("");
-			txtSdt.setText("");
-			txtEmail.setText("");
-			txtPassword.setText("");
-			cbChucVu.setSelectedIndex(0);
-		});
+		btnLamMoi.addActionListener(e -> lamMoiForm());
 
 		actions.add(btnLamMoi);
 		actions.add(btnThem);
@@ -117,9 +117,69 @@ public class NhanVienThemPage extends JPanel {
 		addField(formContainer, gbc, 0, 0, "Họ và tên *", txtTen = new JTextField());
 		addField(formContainer, gbc, 1, 0, "Tên tài khoản *", txtUsername = new JTextField());
 		addField(formContainer, gbc, 0, 1, "Số điện thoại", txtSdt = new JTextField());
-		addComboField(formContainer, gbc, 1, 1, "Chức vụ", cbChucVu = new JComboBox<>(new String[]{"Quản lý", "Bán vé", "Hỗ trợ", "Kỹ thuật"}));
+		addComboField(formContainer, gbc, 1, 1, "Chức vụ", cbChucVu = new JComboBox<>(
+			new String[]{"Quản lý", "Bán vé", "Hỗ trợ", "Kỹ thuật"}));
+		
 		addField(formContainer, gbc, 0, 2, "Email *", txtEmail = new JTextField());
 		addField(formContainer, gbc, 1, 2, "Mật khẩu *", txtPassword = new JTextField());
+		
+		// Ngày sinh
+		JLabel lblNgaySinh = new JLabel("Ngày sinh");
+		lblNgaySinh.setFont(AppTheme.font(Font.BOLD, 13));
+		lblNgaySinh.setForeground(AppTheme.TEXT_PRIMARY);
+		gbc.gridx = 0;
+		gbc.gridy = 3;
+		gbc.weightx = 0.26;
+		formContainer.add(lblNgaySinh, gbc);
+		
+		txtNgaySinh = new JTextField();
+		txtNgaySinh.setText(LocalDate.now().toString());
+		txtNgaySinh.setFont(AppTheme.font(Font.PLAIN, 13));
+		txtNgaySinh.setPreferredSize(new Dimension(0, 38));
+		txtNgaySinh.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(AppTheme.BORDER),
+			new EmptyBorder(8, 8, 8, 8)
+		));
+		gbc.gridx = 1;
+		gbc.weightx = 0.74;
+		formContainer.add(txtNgaySinh, gbc);
+		
+		// Ngày vào làm
+		JLabel lblNgayVaoLam = new JLabel("Ngày vào làm");
+		lblNgayVaoLam.setFont(AppTheme.font(Font.BOLD, 13));
+		lblNgayVaoLam.setForeground(AppTheme.TEXT_PRIMARY);
+		gbc.gridx = 0;
+		gbc.gridy = 4;
+		gbc.weightx = 0.26;
+		formContainer.add(lblNgayVaoLam, gbc);
+		
+		txtNgayVaoLam = new JTextField();
+		txtNgayVaoLam.setText(LocalDate.now().toString());
+		txtNgayVaoLam.setFont(AppTheme.font(Font.PLAIN, 13));
+		txtNgayVaoLam.setPreferredSize(new Dimension(0, 38));
+		txtNgayVaoLam.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(AppTheme.BORDER),
+			new EmptyBorder(8, 8, 8, 8)
+		));
+		gbc.gridx = 1;
+		gbc.weightx = 0.74;
+		formContainer.add(txtNgayVaoLam, gbc);
+		
+		// Giới tính
+		JLabel lblGioiTinh = new JLabel("Giới tính");
+		lblGioiTinh.setFont(AppTheme.font(Font.BOLD, 13));
+		lblGioiTinh.setForeground(AppTheme.TEXT_PRIMARY);
+		gbc.gridx = 0;
+		gbc.gridy = 5;
+		gbc.weightx = 0.26;
+		formContainer.add(lblGioiTinh, gbc);
+		
+		cbGioiTinh = new JCheckBox("Nam");
+		cbGioiTinh.setSelected(true);
+		cbGioiTinh.setBackground(AppTheme.CARD_BG);
+		gbc.gridx = 1;
+		gbc.weightx = 0.74;
+		formContainer.add(cbGioiTinh, gbc);
 
 		JScrollPane scrollPane = new JScrollPane(formContainer);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -168,4 +228,44 @@ public class NhanVienThemPage extends JPanel {
 		parent.add(comboBox, gbc);
 	}
 
+	/**
+	 * Xử lý thêm nhân viên mới
+	 */
+	private void xuLyThemNhanVien() {
+		String tenNV = txtTen.getText();
+		String username = txtUsername.getText();
+		String matKhau = txtPassword.getText();
+		String sdt = txtSdt.getText();
+		String email = txtEmail.getText();
+		String chucVu = (String) cbChucVu.getSelectedItem();
+		boolean gioiTinh = cbGioiTinh.isSelected();
+
+		service.NhanVienService.KetQuaXuLy result = nhanVienController.themNhanVienTuForm(
+			tenNV, username, matKhau, sdt, email, chucVu, gioiTinh, txtNgaySinh.getText(), txtNgayVaoLam.getText());
+
+		if (result.thanhCong) {
+			JOptionPane.showMessageDialog(this, 
+				result.thongBao + "\nMã nhân viên: " + result.maThamChieu,
+				"Thành công", JOptionPane.INFORMATION_MESSAGE);
+			lamMoiForm();
+		} else {
+			JOptionPane.showMessageDialog(this, result.thongBao,
+				"Lỗi", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	/**
+	 * Làm mới form
+	 */
+	private void lamMoiForm() {
+		txtTen.setText("");
+		txtUsername.setText("");
+		txtSdt.setText("");
+		txtEmail.setText("");
+		txtPassword.setText("");
+		cbChucVu.setSelectedIndex(0);
+		cbGioiTinh.setSelected(true);
+		txtNgaySinh.setText(LocalDate.now().toString());
+		txtNgayVaoLam.setText(LocalDate.now().toString());
+	}
 }

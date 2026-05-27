@@ -16,7 +16,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
@@ -31,8 +30,18 @@ public class NhanVienCapNhatPage extends JPanel {
 	private DefaultTableModel model;
 	private JPanel formPanel;
 	
-	private JTextField txtTen, txtUsername, txtSdt, txtEmail, cbChucVu;
-	private JButton btnCapNhat, btnXoa, btnHuy;
+	private String selectedMaNV = null;
+
+	// UI Fields
+	private JTextField txtMa;
+	private JTextField txtTen;
+	private JTextField txtSdt;
+	private JTextField txtUsername;
+	private JTextField txtEmail;
+	private JTextField cbChucVu;
+
+	// Buttons
+	private JButton btnTimKiem, btnLamMoi, btnCapNhat, btnXoa, btnHuy;
 
 	public NhanVienCapNhatPage() {
 		setLayout(new BorderLayout());
@@ -41,115 +50,6 @@ public class NhanVienCapNhatPage extends JPanel {
 
 		add(taoHeader(), BorderLayout.NORTH);
 		add(taoContent(), BorderLayout.CENTER);
-	}
-
-	private JPanel taoSearchPanel() {
-		JPanel panel = new JPanel(new GridBagLayout());
-		panel.setBackground(Color.WHITE);
-		panel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(12, 12, 12, 12)
-		));
-
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(6, 8, 6, 8);
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.anchor = GridBagConstraints.WEST;
-
-		JLabel lblMa = new JLabel("Mã nhân viên:");
-		lblMa.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		lblMa.setForeground(Color.decode("#2B4B74"));
-		gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0;
-		panel.add(lblMa, gbc);
-
-		JTextField txtMa = new JTextField();
-		txtMa.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtMa.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 8, 6, 8)
-		));
-		gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 1;
-		panel.add(txtMa, gbc);
-
-		JLabel lblTen = new JLabel("Tên nhân viên:");
-		lblTen.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		lblTen.setForeground(Color.decode("#2B4B74"));
-		gbc.gridx = 2; gbc.gridy = 0; gbc.weightx = 0;
-		panel.add(lblTen, gbc);
-
-		JTextField txtTen = new JTextField();
-		txtTen.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtTen.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 8, 6, 8)
-		));
-		gbc.gridx = 3; gbc.gridy = 0; gbc.weightx = 1;
-		panel.add(txtTen, gbc);
-
-		JLabel lblSdt = new JLabel("Số ĐT:");
-		lblSdt.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		lblSdt.setForeground(Color.decode("#2B4B74"));
-		gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0;
-		panel.add(lblSdt, gbc);
-
-		JTextField txtSdt = new JTextField();
-		txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtSdt.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 8, 6, 8)
-		));
-		gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 1;
-		panel.add(txtSdt, gbc);
-
-		JButton btnTimKiem = new JButton("Tìm kiếm");
-		btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnTimKiem.setBackground(MAU_CHINH);
-		btnTimKiem.setForeground(Color.WHITE);
-		btnTimKiem.setFocusPainted(false);
-		btnTimKiem.setBorder(new EmptyBorder(6, 12, 6, 12));
-
-		btnTimKiem.addActionListener(e -> {
-			String ma = txtMa.getText().trim();
-			String ten = txtTen.getText().trim();
-			String sdt = txtSdt.getText().trim();
-
-			model.setRowCount(0);
-			List<NhanVien> results = nhanVienController.timKiemNhanVien(ma, ten);
-			if ((results == null || results.isEmpty()) && !sdt.isEmpty()) {
-				NhanVien nv = nhanVienController.timKiemNhanVienTheoSDT(sdt);
-				if (nv != null) results = List.of(nv);
-			}
-
-			for (int i = 0; i < results.size(); i++) {
-				NhanVien nv = results.get(i);
-				model.addRow(new Object[] { i + 1, nv.getMaNV(), nv.getTenNV(), nv.getUsername(), nhanVienController.layEmailTheoUsername(nv.getUsername()), nv.getSdt(), nv.getChucVu() });
-			}
-		});
-
-		JButton btnLamMoi = new JButton("Làm mới");
-		btnLamMoi.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnLamMoi.setBackground(Color.WHITE);
-		btnLamMoi.setForeground(Color.decode("#3A4D66"));
-		btnLamMoi.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 12, 6, 12)
-		));
-
-		btnLamMoi.addActionListener(e -> {
-			txtMa.setText(""); txtTen.setText(""); txtSdt.setText("");
-			loadDataFromDatabase();
-		});
-
-		java.awt.FlowLayout fl = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 8, 0);
-		JPanel buttonPanel = new JPanel(fl);
-		buttonPanel.setOpaque(false);
-		buttonPanel.add(btnTimKiem);
-		buttonPanel.add(btnLamMoi);
-
-		gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 4; gbc.weightx = 1; gbc.fill = GridBagConstraints.NONE;
-		panel.add(buttonPanel, gbc);
-
-		return panel;
 	}
 
 	private JPanel taoHeader() {
@@ -169,18 +69,19 @@ public class NhanVienCapNhatPage extends JPanel {
 	}
 
 	private JPanel taoContent() {
-		JPanel content = new JPanel(new BorderLayout());
+		JPanel content = new JPanel(new BorderLayout(0, 14));
 		content.setBackground(Color.WHITE);
 		content.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
 			new EmptyBorder(14, 14, 14, 14)
 		));
 
-		// Phần tìm kiếm
-		JPanel searchPanel = taoSearchPanel();
-		content.add(searchPanel, BorderLayout.NORTH);
+		// dynamic input panel (both search and edit)
+		formPanel = new JPanel();
+		renderFormPanel();
+		content.add(formPanel, BorderLayout.NORTH);
 
-		// Tạo bảng
+		// Table
 		String[] columns = { "#", "Mã NV", "Họ và tên", "Tài khoản", "Email", "Điện thoại", "Chức vụ" };
 		model = new DefaultTableModel(columns, 0) {
 			@Override
@@ -204,22 +105,15 @@ public class NhanVienCapNhatPage extends JPanel {
 			if (!e.getValueIsAdjusting()) {
 				int row = table.getSelectedRow();
 				if (row >= 0) {
-					displayForm(row);
+					selectedMaNV = table.getValueAt(row, 1).toString();
+					renderFormPanel();
 				}
 			}
 		});
 
 		JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane.setBorder(BorderFactory.createLineBorder(Color.decode("#DCE3EC")));
-
-		// Form panel
-		formPanel = taoFormPanel();
-
-		// Split pane
-		JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollPane, formPanel);
-		splitPane.setDividerLocation(300);
-		splitPane.setBorder(null);
-		content.add(splitPane, BorderLayout.CENTER);
+		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
 	}
@@ -234,180 +128,298 @@ public class NhanVienCapNhatPage extends JPanel {
 		}
 	}
 
-	private JPanel taoFormPanel() {
-		JPanel wrapper = new JPanel(new BorderLayout());
-		wrapper.setBackground(Color.WHITE);
-		wrapper.setBorder(BorderFactory.createCompoundBorder(
+	private void renderFormPanel() {
+		formPanel.removeAll();
+		formPanel.setLayout(new GridBagLayout());
+		formPanel.setBackground(Color.WHITE);
+		formPanel.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
 			new EmptyBorder(15, 15, 15, 15)
 		));
 
-		// Label hướng dẫn
-		JLabel lblHuongDan = new JLabel("Chọn nhân viên từ bảng trên để chỉnh sửa");
-		lblHuongDan.setFont(new Font("Segoe UI", Font.ITALIC, 14));
-		lblHuongDan.setForeground(Color.decode("#8B95A7"));
-		wrapper.add(lblHuongDan, BorderLayout.CENTER);
-
-		return wrapper;
-	}
-
-	private void displayForm(int row) {
-		formPanel.removeAll();
-		formPanel.setLayout(new BorderLayout());
-		formPanel.setBackground(Color.WHITE);
-
-		String maNV = table.getValueAt(row, 1).toString();
-
-		// Form chính
-		JPanel formContainer = new JPanel(new GridBagLayout());
-		formContainer.setBackground(Color.WHITE);
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(10, 10, 10, 10);
+		gbc.insets = new Insets(8, 10, 8, 10);
 		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.anchor = GridBagConstraints.WEST;
 
-		// Row 0: Họ và tên
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.weightx = 0.25;
-		JLabel lbl = new JLabel("Họ và tên *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
+		if (selectedMaNV == null) {
+			// --- STATE A: SEARCH STATE ---
+			
+			// Mã nhân viên
+			JLabel lblMa = new JLabel("Mã nhân viên:");
+			lblMa.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			lblMa.setForeground(Color.decode("#2B4B74"));
+			gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.2;
+			formPanel.add(lblMa, gbc);
 
-		gbc.gridx = 1;
-		txtTen = new JTextField(table.getValueAt(row, 2).toString());
-		txtTen.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtTen.setPreferredSize(new Dimension(200, 35));
-		txtTen.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		formContainer.add(txtTen, gbc);
+			txtMa = new JTextField();
+			txtMa.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+			txtMa.setPreferredSize(new Dimension(0, 35));
+			txtMa.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)
+			));
+			gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 0.8;
+			formPanel.add(txtMa, gbc);
 
-		// Row 1: Tên tài khoản
-		gbc.gridx = 0;
-		gbc.gridy = 1;
-		lbl = new JLabel("Tên tài khoản *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
+			// Tên nhân viên
+			JLabel lblTen = new JLabel("Tên nhân viên:");
+			lblTen.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			lblTen.setForeground(Color.decode("#2B4B74"));
+			gbc.gridx = 2; gbc.gridy = 0; gbc.weightx = 0.2;
+			formPanel.add(lblTen, gbc);
 
-		gbc.gridx = 1;
-		txtUsername = new JTextField(table.getValueAt(row, 3).toString());
-		txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtUsername.setPreferredSize(new Dimension(200, 35));
-		txtUsername.setEditable(false);
-		txtUsername.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		formContainer.add(txtUsername, gbc);
+			txtTen = new JTextField();
+			txtTen.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+			txtTen.setPreferredSize(new Dimension(0, 35));
+			txtTen.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)
+			));
+			gbc.gridx = 3; gbc.gridy = 0; gbc.weightx = 0.8;
+			formPanel.add(txtTen, gbc);
 
-		// Row 2: Số điện thoại
-		gbc.gridx = 0;
-		gbc.gridy = 2;
-		lbl = new JLabel("Số điện thoại");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
+			// Số điện thoại
+			JLabel lblSdt = new JLabel("Số điện thoại:");
+			lblSdt.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			lblSdt.setForeground(Color.decode("#2B4B74"));
+			gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.2;
+			formPanel.add(lblSdt, gbc);
 
-		gbc.gridx = 1;
-		txtSdt = new JTextField(table.getValueAt(row, 5).toString());
-		txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtSdt.setPreferredSize(new Dimension(200, 35));
-		txtSdt.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		formContainer.add(txtSdt, gbc);
+			txtSdt = new JTextField();
+			txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+			txtSdt.setPreferredSize(new Dimension(0, 35));
+			txtSdt.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)
+			));
+			gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 0.8;
+			formPanel.add(txtSdt, gbc);
 
-		// Row 3: Chức vụ
-		gbc.gridx = 0;
-		gbc.gridy = 3;
-		lbl = new JLabel("Chức vụ");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
+			// Spacer to balance grid
+			JLabel lblSpacer = new JLabel("");
+			gbc.gridx = 2; gbc.gridy = 1; gbc.gridwidth = 2; gbc.weightx = 1.0;
+			formPanel.add(lblSpacer, gbc);
+			gbc.gridwidth = 1; // Reset
 
-		gbc.gridx = 1;
-		cbChucVu = new JTextField(table.getValueAt(row, 6).toString());
-		cbChucVu.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		cbChucVu.setPreferredSize(new Dimension(200, 35));
-		cbChucVu.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		formContainer.add(cbChucVu, gbc);
+			// Buttons
+			btnTimKiem = new JButton("Tìm kiếm");
+			btnTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			btnTimKiem.setBackground(MAU_CHINH);
+			btnTimKiem.setForeground(Color.WHITE);
+			btnTimKiem.setFocusPainted(false);
+			btnTimKiem.setPreferredSize(new Dimension(120, 38));
+			btnTimKiem.addActionListener(e -> xuLyTimKiem());
 
-		// Row 4: Email
-		gbc.gridx = 0;
-		gbc.gridy = 4;
-		gbc.weightx = 0.25;
-		lbl = new JLabel("Email *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
+			btnLamMoi = new JButton("Làm mới");
+			btnLamMoi.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			btnLamMoi.setBackground(Color.WHITE);
+			btnLamMoi.setForeground(Color.decode("#3A4D66"));
+			btnLamMoi.setFocusPainted(false);
+			btnLamMoi.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 12, 6, 12)
+			));
+			btnLamMoi.setPreferredSize(new Dimension(120, 38));
+			btnLamMoi.addActionListener(e -> {
+				txtMa.setText(""); txtTen.setText(""); txtSdt.setText("");
+				loadDataFromDatabase();
+			});
 
-		gbc.gridx = 1;
-		txtEmail = new JTextField(table.getValueAt(row, 4).toString());
-		txtEmail.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtEmail.setPreferredSize(new Dimension(150, 35));
-		txtEmail.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		formContainer.add(txtEmail, gbc);
+			java.awt.FlowLayout fl = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 0);
+			JPanel buttonPanel = new JPanel(fl);
+			buttonPanel.setOpaque(false);
+			buttonPanel.add(btnTimKiem);
+			buttonPanel.add(btnLamMoi);
 
-		JPanel scrollWrapper = new JPanel(new BorderLayout());
-		scrollWrapper.setBackground(Color.WHITE);
-		JScrollPane scrollPane = new JScrollPane(formContainer);
-		scrollPane.setOpaque(false);
-		scrollPane.getViewport().setOpaque(false);
-		scrollPane.setBorder(null);
-		scrollWrapper.add(scrollPane, BorderLayout.CENTER);
+			gbc.gridx = 0; gbc.gridy = 2; gbc.gridwidth = 4; gbc.weightx = 1.0; gbc.fill = GridBagConstraints.NONE;
+			formPanel.add(buttonPanel, gbc);
 
-		// Nút hành động
-		JPanel actions = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 10));
-		actions.setBackground(Color.WHITE);
+		} else {
+			// --- STATE B: EDIT STATE ---
+			NhanVien nv = timNhanVienTheoMa(selectedMaNV);
+			if (nv == null) {
+				selectedMaNV = null;
+				renderFormPanel();
+				return;
+			}
 
-		btnCapNhat = new JButton("Cập nhật");
-		btnCapNhat.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		btnCapNhat.setBackground(Color.decode("#00AA00"));
-		btnCapNhat.setForeground(Color.WHITE);
-		btnCapNhat.setFocusPainted(false);
-		btnCapNhat.setBorder(new EmptyBorder(8, 20, 8, 20));
-		btnCapNhat.setPreferredSize(new Dimension(120, 40));
-		btnCapNhat.addActionListener(e -> xuLyCapNhatNhanVien(maNV));
+			// Row 0: Mã nhân viên & Tên tài khoản
+			JLabel lblMa = new JLabel("Mã nhân viên:");
+			lblMa.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			lblMa.setForeground(Color.decode("#2B4B74"));
+			gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.2;
+			formPanel.add(lblMa, gbc);
 
-		btnXoa = new JButton("Xóa");
-		btnXoa.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		btnXoa.setBackground(Color.decode("#FF0000"));
-		btnXoa.setForeground(Color.WHITE);
-		btnXoa.setFocusPainted(false);
-		btnXoa.setBorder(new EmptyBorder(8, 20, 8, 20));
-		btnXoa.setPreferredSize(new Dimension(100, 40));
-		btnXoa.addActionListener(e -> xuLyXoaNhanVien(maNV));
+			txtMa = new JTextField(nv.getMaNV());
+			txtMa.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+			txtMa.setEditable(false);
+			txtMa.setPreferredSize(new Dimension(0, 35));
+			txtMa.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)
+			));
+			gbc.gridx = 1; gbc.gridy = 0; gbc.weightx = 0.8;
+			formPanel.add(txtMa, gbc);
 
-		btnHuy = new JButton("Hủy");
-		btnHuy.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		btnHuy.setBackground(Color.WHITE);
-		btnHuy.setForeground(Color.decode("#3A4D66"));
-		btnHuy.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 20, 8, 20)
-		));
-		btnHuy.setPreferredSize(new Dimension(100, 40));
+			JLabel lblUsername = new JLabel("Tên tài khoản:");
+			lblUsername.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			lblUsername.setForeground(Color.decode("#2B4B74"));
+			gbc.gridx = 2; gbc.gridy = 0; gbc.weightx = 0.2;
+			formPanel.add(lblUsername, gbc);
 
-		btnHuy.addActionListener(e -> resetFormPanel());
+			txtUsername = new JTextField(nv.getUsername());
+			txtUsername.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+			txtUsername.setEditable(false);
+			txtUsername.setPreferredSize(new Dimension(0, 35));
+			txtUsername.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)
+			));
+			gbc.gridx = 3; gbc.gridy = 0; gbc.weightx = 0.8;
+			formPanel.add(txtUsername, gbc);
 
-		actions.add(btnCapNhat);
-		actions.add(btnXoa);
-		actions.add(btnHuy);
+			// Row 1: Họ và tên & Số điện thoại
+			JLabel lblTen = new JLabel("Họ và tên *:");
+			lblTen.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			lblTen.setForeground(Color.decode("#2B4B74"));
+			gbc.gridx = 0; gbc.gridy = 1; gbc.weightx = 0.2;
+			formPanel.add(lblTen, gbc);
 
-		formPanel.add(scrollWrapper, BorderLayout.CENTER);
-		formPanel.add(actions, BorderLayout.SOUTH);
+			txtTen = new JTextField(nv.getTenNV());
+			txtTen.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+			txtTen.setPreferredSize(new Dimension(0, 35));
+			txtTen.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)
+			));
+			gbc.gridx = 1; gbc.gridy = 1; gbc.weightx = 0.8;
+			formPanel.add(txtTen, gbc);
+
+			JLabel lblSdt = new JLabel("Số điện thoại:");
+			lblSdt.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			lblSdt.setForeground(Color.decode("#2B4B74"));
+			gbc.gridx = 2; gbc.gridy = 1; gbc.weightx = 0.2;
+			formPanel.add(lblSdt, gbc);
+
+			txtSdt = new JTextField(nv.getSdt() != null ? nv.getSdt() : "");
+			txtSdt.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+			txtSdt.setPreferredSize(new Dimension(0, 35));
+			txtSdt.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)
+			));
+			gbc.gridx = 3; gbc.gridy = 1; gbc.weightx = 0.8;
+			formPanel.add(txtSdt, gbc);
+
+			// Row 2: Email & Chức vụ
+			JLabel lblEmail = new JLabel("Email *:");
+			lblEmail.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			lblEmail.setForeground(Color.decode("#2B4B74"));
+			gbc.gridx = 0; gbc.gridy = 2; gbc.weightx = 0.2;
+			formPanel.add(lblEmail, gbc);
+
+			txtEmail = new JTextField(nhanVienController.layEmailTheoUsername(nv.getUsername()));
+			txtEmail.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+			txtEmail.setPreferredSize(new Dimension(0, 35));
+			txtEmail.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)
+			));
+			gbc.gridx = 1; gbc.gridy = 2; gbc.weightx = 0.8;
+			formPanel.add(txtEmail, gbc);
+
+			JLabel lblChucVu = new JLabel("Chức vụ:");
+			lblChucVu.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			lblChucVu.setForeground(Color.decode("#2B4B74"));
+			gbc.gridx = 2; gbc.gridy = 2; gbc.weightx = 0.2;
+			formPanel.add(lblChucVu, gbc);
+
+			cbChucVu = new JTextField(nv.getChucVu());
+			cbChucVu.setFont(new Font("Segoe UI", Font.PLAIN, 13));
+			cbChucVu.setPreferredSize(new Dimension(0, 35));
+			cbChucVu.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)
+			));
+			gbc.gridx = 3; gbc.gridy = 2; gbc.weightx = 0.8;
+			formPanel.add(cbChucVu, gbc);
+
+			// Row 3: Action Buttons (Cập nhật, Xóa, Hủy)
+			btnCapNhat = new JButton("Cập nhật");
+			btnCapNhat.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			btnCapNhat.setBackground(Color.decode("#00AA00"));
+			btnCapNhat.setForeground(Color.WHITE);
+			btnCapNhat.setFocusPainted(false);
+			btnCapNhat.setPreferredSize(new Dimension(120, 38));
+			btnCapNhat.addActionListener(e -> xuLyCapNhatNhanVien(selectedMaNV));
+
+			btnXoa = new JButton("Xóa");
+			btnXoa.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			btnXoa.setBackground(Color.decode("#DD3333"));
+			btnXoa.setForeground(Color.WHITE);
+			btnXoa.setFocusPainted(false);
+			btnXoa.setPreferredSize(new Dimension(100, 38));
+			btnXoa.addActionListener(e -> xuLyXoaNhanVien(selectedMaNV));
+
+			btnHuy = new JButton("Hủy");
+			btnHuy.setFont(new Font("Segoe UI", Font.BOLD, 13));
+			btnHuy.setBackground(Color.WHITE);
+			btnHuy.setForeground(Color.decode("#3A4D66"));
+			btnHuy.setFocusPainted(false);
+			btnHuy.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 16, 6, 16)
+			));
+			btnHuy.setPreferredSize(new Dimension(100, 38));
+			btnHuy.addActionListener(e -> {
+				selectedMaNV = null;
+				table.clearSelection();
+				renderFormPanel();
+			});
+
+			java.awt.FlowLayout fl = new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 0);
+			JPanel buttonPanel = new JPanel(fl);
+			buttonPanel.setOpaque(false);
+			buttonPanel.add(btnCapNhat);
+			buttonPanel.add(btnXoa);
+			buttonPanel.add(btnHuy);
+
+			gbc.gridx = 0; gbc.gridy = 3; gbc.gridwidth = 4; gbc.weightx = 1.0; gbc.fill = GridBagConstraints.NONE;
+			formPanel.add(buttonPanel, gbc);
+		}
+
 		formPanel.revalidate();
 		formPanel.repaint();
+	}
+
+	private void xuLyTimKiem() {
+		String ma = txtMa.getText().trim();
+		String ten = txtTen.getText().trim();
+		String sdt = txtSdt.getText().trim();
+
+		model.setRowCount(0);
+		List<NhanVien> results;
+
+		if (!sdt.isEmpty()) {
+			NhanVien nv = nhanVienController.timKiemNhanVienTheoSDT(sdt);
+			results = (nv != null) ? List.of(nv) : List.of();
+		} else {
+			results = nhanVienController.timKiemNhanVien(ma, ten);
+		}
+
+		for (int i = 0; i < results.size(); i++) {
+			NhanVien nv = results.get(i);
+			model.addRow(new Object[] { 
+				i + 1, 
+				nv.getMaNV(), 
+				nv.getTenNV(), 
+				nv.getUsername(), 
+				nhanVienController.layEmailTheoUsername(nv.getUsername()), 
+				nv.getSdt(), 
+				nv.getChucVu() 
+			});
+		}
 	}
 
 	private void xuLyCapNhatNhanVien(String maNV) {
@@ -419,12 +431,15 @@ public class NhanVienCapNhatPage extends JPanel {
 		}
 
 		service.NhanVienService.KetQuaXuLy ketQua = nhanVienController.capNhatNhanVien(maNV,
-				txtTen.getText(), txtSdt.getText(), txtEmail.getText(), cbChucVu.getText(),
+				txtTen.getText().trim(), txtSdt.getText().trim(), txtEmail.getText().trim(), cbChucVu.getText().trim(),
 				nhanVienCu.isGioiTinh(), nhanVienCu.getNgaySinh(), nhanVienCu.getNgayVaoLam());
 
 		if (ketQua.thanhCong) {
 			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Thành công", JOptionPane.INFORMATION_MESSAGE);
 			loadDataFromDatabase();
+			selectedMaNV = null;
+			table.clearSelection();
+			renderFormPanel();
 		} else {
 			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Lỗi", JOptionPane.ERROR_MESSAGE);
 		}
@@ -444,21 +459,12 @@ public class NhanVienCapNhatPage extends JPanel {
 		if (ketQua.thanhCong) {
 			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Thành công", JOptionPane.INFORMATION_MESSAGE);
 			loadDataFromDatabase();
-			resetFormPanel();
+			selectedMaNV = null;
+			table.clearSelection();
+			renderFormPanel();
 		} else {
 			JOptionPane.showMessageDialog(this, ketQua.thongBao, "Lỗi", JOptionPane.ERROR_MESSAGE);
 		}
-	}
-
-	private void resetFormPanel() {
-		formPanel.removeAll();
-		formPanel.setLayout(new BorderLayout());
-		JLabel lblHuongDan = new JLabel("Chọn nhân viên từ bảng trên để chỉnh sửa");
-		lblHuongDan.setFont(new Font("Segoe UI", Font.ITALIC, 14));
-		lblHuongDan.setForeground(Color.decode("#8B95A7"));
-		formPanel.add(lblHuongDan, BorderLayout.CENTER);
-		formPanel.revalidate();
-		formPanel.repaint();
 	}
 
 	private NhanVien timNhanVienTheoMa(String maNV) {
