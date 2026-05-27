@@ -469,11 +469,16 @@ public class ThongKe_DAO {
 
 	public Map<String, Double> getTripOccupancyByMonth(int year) {
 		Map<String, Double> data = new HashMap<>();
-		String sql = "SELECT MONTH(ct.ngayKhoiHanh) as month, COUNT(vt.maVeTau) as booked, " +
-		             "SUM((SELECT ISNULL(SUM(soGhe), 0) FROM Toa WHERE maTau = ct.maTau)) as total " +
-		             "FROM ChuyenTau ct LEFT JOIN VeTau vt ON ct.maCT = vt.maCT " +
-		             "WHERE YEAR(ct.ngayKhoiHanh) = ? " +
-		             "GROUP BY MONTH(ct.ngayKhoiHanh)";
+		String sql = "WITH TripStats AS (" +
+		             "    SELECT MONTH(ct.ngayKhoiHanh) as month," +
+		             "           (SELECT COUNT(*) FROM VeTau WHERE maCT = ct.maCT AND trangThai != 'DA_HOAN') as booked," +
+		             "           (SELECT ISNULL(SUM(soGhe), 0) FROM Toa WHERE maTau = ct.maTau) as capacity" +
+		             "    FROM ChuyenTau ct" +
+		             "    WHERE YEAR(ct.ngayKhoiHanh) = ?" +
+		             ")" +
+		             "SELECT month, SUM(booked) as total_booked, SUM(capacity) as total_capacity " +
+		             "FROM TripStats " +
+		             "GROUP BY month";
 		try {
 			Connection conn = DatabaseConnection.getConnection();
 			if (conn != null) {
@@ -497,16 +502,18 @@ public class ThongKe_DAO {
 
 	public Map<String, Double> getTripOccupancyByQuarter(int year) {
 		Map<String, Double> data = new HashMap<>();
-		String sql = "SELECT CASE WHEN MONTH(ct.ngayKhoiHanh) <= 3 THEN 'Q1' " +
-		             "WHEN MONTH(ct.ngayKhoiHanh) <= 6 THEN 'Q2' " +
-		             "WHEN MONTH(ct.ngayKhoiHanh) <= 9 THEN 'Q3' ELSE 'Q4' END as quarter, " +
-		             "COUNT(vt.maVeTau) as booked, " +
-		             "SUM((SELECT ISNULL(SUM(soGhe), 0) FROM Toa WHERE maTau = ct.maTau)) as total " +
-		             "FROM ChuyenTau ct LEFT JOIN VeTau vt ON ct.maCT = vt.maCT " +
-		             "WHERE YEAR(ct.ngayKhoiHanh) = ? " +
-		             "GROUP BY CASE WHEN MONTH(ct.ngayKhoiHanh) <= 3 THEN 'Q1' " +
-		             "WHEN MONTH(ct.ngayKhoiHanh) <= 6 THEN 'Q2' " +
-		             "WHEN MONTH(ct.ngayKhoiHanh) <= 9 THEN 'Q3' ELSE 'Q4' END";
+		String sql = "WITH TripStats AS (" +
+		             "    SELECT CASE WHEN MONTH(ct.ngayKhoiHanh) <= 3 THEN 'Q1'" +
+		             "                WHEN MONTH(ct.ngayKhoiHanh) <= 6 THEN 'Q2'" +
+		             "                WHEN MONTH(ct.ngayKhoiHanh) <= 9 THEN 'Q3' ELSE 'Q4' END as quarter," +
+		             "           (SELECT COUNT(*) FROM VeTau WHERE maCT = ct.maCT AND trangThai != 'DA_HOAN') as booked," +
+		             "           (SELECT ISNULL(SUM(soGhe), 0) FROM Toa WHERE maTau = ct.maTau) as capacity" +
+		             "    FROM ChuyenTau ct" +
+		             "    WHERE YEAR(ct.ngayKhoiHanh) = ?" +
+		             ")" +
+		             "SELECT quarter, SUM(booked) as total_booked, SUM(capacity) as total_capacity " +
+		             "FROM TripStats " +
+		             "GROUP BY quarter";
 		try {
 			Connection conn = DatabaseConnection.getConnection();
 			if (conn != null) {
