@@ -8,6 +8,8 @@ public class HoaDon {
 	private String maHD;
 	private String maNV;
 	private String maKH;
+	private String tenNV;
+	private String tenKH;
 	private String maKM;
 	private String maThue;
 	private String phuongThucThanhToan;
@@ -37,6 +39,10 @@ public class HoaDon {
 	public void setMaNV(String maNV) { this.maNV = maNV; }
 	public String getMaKH() { return maKH; }
 	public void setMaKH(String maKH) { this.maKH = maKH; }
+	public String getTenNV() { return tenNV; }
+	public void setTenNV(String tenNV) { this.tenNV = tenNV; }
+	public String getTenKH() { return tenKH; }
+	public void setTenKH(String tenKH) { this.tenKH = tenKH; }
 	public String getMaKM() { return maKM; }
 	public void setMaKM(String maKM) { this.maKM = maKM; }
 	public String getMaThue() { return maThue; }

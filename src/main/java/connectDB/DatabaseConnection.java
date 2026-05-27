@@ -2,6 +2,7 @@ package connectDB;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -54,6 +55,8 @@ public class DatabaseConnection {
             connection = DriverManager.getConnection(connectionString);
 
             if (connection != null) {
+                ensureHoaDonDateTimeSchema(connection);
+                ensureRailOperationSchema(connection);
                 System.out.println("✓ Kết nối SQL Server thành công!");
                 return connection;
             }
@@ -67,6 +70,152 @@ public class DatabaseConnection {
             System.err.println("3. Kiểm tra tài khoản 'sa' và mật khẩu '" + PASSWORD + "'");
         }
         return null;
+    }
+
+    private static void ensureHoaDonDateTimeSchema(Connection conn) {
+        try {
+            String dataTypeSql = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
+                    + "WHERE TABLE_NAME = 'HoaDon' AND COLUMN_NAME = 'thoiGian'";
+            try (PreparedStatement stmt = conn.prepareStatement(dataTypeSql);
+                    ResultSet rs = stmt.executeQuery()) {
+                if (!rs.next()) {
+                    return;
+                }
+
+                String dataType = rs.getString("DATA_TYPE");
+                if (dataType == null || !"date".equalsIgnoreCase(dataType.trim())) {
+                    return;
+                }
+            }
+
+            System.out.println("! Đang cập nhật schema: HoaDon.thoiGian từ DATE sang DATETIME...");
+
+            String dropDefaultSql = "DECLARE @constraintName NVARCHAR(128); "
+                    + "SELECT @constraintName = dc.name "
+                    + "FROM sys.default_constraints dc "
+                    + "JOIN sys.columns c ON c.default_object_id = dc.object_id "
+                    + "JOIN sys.tables t ON t.object_id = c.object_id "
+                    + "WHERE t.name = 'HoaDon' AND c.name = 'thoiGian'; "
+                    + "IF @constraintName IS NOT NULL EXEC('ALTER TABLE HoaDon DROP CONSTRAINT [' + @constraintName + ']');";
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute(dropDefaultSql);
+                stmt.execute("ALTER TABLE HoaDon ALTER COLUMN thoiGian DATETIME NOT NULL");
+                stmt.execute("ALTER TABLE HoaDon ADD CONSTRAINT DF_HoaDon_thoiGian DEFAULT GETDATE() FOR thoiGian");
+            }
+
+            System.out.println("✓ Đã cập nhật schema HoaDon.thoiGian sang DATETIME.");
+        } catch (SQLException e) {
+            System.err.println("! Không thể tự động cập nhật schema HoaDon.thoiGian: " + e.getMessage());
+        }
+    }
+
+    private static void ensureRailOperationSchema(Connection conn) {
+        try {
+            ensureToaMaTauNullable(conn);
+            ensureChuyenTauStatusString(conn);
+            ensureChiTietChuyenTauToaTable(conn);
+            migrateExistingCoachAssignments(conn);
+        } catch (SQLException e) {
+            System.err.println("! Không thể tự động cập nhật schema chuyến tàu/toa: " + e.getMessage());
+        }
+    }
+
+    private static void ensureToaMaTauNullable(Connection conn) throws SQLException {
+        String sql = "SELECT IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS "
+                + "WHERE TABLE_NAME = 'Toa' AND COLUMN_NAME = 'maTau'";
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+            if (!rs.next()) {
+                return;
+            }
+            String nullable = rs.getString("IS_NULLABLE");
+            if ("YES".equalsIgnoreCase(nullable)) {
+                return;
+            }
+        }
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("ALTER TABLE Toa ALTER COLUMN maTau VARCHAR(10) NULL");
+        }
+    }
+
+    private static void ensureChuyenTauStatusString(Connection conn) throws SQLException {
+        String sql = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
+                + "WHERE TABLE_NAME = 'ChuyenTau' AND COLUMN_NAME = 'trangThai'";
+        String dataType = null;
+        try (PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                dataType = rs.getString("DATA_TYPE");
+            }
+        }
+        if (dataType == null || !"bit".equalsIgnoreCase(dataType.trim())) {
+            return;
+        }
+
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("ALTER TABLE ChuyenTau ADD trangThaiMoi VARCHAR(20) NULL");
+            stmt.execute("UPDATE ChuyenTau SET trangThaiMoi = CASE WHEN trangThai = 1 THEN 'DA_LEN_LICH' ELSE 'DA_HOAN_THANH' END");
+            stmt.execute("DECLARE @constraintName NVARCHAR(128); "
+                    + "SELECT @constraintName = dc.name "
+                    + "FROM sys.default_constraints dc "
+                    + "JOIN sys.columns c ON c.default_object_id = dc.object_id "
+                    + "JOIN sys.tables t ON t.object_id = c.object_id "
+                    + "WHERE t.name = 'ChuyenTau' AND c.name = 'trangThai'; "
+                    + "IF @constraintName IS NOT NULL EXEC('ALTER TABLE ChuyenTau DROP CONSTRAINT [' + @constraintName + ']');");
+            stmt.execute("ALTER TABLE ChuyenTau DROP COLUMN trangThai");
+            stmt.execute("EXEC sp_rename 'ChuyenTau.trangThaiMoi', 'trangThai', 'COLUMN'");
+            stmt.execute("ALTER TABLE ChuyenTau ALTER COLUMN trangThai VARCHAR(20) NOT NULL");
+            stmt.execute("ALTER TABLE ChuyenTau ADD CONSTRAINT DF_ChuyenTau_trangThai DEFAULT 'DA_LEN_LICH' FOR trangThai");
+            stmt.execute("ALTER TABLE ChuyenTau ADD CONSTRAINT CHK_ChuyenTau_TrangThai "
+                    + "CHECK (trangThai IN ('DA_LEN_LICH', 'DANG_CHAY', 'DA_HOAN_THANH'))");
+        } catch (SQLException e) {
+            if (!e.getMessage().contains("already an object named")) {
+                throw e;
+            }
+        }
+    }
+
+    private static void ensureChiTietChuyenTauToaTable(Connection conn) throws SQLException {
+        String existsSql = "SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'ChiTietChuyenTau_Toa'";
+        try (PreparedStatement stmt = conn.prepareStatement(existsSql);
+                ResultSet rs = stmt.executeQuery()) {
+            if (rs.next()) {
+                return;
+            }
+        }
+
+        String createSql = "CREATE TABLE ChiTietChuyenTau_Toa ("
+                + "maCT VARCHAR(10) NOT NULL, "
+                + "maToa VARCHAR(10) NOT NULL, "
+                + "thuTuToa INT NOT NULL DEFAULT 1, "
+                + "CONSTRAINT PK_ChiTietChuyenTau_Toa PRIMARY KEY (maCT, maToa), "
+                + "CONSTRAINT FK_CTTT_ChuyenTau FOREIGN KEY (maCT) REFERENCES ChuyenTau(maCT), "
+                + "CONSTRAINT FK_CTTT_Toa FOREIGN KEY (maToa) REFERENCES Toa(maToa), "
+                + "CONSTRAINT CHK_CTTT_ThuTuToa CHECK (thuTuToa > 0)"
+                + ")";
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute(createSql);
+        }
+    }
+
+    private static void migrateExistingCoachAssignments(Connection conn) throws SQLException {
+        String countSql = "SELECT COUNT(*) AS tong FROM ChiTietChuyenTau_Toa";
+        try (PreparedStatement stmt = conn.prepareStatement(countSql);
+                ResultSet rs = stmt.executeQuery()) {
+            if (rs.next() && rs.getInt("tong") > 0) {
+                return;
+            }
+        }
+
+        String insertSql = "INSERT INTO ChiTietChuyenTau_Toa(maCT, maToa, thuTuToa) "
+                + "SELECT ct.maCT, toa.maToa, "
+                + "ROW_NUMBER() OVER (PARTITION BY ct.maCT ORDER BY TRY_CAST(toa.viTriToa AS INT), toa.maToa) "
+                + "FROM ChuyenTau ct "
+                + "JOIN Toa toa ON toa.maTau = ct.maTau "
+                + "WHERE NOT EXISTS (SELECT 1 FROM ChiTietChuyenTau_Toa x WHERE x.maCT = ct.maCT AND x.maToa = toa.maToa)";
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute(insertSql);
+        }
     }
 
     public static boolean isConnected() {

@@ -8,10 +8,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.time.LocalDateTime;
 
 public class VeTau_DAO {
 	public VeTau timTheoMaVe(String maVeTau) {
@@ -167,10 +169,12 @@ public class VeTau_DAO {
 			Connection conn = DatabaseConnection.getConnection();
 			if (conn == null) return danhSach;
 			
-			String sqlSimple = "SELECT vt.maVeTau, tt.maGaDi, tt.maGaDen, ct.ngayKhoiHanh, vt.maToa, vt.giaVe, vt.trangThai " +
+			String sqlSimple = "SELECT vt.maVeTau, tt.maGaDi, tt.maGaDen, ct.ngayKhoiHanh, h.thoiGian AS ngayMua, vt.maToa, vt.giaVe, vt.trangThai " +
 			                   "FROM VeTau vt " +
 			                   "JOIN ChuyenTau ct ON vt.maCT = ct.maCT " +
-			                   "JOIN TuyenTau tt ON ct.maTuyenTau = tt.maTT ";
+			                   "JOIN TuyenTau tt ON ct.maTuyenTau = tt.maTT " +
+			                   "LEFT JOIN ChiTietHoaDon_Ve cthdv ON vt.maVeTau = cthdv.maVeTau " +
+			                   "LEFT JOIN HoaDon h ON cthdv.maHD = h.maHD ";
 			
 			if (maKH != null && !maKH.trim().isEmpty()) {
 				sqlSimple += " WHERE vt.maKH = ?";
@@ -187,7 +191,8 @@ public class VeTau_DAO {
 						dto.setMaVeTau(rs.getString("maVeTau"));
 						dto.setGaDi(rs.getString("maGaDi"));
 						dto.setGaDen(rs.getString("maGaDen"));
-						dto.setNgayKhoiHanh(rs.getTimestamp("ngayKhoiHanh").toLocalDateTime());
+						dto.setNgayKhoiHanh(docLocalDateTime(rs, "ngayKhoiHanh"));
+						dto.setNgayMua(docLocalDateTime(rs, "ngayMua"));
 						dto.setMaToa(rs.getString("maToa"));
 						dto.setGiaVe(rs.getDouble("giaVe"));
 						dto.setTrangThai(rs.getString("trangThai"));
@@ -199,5 +204,59 @@ public class VeTau_DAO {
 			System.err.println("[VeTau_DAO] Lỗi lấy lịch sử vé: " + e.getMessage());
 		}
 		return danhSach;
+	}
+
+	public List<LichSuVeDTO> layLichSuVeTheoBoLoc(String query) {
+		List<LichSuVeDTO> danhSach = new ArrayList<>();
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) return danhSach;
+			
+			String sql = "SELECT vt.maVeTau, tt.maGaDi, tt.maGaDen, ct.ngayKhoiHanh, h.thoiGian AS ngayMua, vt.maToa, vt.giaVe, vt.trangThai " +
+			             "FROM VeTau vt " +
+			             "JOIN ChuyenTau ct ON vt.maCT = ct.maCT " +
+			             "JOIN TuyenTau tt ON ct.maTuyenTau = tt.maTT " +
+			             "LEFT JOIN KhachHang kh ON vt.maKH = kh.maKH " +
+			             "LEFT JOIN ChiTietHoaDon_Ve cthdv ON vt.maVeTau = cthdv.maVeTau " +
+			             "LEFT JOIN HoaDon h ON cthdv.maHD = h.maHD ";
+			
+			if (query != null && !query.trim().isEmpty()) {
+				sql += " WHERE kh.tenKH LIKE ? OR kh.sdt LIKE ? OR kh.email LIKE ? OR kh.cccd LIKE ? OR vt.maKH = ?";
+			}
+			sql += " ORDER BY vt.maVeTau DESC";
+
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				if (query != null && !query.trim().isEmpty()) {
+					String val = "%" + query.trim() + "%";
+					ps.setString(1, val);
+					ps.setString(2, val);
+					ps.setString(3, val);
+					ps.setString(4, val);
+					ps.setString(5, query.trim());
+				}
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						LichSuVeDTO dto = new LichSuVeDTO();
+						dto.setMaVeTau(rs.getString("maVeTau"));
+						dto.setGaDi(rs.getString("maGaDi"));
+						dto.setGaDen(rs.getString("maGaDen"));
+						dto.setNgayKhoiHanh(docLocalDateTime(rs, "ngayKhoiHanh"));
+						dto.setNgayMua(docLocalDateTime(rs, "ngayMua"));
+						dto.setMaToa(rs.getString("maToa"));
+						dto.setGiaVe(rs.getDouble("giaVe"));
+						dto.setTrangThai(rs.getString("trangThai"));
+						danhSach.add(dto);
+					}
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("[VeTau_DAO] Lỗi lấy lịch sử vé theo bộ lọc: " + e.getMessage());
+		}
+		return danhSach;
+	}
+
+	private LocalDateTime docLocalDateTime(ResultSet rs, String column) throws SQLException {
+		Timestamp ts = rs.getTimestamp(column);
+		return ts != null ? ts.toLocalDateTime() : null;
 	}
 }

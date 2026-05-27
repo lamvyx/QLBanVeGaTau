@@ -3,7 +3,7 @@
 -- SQL Server Version
 -- ============================================
 CREATE DATABASE QLBANVETAU
-USE QLBANVETAU_New;
+USE QLBANVETAU;
 GO
 
 -- ============================================
@@ -49,7 +49,7 @@ GO
 -- ============================================
 CREATE TABLE Toa (
     maToa       VARCHAR(10)     NOT NULL,
-    maTau       VARCHAR(10)     NOT NULL,
+    maTau       VARCHAR(10)     NULL,
     loaiToa     NVARCHAR(50)    NOT NULL,
     soGhe       INT             NOT NULL,
     viTriToa    NVARCHAR(10)    NULL,
@@ -69,10 +69,22 @@ CREATE TABLE ChuyenTau (
     maTuyenTau      VARCHAR(10)     NOT NULL,
     ngayKhoiHanh    DATE            NOT NULL,
     gioKhoiHanh     TIME            NOT NULL,
-    trangThai       BIT             NOT NULL DEFAULT 1,
+    trangThai       VARCHAR(20)     NOT NULL DEFAULT 'DA_LEN_LICH',
     CONSTRAINT PK_ChuyenTau PRIMARY KEY (maCT),
     CONSTRAINT FK_ChuyenTau_Tau FOREIGN KEY (maTau) REFERENCES Tau(maTau),
-    CONSTRAINT FK_ChuyenTau_TuyenTau FOREIGN KEY (maTuyenTau) REFERENCES TuyenTau(maTT)
+    CONSTRAINT FK_ChuyenTau_TuyenTau FOREIGN KEY (maTuyenTau) REFERENCES TuyenTau(maTT),
+    CONSTRAINT CHK_ChuyenTau_TrangThai CHECK (trangThai IN ('DA_LEN_LICH', 'DANG_CHAY', 'DA_HOAN_THANH'))
+);
+GO
+
+CREATE TABLE ChiTietChuyenTau_Toa (
+    maCT        VARCHAR(10)     NOT NULL,
+    maToa       VARCHAR(10)     NOT NULL,
+    thuTuToa    INT             NOT NULL DEFAULT 1,
+    CONSTRAINT PK_ChiTietChuyenTau_Toa PRIMARY KEY (maCT, maToa),
+    CONSTRAINT FK_ChiTietChuyenTau_Toa_ChuyenTau FOREIGN KEY (maCT) REFERENCES ChuyenTau(maCT),
+    CONSTRAINT FK_ChiTietChuyenTau_Toa_Toa FOREIGN KEY (maToa) REFERENCES Toa(maToa),
+    CONSTRAINT CHK_ChiTietChuyenTau_Toa_ThuTu CHECK (thuTuToa > 0)
 );
 GO
 
@@ -345,8 +357,8 @@ SELECT
             + COUNT(DISTINCT CASE WHEN pd.trangThai = 1 THEN ctpd.maPhieu + N'|' + ctpd.viTriGhe END)
         )) AS soChoCon
 FROM ChuyenTau ct
-JOIN  Tau tau  ON ct.maTau   = tau.maTau
-JOIN  Toa toa  ON toa.maTau  = tau.maTau
+JOIN  ChiTietChuyenTau_Toa cttt ON cttt.maCT = ct.maCT
+JOIN  Toa toa  ON toa.maToa = cttt.maToa
 LEFT JOIN VeTau v ON v.maCT  = ct.maCT
     AND v.maToa = toa.maToa
     AND v.trangThai != 'DA_HOAN'
@@ -374,24 +386,6 @@ GO
 -- ============================================
 
 INSERT INTO Thue VALUES ('T001', N'VAT', 10, N'Thuế giá trị gia tăng');
-GO
-
-DELETE FROM VeTau;
-GO
-
-DELETE FROM ChuyenTau;
-GO
-
-DELETE FROM TuyenTau;
-GO
-
-DELETE FROM ChiTietHoaDon_DichVu;
-GO
-
-DELETE FROM ChiTietHoaDon_Ve;
-GO
-
-DELETE FROM HoaDon;
 GO
 
 INSERT INTO TuyenTau VALUES

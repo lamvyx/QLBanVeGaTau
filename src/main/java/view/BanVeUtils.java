@@ -4,7 +4,13 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
 public class BanVeUtils {
-    private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,### đ");
+    private static final DecimalFormat MONEY_FORMAT;
+    static {
+        java.text.DecimalFormatSymbols symbols = new java.text.DecimalFormatSymbols();
+        symbols.setGroupingSeparator('.');
+        symbols.setDecimalSeparator(',');
+        MONEY_FORMAT = new DecimalFormat("#,### đ", symbols);
+    }
 
     public static String formatMoney(BigDecimal value) {
         if (value == null) return "0 đ";

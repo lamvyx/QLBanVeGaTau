@@ -30,6 +30,50 @@ public class ThongKeService {
 		return thongKeDAO.getRevenueByPeriod(period);
 	}
 
+	public int getSoldTicketsByPeriod(String period) {
+		return thongKeDAO.getSoldTicketsByPeriod(period);
+	}
+
+	public Map<String, Integer> getSoldTicketsByMonth(int year) {
+		return thongKeDAO.getSoldTicketsByMonth(year);
+	}
+
+	public int getSoldTicketsByQuarter(int year, int quarter) {
+		return thongKeDAO.getSoldTicketsByQuarter(year, quarter);
+	}
+
+	public Map<Integer, Long> getHourlyRevenue() {
+		return thongKeDAO.getHourlyRevenue();
+	}
+
+	public Map<Integer, Integer> getHourlyTicketSales() {
+		return thongKeDAO.getHourlyTicketSales();
+	}
+
+	public Map<String, Integer> getTripStatusCounts() {
+		return thongKeDAO.getTripStatusCounts();
+	}
+
+	public Map<Integer, Integer> getTripCountByHour() {
+		return thongKeDAO.getTripCountByHour();
+	}
+
+	public Map<String, Integer> getTripCountByMonth(int year) {
+		return thongKeDAO.getTripCountByMonth(year);
+	}
+
+	public Map<String, Integer> getTripCountByQuarter(int year) {
+		return thongKeDAO.getTripCountByQuarter(year);
+	}
+
+	public Map<String, Double> getTripOccupancyByMonth(int year) {
+		return thongKeDAO.getTripOccupancyByMonth(year);
+	}
+
+	public Map<String, Double> getTripOccupancyByQuarter(int year) {
+		return thongKeDAO.getTripOccupancyByQuarter(year);
+	}
+
 	public Map<String, Long> getRevenueChartData(int days) {
 		return thongKeDAO.getDailyRevenueChart(days);
 	}

@@ -2,6 +2,7 @@ package controller;
 
 import entity.ChiTietHoaDonItem;
 import entity.HoaDon;
+import entity.HoaDonTongKetDTO;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
@@ -27,12 +28,27 @@ public class HoaDonController {
 				chuanHoa(maCT), chuanHoa(maToa), viTriGheList, giaVe, gheBoQuaKiemTra);
 	}
 
+	public KetQuaLapHoaDon lapHoaDonBanVe(String maNV, String maKH, String maKM, String maCT, String maToa,
+			List<String> viTriGheList, BigDecimal giaVe, java.util.Set<String> gheBoQuaKiemTra,
+			List<ChiTietHoaDonItem> dichVuItems) {
+		return hoaDonService.lapHoaDonBanVe(chuanHoa(maNV), chuanHoa(maKH), chuanHoaRongThanhNull(maKM),
+				chuanHoa(maCT), chuanHoa(maToa), viTriGheList, giaVe, gheBoQuaKiemTra, dichVuItems);
+	}
+
 	public Set<String> layGheDaDat(String maCT, String maToa) {
 		return hoaDonService.layGheDaDat(chuanHoa(maCT), chuanHoa(maToa));
 	}
 
 	public List<HoaDon> timKiemHoaDon(String tuKhoa) {
 		return hoaDonService.timKiemHoaDon(chuanHoaRongThanhNull(tuKhoa));
+	}
+
+	public HoaDon timHoaDonTheoMa(String maHD) {
+		return hoaDonService.timHoaDonTheoMa(chuanHoa(maHD));
+	}
+
+	public HoaDonTongKetDTO layTongKetHoaDon(String maHD) {
+		return hoaDonService.layTongKetHoaDon(chuanHoa(maHD));
 	}
 
 	public BigDecimal layTongDoanhThu() {

@@ -13,4 +13,11 @@ public class VeTauController {
         }
         return veTauService.layLichSuVe(maKH);
     }
+
+    public List<LichSuVeDTO> layLichSuVeTheoBoLoc(String query) {
+        if (query != null) {
+            query = query.trim();
+        }
+        return veTauService.layLichSuVeTheoBoLoc(query);
+    }
 }

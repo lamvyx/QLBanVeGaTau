@@ -27,6 +27,10 @@ public class TauService {
 		return filtered;
 	}
 
+	public String layMaTauTiepTheo() {
+		return tauDAO.layMaTauTiepTheo();
+	}
+
 	public KetQuaXuLy themTau(String tenTau, int soLuongToa) {
 		KetQuaXuLy ketQua = new KetQuaXuLy();
 		if (tenTau == null || tenTau.trim().isEmpty()) {

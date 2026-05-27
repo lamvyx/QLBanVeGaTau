@@ -24,7 +24,7 @@ public class BanVeSummaryPanel extends JPanel {
     private static final Color MAU_TEXT = Color.decode("#35506B");
 
     private JLabel lblKhachHang, lblChuyen, lblTuyen, lblKhoiHanh, lblToa, lblGhe, lblSeatCount;
-    private JLabel lblGiaMotVe, lblVAT, lblKM, lblSoLuongVe, lblTongTien;
+    private JLabel lblGiaMotVe, lblTienVe, lblTienDichVu, lblVAT, lblKM, lblSoLuongVe, lblTongTien;
     
     private final Runnable onCheckout, onReset;
 
@@ -103,9 +103,11 @@ public class BanVeSummaryPanel extends JPanel {
             new EmptyBorder(14, 14, 14, 14)
         ));
 
-        JPanel priceRows = new JPanel(new GridLayout(4, 1, 6, 6));
+        JPanel priceRows = new JPanel(new GridLayout(6, 1, 6, 6));
         priceRows.setOpaque(false);
         lblGiaMotVe = createPriceRow(priceRows, "Giá 1 vé:");
+        lblTienVe = createPriceRow(priceRows, "Tiền vé:");
+        lblTienDichVu = createPriceRow(priceRows, "Dịch vụ kèm:");
         lblVAT = createPriceRow(priceRows, "Thuế VAT:");
         lblKM = createPriceRow(priceRows, "Khuyến mãi:");
         lblSoLuongVe = createPriceRow(priceRows, "Số lượng vé:");
@@ -127,11 +129,12 @@ public class BanVeSummaryPanel extends JPanel {
 
         JButton btnLap = new JButton("Lập hóa đơn");
         styleBtn(btnLap, MAU_CHINH, Color.WHITE);
+        btnLap.setBorder(BorderFactory.createLineBorder(MAU_CHINH, 1));
         btnLap.addActionListener(e -> onCheckout.run());
 
         JButton btnReset = new JButton("Làm mới");
         styleBtn(btnReset, Color.WHITE, MAU_TEXT);
-        btnReset.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
+        btnReset.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5"), 1));
         btnReset.addActionListener(e -> onReset.run());
 
         JPanel buttons = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 0));
@@ -164,7 +167,7 @@ public class BanVeSummaryPanel extends JPanel {
         b.setFont(new Font("Segoe UI", Font.BOLD, 13));
         b.setFocusPainted(false);
         b.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        b.setBorder(new EmptyBorder(10, 20, 10, 20));
+        b.setPreferredSize(new Dimension(145, 40));
     }
 
     public void updateOrderInfo(String kh, String chuyen, String tuyen, String khoiHanh, String toa, String ghe, int soVe) {
@@ -178,8 +181,11 @@ public class BanVeSummaryPanel extends JPanel {
         lblSoLuongVe.setText(soVe + " vé");
     }
 
-    public void updatePriceInfo(BigDecimal giaMotVe, BigDecimal vat, BigDecimal km, BigDecimal tong) {
+    public void updatePriceInfo(BigDecimal giaMotVe, BigDecimal tienVe, BigDecimal tienDichVu,
+            BigDecimal vat, BigDecimal km, BigDecimal tong) {
         lblGiaMotVe.setText(BanVeUtils.formatMoney(giaMotVe));
+        lblTienVe.setText(BanVeUtils.formatMoney(tienVe));
+        lblTienDichVu.setText(BanVeUtils.formatMoney(tienDichVu));
         lblVAT.setText(BanVeUtils.formatMoney(vat));
         lblKM.setText(BanVeUtils.formatMoney(km));
         lblTongTien.setText(BanVeUtils.formatMoney(tong));

@@ -304,13 +304,13 @@ public class LoginPage extends JFrame {
 		String matKhau = new String(txtMatKhau.getPassword()).trim();
 		service.TaiKhoanService.KetQuaDangNhap ketQua = taiKhoanController.dangNhap(tenDangNhap, matKhau);
 		if (ketQua.thanhCong && ketQua.taiKhoan != null) {
-			// Thông báo đăng nhập thành công
-			JOptionPane.showMessageDialog(
-					this,
-					"Đăng nhập thành công!",
-					"Thông báo",
-					JOptionPane.INFORMATION_MESSAGE
-			);
+			// // Thông báo đăng nhập thành công
+			// JOptionPane.showMessageDialog(
+			// 		this,
+			// 		"Đăng nhập thành công!",
+			// 		"Thông báo",
+			// 		JOptionPane.INFORMATION_MESSAGE
+			// );
 			TaiKhoan taiKhoan = ketQua.taiKhoan;
 			TrangChinhPage trangChinhPage = new TrangChinhPage(taiKhoan);
 			trangChinhPage.setVisible(true);

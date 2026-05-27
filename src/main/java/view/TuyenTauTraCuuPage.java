@@ -6,6 +6,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -20,12 +23,12 @@ import javax.swing.table.DefaultTableModel;
 
 public class TuyenTauTraCuuPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
 
+	private final TuyenTauController tuyenTauController = new TuyenTauController();
 	private JTextField txtTimKiem;
 	private JTable tableTuyenTau;
 	private DefaultTableModel model;
-	private final TuyenTauController tuyenTauController = new TuyenTauController();
 
 	public TuyenTauTraCuuPage() {
 		setLayout(new BorderLayout());
@@ -33,8 +36,7 @@ public class TuyenTauTraCuuPage extends JPanel {
 		setBorder(new EmptyBorder(14, 14, 14, 14));
 
 		add(taoHeader(), BorderLayout.NORTH);
-		add(taoSearchPanel(), BorderLayout.WEST);
-		add(taoTablePanel(), BorderLayout.CENTER);
+		add(taoContent(), BorderLayout.CENTER);
 		caiDatTimKiem();
 		taiDuLieuBang();
 	}
@@ -43,55 +45,53 @@ public class TuyenTauTraCuuPage extends JPanel {
 		JPanel header = new JPanel(new BorderLayout());
 		header.setBackground(Color.WHITE);
 		header.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(12, 14, 12, 14)
-		));
+				BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
+				new EmptyBorder(12, 14, 12, 14)));
 
 		JLabel title = new JLabel("Tra cứu tuyến tàu");
 		title.setFont(new Font("Segoe UI", Font.BOLD, 24));
 		title.setForeground(MAU_CHINH);
 		header.add(title, BorderLayout.WEST);
-
 		return header;
 	}
 
-	private JPanel taoSearchPanel() {
-		JPanel searchPanel = new JPanel();
-		searchPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 10));
-		searchPanel.setBackground(Color.WHITE);
-		searchPanel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(12, 14, 12, 14)
-		));
-		searchPanel.setPreferredSize(new Dimension(250, 200));
-
-		JLabel lblTimKiem = new JLabel("Tìm kiếm:");
-		lblTimKiem.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		searchPanel.add(lblTimKiem);
-
-		txtTimKiem = new JTextField();
-		txtTimKiem.setPreferredSize(new Dimension(200, 32));
-		txtTimKiem.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		txtTimKiem.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(6, 8, 6, 8)
-		));
-		searchPanel.add(txtTimKiem);
-
-		return searchPanel;
+	private JPanel taoContent() {
+		JPanel content = new JPanel(new BorderLayout(0, 14));
+		content.setBackground(Color.WHITE);
+		content.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
+				new EmptyBorder(14, 14, 14, 14)));
+		content.add(taoBoLoc(), BorderLayout.NORTH);
+		content.add(taoBang(), BorderLayout.CENTER);
+		return content;
 	}
 
-	private JPanel taoTablePanel() {
-		JPanel tablePanel = new JPanel(new BorderLayout());
-		tablePanel.setBackground(Color.WHITE);
-		tablePanel.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-			new EmptyBorder(12, 14, 12, 14)
-		));
+	private JPanel taoBoLoc() {
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBackground(Color.WHITE);
+		panel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
+				new EmptyBorder(14, 14, 14, 14)));
 
-		String[] columns = { "#", "Mã tuyến", "Ga đi", "Ga đến", "Khoảng cách (km)", "Thao tác" };
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(8, 10, 8, 10);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		panel.add(taoLabel("Ga đi, ga đến"), gbc);
+
+		gbc.gridx = 1;
+		gbc.weightx = 1;
+		txtTimKiem = taoTextField();
+		txtTimKiem.setToolTipText("Nhập ga đi hoặc ga đến để tìm kiếm");
+		panel.add(txtTimKiem, gbc);
+		return panel;
+	}
+
+	private JScrollPane taoBang() {
+		String[] columns = { "#", "Mã tuyến", "Ga đi", "Ga đến", "Khoảng cách (km)" };
 		model = new DefaultTableModel(columns, 0) {
-			private static final long serialVersionUID = 1L;
 			@Override
 			public boolean isCellEditable(int row, int column) {
 				return false;
@@ -99,20 +99,33 @@ public class TuyenTauTraCuuPage extends JPanel {
 		};
 
 		tableTuyenTau = new JTable(model);
-		tableTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		tableTuyenTau.setRowHeight(28);
-		tableTuyenTau.setShowGrid(true);
-		tableTuyenTau.setGridColor(new Color(220, 220, 220));
-		tableTuyenTau.setBackground(Color.WHITE);
+		tableTuyenTau.setRowHeight(42);
+		tableTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		tableTuyenTau.setGridColor(Color.decode("#E4EBF3"));
 		tableTuyenTau.getTableHeader().setBackground(MAU_CHINH);
 		tableTuyenTau.getTableHeader().setForeground(Color.WHITE);
-		tableTuyenTau.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+		tableTuyenTau.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 14));
 
 		JScrollPane scrollPane = new JScrollPane(tableTuyenTau);
-		scrollPane.setPreferredSize(new Dimension(1000, 400));
-		tablePanel.add(scrollPane, BorderLayout.CENTER);
+		scrollPane.setBorder(BorderFactory.createLineBorder(Color.decode("#DCE3EC")));
+		return scrollPane;
+	}
 
-		return tablePanel;
+	private JLabel taoLabel(String text) {
+		JLabel label = new JLabel(text);
+		label.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		label.setForeground(Color.decode("#2B4B74"));
+		return label;
+	}
+
+	private JTextField taoTextField() {
+		JTextField field = new JTextField();
+		field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		field.setPreferredSize(new Dimension(0, 36));
+		field.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(6, 8, 6, 8)));
+		return field;
 	}
 
 	private void caiDatTimKiem() {
@@ -135,15 +148,14 @@ public class TuyenTauTraCuuPage extends JPanel {
 	}
 
 	private void taiDuLieuBang() {
-		if (model == null) {
-			return;
-		}
 		model.setRowCount(0);
-		String keyword = txtTimKiem == null ? null : txtTimKiem.getText();
-		List<TuyenTau> ds = tuyenTauController.timKiemTuyenTau(null, keyword, keyword);
-		int stt = 1;
-		for (TuyenTau tt : ds) {
-			model.addRow(new Object[] { stt++, tt.getMaTT(), tt.getMaGaDi(), tt.getMaGaDen(), tt.getKhoangCach(), "" });
+		String keyword = txtTimKiem == null ? "" : txtTimKiem.getText().trim();
+		List<TuyenTau> ds = keyword.isEmpty()
+				? tuyenTauController.timKiemTuyenTau(null, null, null)
+				: tuyenTauController.timKiemTuyenTau(null, keyword, keyword);
+		for (int i = 0; i < ds.size(); i++) {
+			TuyenTau tt = ds.get(i);
+			model.addRow(new Object[] { i + 1, tt.getMaTT(), tt.getMaGaDi(), tt.getMaGaDen(), tt.getKhoangCach() });
 		}
 	}
 }

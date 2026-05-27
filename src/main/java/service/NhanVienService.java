@@ -35,8 +35,28 @@ public class NhanVienService {
 			ketQua.thongBao = "Tên tài khoản đã tồn tại";
 			return ketQua;
 		}
-		if (sdt != null && !sdt.isBlank() && nhanVienDAO.kiemTraSDTTonTai(sdt.trim())) {
-			ketQua.thongBao = "Số điện thoại đã tồn tại";
+		if (sdt != null && !sdt.isBlank()) {
+			String cleanSdt = sdt.trim();
+			if (!cleanSdt.matches("^0\\d{9}$")) {
+				ketQua.thongBao = "Số điện thoại không hợp lệ (phải bắt đầu bằng số 0 và gồm 10 chữ số)";
+				return ketQua;
+			}
+			if (nhanVienDAO.kiemTraSDTTonTai(cleanSdt)) {
+				ketQua.thongBao = "Số điện thoại đã tồn tại";
+				return ketQua;
+			}
+		}
+
+		if (ngaySinh == null) {
+			ketQua.thongBao = "Ngày sinh không được để trống";
+			return ketQua;
+		}
+		if (ngayVaoLam == null) {
+			ketQua.thongBao = "Ngày vào làm không được để trống";
+			return ketQua;
+		}
+		if (ngaySinh.plusYears(18).isAfter(ngayVaoLam)) {
+			ketQua.thongBao = "Nhân viên phải từ đủ 18 tuổi tính đến ngày vào làm";
 			return ketQua;
 		}
 
@@ -74,8 +94,20 @@ public class NhanVienService {
 			return ketQua;
 		}
 
-		if (sdt != null && !sdt.isBlank() && !sdt.equals(nhanVien.getSdt()) && nhanVienDAO.kiemTraSDTTonTai(sdt)) {
-			ketQua.thongBao = "Số điện thoại đã tồn tại";
+		if (sdt != null && !sdt.isBlank()) {
+			String cleanSdt = sdt.trim();
+			if (!cleanSdt.matches("^0\\d{9}$")) {
+				ketQua.thongBao = "Số điện thoại không hợp lệ (phải bắt đầu bằng số 0 và gồm 10 chữ số)";
+				return ketQua;
+			}
+			if (!cleanSdt.equals(nhanVien.getSdt()) && nhanVienDAO.kiemTraSDTTonTai(cleanSdt)) {
+				ketQua.thongBao = "Số điện thoại đã tồn tại";
+				return ketQua;
+			}
+		}
+
+		if (ngaySinh != null && ngayVaoLam != null && ngaySinh.plusYears(18).isAfter(ngayVaoLam)) {
+			ketQua.thongBao = "Nhân viên phải từ đủ 18 tuổi tính đến ngày vào làm";
 			return ketQua;
 		}
 

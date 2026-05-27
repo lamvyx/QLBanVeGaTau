@@ -40,6 +40,86 @@ public class ThongKe_DAO {
 		return BigDecimal.ZERO;
 	}
 
+	public int getSoldTicketsByPeriod(String period) {
+		String sql = "";
+		switch (period.toLowerCase()) {
+			case "day":
+				sql = "SELECT COUNT(*) FROM ChiTietHoaDon_Ve ctv JOIN HoaDon h ON ctv.maHD = h.maHD WHERE h.[trangThaiThanhToan] = 1 AND CAST(h.[thoiGian] AS DATE) = CAST(GETDATE() AS DATE)";
+				break;
+			case "month":
+				sql = "SELECT COUNT(*) FROM ChiTietHoaDon_Ve ctv JOIN HoaDon h ON ctv.maHD = h.maHD WHERE h.[trangThaiThanhToan] = 1 AND MONTH(h.[thoiGian]) = MONTH(GETDATE()) AND YEAR(h.[thoiGian]) = YEAR(GETDATE())";
+				break;
+			case "year":
+				sql = "SELECT COUNT(*) FROM ChiTietHoaDon_Ve ctv JOIN HoaDon h ON ctv.maHD = h.maHD WHERE h.[trangThaiThanhToan] = 1 AND YEAR(h.[thoiGian]) = YEAR(GETDATE())";
+				break;
+			default:
+				return 0;
+		}
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+					if (rs.next()) return rs.getInt(1);
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getSoldTicketsByPeriod: " + e.getMessage());
+		}
+		return 0;
+	}
+
+	public Map<String, Integer> getSoldTicketsByMonth(int year) {
+		Map<String, Integer> data = new HashMap<>();
+		String sql = "SELECT MONTH(h.thoiGian) as month, COUNT(ctv.maVeTau) " +
+		             "FROM HoaDon h JOIN ChiTietHoaDon_Ve ctv ON h.maHD = ctv.maHD " +
+		             "WHERE h.trangThaiThanhToan = 1 AND YEAR(h.thoiGian) = ? " +
+		             "GROUP BY MONTH(h.thoiGian)";
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql)) {
+					ps.setInt(1, year);
+					try (ResultSet rs = ps.executeQuery()) {
+						while (rs.next()) {
+							data.put("T" + rs.getInt(1), rs.getInt(2));
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getSoldTicketsByMonth: " + e.getMessage());
+		}
+		return data;
+	}
+
+	public int getSoldTicketsByQuarter(int year, int quarter) {
+		String sql = "SELECT COUNT(ctv.maVeTau) " +
+		             "FROM HoaDon h JOIN ChiTietHoaDon_Ve ctv ON h.maHD = ctv.maHD " +
+		             "WHERE h.trangThaiThanhToan = 1 AND YEAR(h.thoiGian) = ? AND " +
+		             "((? = 1 AND MONTH(h.thoiGian) BETWEEN 1 AND 3) OR " +
+		             " (? = 2 AND MONTH(h.thoiGian) BETWEEN 4 AND 6) OR " +
+		             " (? = 3 AND MONTH(h.thoiGian) BETWEEN 7 AND 9) OR " +
+		             " (? = 4 AND MONTH(h.thoiGian) BETWEEN 10 AND 12))";
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql)) {
+					ps.setInt(1, year);
+					ps.setInt(2, quarter);
+					ps.setInt(3, quarter);
+					ps.setInt(4, quarter);
+					ps.setInt(5, quarter);
+					try (ResultSet rs = ps.executeQuery()) {
+						if (rs.next()) return rs.getInt(1);
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getSoldTicketsByQuarter: " + e.getMessage());
+		}
+		return 0;
+	}
+
 	public Map<String, Integer> getTicketStatusCounts() {
 		Map<String, Integer> stats = new HashMap<>();
 		String sql = "SELECT trangThai, COUNT(*) FROM VeTau GROUP BY trangThai";
@@ -259,5 +339,192 @@ public class ThongKe_DAO {
 			System.err.println("[ThongKe_DAO] Error getTotalTrips: " + e.getMessage());
 		}
 		return 0;
+	}
+
+	public Map<Integer, Long> getHourlyRevenue() {
+		Map<Integer, Long> data = new HashMap<>();
+		String sql = "SELECT DATEPART(HOUR, h.thoiGian) as hour, SUM(v.tongThanhToan) " +
+		             "FROM HoaDon h JOIN v_TongTienHoaDon v ON h.maHD = v.maHD " +
+		             "WHERE h.trangThaiThanhToan = 1 " +
+		             "GROUP BY DATEPART(HOUR, h.thoiGian)";
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						data.put(rs.getInt(1), rs.getLong(2));
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getHourlyRevenue: " + e.getMessage());
+		}
+		return data;
+	}
+
+	public Map<Integer, Integer> getHourlyTicketSales() {
+		Map<Integer, Integer> data = new HashMap<>();
+		String sql = "SELECT DATEPART(HOUR, h.thoiGian) as hour, COUNT(ctv.maVeTau) " +
+		             "FROM HoaDon h JOIN ChiTietHoaDon_Ve ctv ON h.maHD = ctv.maHD " +
+		             "WHERE h.trangThaiThanhToan = 1 " +
+		             "GROUP BY DATEPART(HOUR, h.thoiGian)";
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						data.put(rs.getInt(1), rs.getInt(2));
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getHourlyTicketSales: " + e.getMessage());
+		}
+		return data;
+	}
+
+	public Map<String, Integer> getTripStatusCounts() {
+		Map<String, Integer> data = new HashMap<>();
+		String sql = "SELECT trangThai, COUNT(*) FROM ChuyenTau GROUP BY trangThai";
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						data.put(rs.getString(1), rs.getInt(2));
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getTripStatusCounts: " + e.getMessage());
+		}
+		return data;
+	}
+
+	public Map<Integer, Integer> getTripCountByHour() {
+		Map<Integer, Integer> data = new HashMap<>();
+		String sql = "SELECT DATEPART(HOUR, gioKhoiHanh) as hour, COUNT(*) FROM ChuyenTau GROUP BY DATEPART(HOUR, gioKhoiHanh)";
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						data.put(rs.getInt(1), rs.getInt(2));
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getTripCountByHour: " + e.getMessage());
+		}
+		return data;
+	}
+
+	public Map<String, Integer> getTripCountByMonth(int year) {
+		Map<String, Integer> data = new HashMap<>();
+		String sql = "SELECT MONTH(ngayKhoiHanh) as month, COUNT(*) FROM ChuyenTau WHERE YEAR(ngayKhoiHanh) = ? GROUP BY MONTH(ngayKhoiHanh)";
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql)) {
+					ps.setInt(1, year);
+					try (ResultSet rs = ps.executeQuery()) {
+						while (rs.next()) {
+							data.put("T" + rs.getInt(1), rs.getInt(2));
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getTripCountByMonth: " + e.getMessage());
+		}
+		return data;
+	}
+
+	public Map<String, Integer> getTripCountByQuarter(int year) {
+		Map<String, Integer> data = new HashMap<>();
+		String sql = "SELECT CASE WHEN MONTH(ngayKhoiHanh) <= 3 THEN 'Q1' " +
+		             "WHEN MONTH(ngayKhoiHanh) <= 6 THEN 'Q2' " +
+		             "WHEN MONTH(ngayKhoiHanh) <= 9 THEN 'Q3' ELSE 'Q4' END as quarter, COUNT(*) " +
+		             "FROM ChuyenTau WHERE YEAR(ngayKhoiHanh) = ? " +
+		             "GROUP BY CASE WHEN MONTH(ngayKhoiHanh) <= 3 THEN 'Q1' " +
+		             "WHEN MONTH(ngayKhoiHanh) <= 6 THEN 'Q2' " +
+		             "WHEN MONTH(ngayKhoiHanh) <= 9 THEN 'Q3' ELSE 'Q4' END";
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql)) {
+					ps.setInt(1, year);
+					try (ResultSet rs = ps.executeQuery()) {
+						while (rs.next()) {
+							data.put(rs.getString(1), rs.getInt(2));
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getTripCountByQuarter: " + e.getMessage());
+		}
+		return data;
+	}
+
+	public Map<String, Double> getTripOccupancyByMonth(int year) {
+		Map<String, Double> data = new HashMap<>();
+		String sql = "SELECT MONTH(ct.ngayKhoiHanh) as month, COUNT(vt.maVeTau) as booked, " +
+		             "SUM((SELECT ISNULL(SUM(soGhe), 0) FROM Toa WHERE maTau = ct.maTau)) as total " +
+		             "FROM ChuyenTau ct LEFT JOIN VeTau vt ON ct.maCT = vt.maCT " +
+		             "WHERE YEAR(ct.ngayKhoiHanh) = ? " +
+		             "GROUP BY MONTH(ct.ngayKhoiHanh)";
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql)) {
+					ps.setInt(1, year);
+					try (ResultSet rs = ps.executeQuery()) {
+						while (rs.next()) {
+							int booked = rs.getInt(2);
+							int total = rs.getInt(3);
+							double rate = total == 0 ? 0.0 : (booked * 100.0 / total);
+							data.put("T" + rs.getInt(1), rate);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getTripOccupancyByMonth: " + e.getMessage());
+		}
+		return data;
+	}
+
+	public Map<String, Double> getTripOccupancyByQuarter(int year) {
+		Map<String, Double> data = new HashMap<>();
+		String sql = "SELECT CASE WHEN MONTH(ct.ngayKhoiHanh) <= 3 THEN 'Q1' " +
+		             "WHEN MONTH(ct.ngayKhoiHanh) <= 6 THEN 'Q2' " +
+		             "WHEN MONTH(ct.ngayKhoiHanh) <= 9 THEN 'Q3' ELSE 'Q4' END as quarter, " +
+		             "COUNT(vt.maVeTau) as booked, " +
+		             "SUM((SELECT ISNULL(SUM(soGhe), 0) FROM Toa WHERE maTau = ct.maTau)) as total " +
+		             "FROM ChuyenTau ct LEFT JOIN VeTau vt ON ct.maCT = vt.maCT " +
+		             "WHERE YEAR(ct.ngayKhoiHanh) = ? " +
+		             "GROUP BY CASE WHEN MONTH(ct.ngayKhoiHanh) <= 3 THEN 'Q1' " +
+		             "WHEN MONTH(ct.ngayKhoiHanh) <= 6 THEN 'Q2' " +
+		             "WHEN MONTH(ct.ngayKhoiHanh) <= 9 THEN 'Q3' ELSE 'Q4' END";
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn != null) {
+				try (PreparedStatement ps = conn.prepareStatement(sql)) {
+					ps.setInt(1, year);
+					try (ResultSet rs = ps.executeQuery()) {
+						while (rs.next()) {
+							int booked = rs.getInt(2);
+							int total = rs.getInt(3);
+							double rate = total == 0 ? 0.0 : (booked * 100.0 / total);
+							data.put(rs.getString(1), rate);
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[ThongKe_DAO] Error getTripOccupancyByQuarter: " + e.getMessage());
+		}
+		return data;
 	}
 }

@@ -404,9 +404,12 @@ public class KiemTraChoTrongPage extends JPanel {
 		}
 
 		toaTheoChuyen.clear();
-		List<Toa> dsToa = toaController.timKiemToa(null);
-		for (Toa toa : dsToa) {
-			toaTheoChuyen.computeIfAbsent(toa.getMaTau(), k -> new ArrayList<>()).add(new ToaOption(toa.getMaToa(), toa.getLoaiToa(), toa.getSoGhe()));
+		for (ChuyenTau ct : chuyenTauController.timKiemChuyenTau("")) {
+			List<ToaOption> dsToa = new ArrayList<>();
+			for (Toa toa : toaController.layToaTheoChuyenTau(ct.getMaCT())) {
+				dsToa.add(new ToaOption(toa.getMaToa(), toa.getLoaiToa(), toa.getSoGhe()));
+			}
+			toaTheoChuyen.put(ct.getMaCT(), dsToa);
 		}
 		
 		if (cboChuyenTau.getItemCount() > 0) {
@@ -416,7 +419,7 @@ public class KiemTraChoTrongPage extends JPanel {
 
 	private void taiToaTheoChuyen(ChuyenTauOption ct) {
 		cboToaTau.removeAllItems();
-		List<ToaOption> toas = toaTheoChuyen.getOrDefault(ct.maTau, Collections.emptyList());
+		List<ToaOption> toas = toaTheoChuyen.getOrDefault(ct.maCT, Collections.emptyList());
 		for (ToaOption toa : toas) {
 			cboToaTau.addItem(toa);
 		}
@@ -470,7 +473,7 @@ public class KiemTraChoTrongPage extends JPanel {
 		int tongGhe = 0;
 		int tongDaDat = 0;
 		
-		List<ToaOption> dsToa = toaTheoChuyen.getOrDefault(ct.maTau, Collections.emptyList());
+		List<ToaOption> dsToa = toaTheoChuyen.getOrDefault(ct.maCT, Collections.emptyList());
 		for (ToaOption toa : dsToa) {
 			tongGhe += toa.soGhe;
 			Set<String> daDat = hoaDonController.layGheDaDat(ct.maCT, toa.maToa);

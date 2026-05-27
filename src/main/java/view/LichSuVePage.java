@@ -28,7 +28,7 @@ public class LichSuVePage extends JPanel {
 	private static final Color MAU_NEN = Color.decode("#F0F5F9");
 	private static final Color MAU_VIEN = Color.decode("#DCE3EC");
 	private final DefaultTableModel model;
-	private final JTextField txtMaKH = new JTextField();
+	private final JTextField txtTimKiem = new JTextField();
 	private final VeTauController veTauController = new VeTauController();
 
 	public LichSuVePage() {
@@ -50,9 +50,9 @@ public class LichSuVePage extends JPanel {
 		taiDuLieu(null);
 	}
 
-	private void taiDuLieu(String maKH) {
+	private void taiDuLieu(String query) {
 		model.setRowCount(0);
-		List<LichSuVeDTO> dsVe = veTauController.layLichSuVe(maKH);
+		List<LichSuVeDTO> dsVe = veTauController.layLichSuVeTheoBoLoc(query);
 		DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 		int i = 1;
 		for (LichSuVeDTO ve : dsVe) {
@@ -64,7 +64,7 @@ public class LichSuVePage extends JPanel {
 				ve.getMaToa(),
 				ve.getGiaVe(),
 				ve.getTrangThai(),
-				"Vừa xong"
+				ve.getNgayMua() != null ? ve.getNgayMua().format(dtf) : ""
 			});
 		}
 	}
@@ -76,7 +76,7 @@ public class LichSuVePage extends JPanel {
 				BorderFactory.createLineBorder(MAU_VIEN),
 				new EmptyBorder(16, 16, 16, 16)));
 
-		JLabel title = new JLabel("Lọc theo mã khách hàng");
+		JLabel title = new JLabel("Tìm kiếm hành khách (Tên, SĐT, Email, CCCD)");
 		title.setFont(new Font("Segoe UI", Font.BOLD, 18));
 		title.setForeground(Color.decode("#1F3F72"));
 		panel.add(title, BorderLayout.NORTH);
@@ -85,20 +85,23 @@ public class LichSuVePage extends JPanel {
 		body.setOpaque(false);
 		body.setBorder(new EmptyBorder(14, 0, 0, 0));
 
-		txtMaKH.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtMaKH.setBorder(BorderFactory.createCompoundBorder(
+		txtTimKiem.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		txtTimKiem.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(MAU_VIEN),
 				new EmptyBorder(8, 10, 8, 10)));
-		txtMaKH.setPreferredSize(new Dimension(260, 36));
+		txtTimKiem.setPreferredSize(new Dimension(380, 36));
+		txtTimKiem.setToolTipText("Nhập tên, số điện thoại, email hoặc CCCD của hành khách");
+		txtTimKiem.addActionListener(e -> taiDuLieu(txtTimKiem.getText()));
 
-		JButton btnLoc = new JButton("Lọc");
+		JButton btnLoc = new JButton("Tìm kiếm");
 		btnLoc.setBackground(MAU_CHINH);
 		btnLoc.setForeground(Color.WHITE);
+		btnLoc.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		btnLoc.setFocusPainted(false);
-		btnLoc.setPreferredSize(new Dimension(80, 36));
-		btnLoc.addActionListener(e -> taiDuLieu(txtMaKH.getText()));
+		btnLoc.setPreferredSize(new Dimension(100, 36));
+		btnLoc.addActionListener(e -> taiDuLieu(txtTimKiem.getText()));
 
-		body.add(txtMaKH, BorderLayout.WEST);
+		body.add(txtTimKiem, BorderLayout.WEST);
 		body.add(btnLoc, BorderLayout.CENTER);
 		panel.add(body, BorderLayout.CENTER);
 		return panel;
@@ -111,25 +114,10 @@ public class LichSuVePage extends JPanel {
 				BorderFactory.createLineBorder(MAU_VIEN),
 				new EmptyBorder(16, 16, 16, 16)));
 
-		JLabel title = new JLabel("Lịch sử vé (Tất cả)");
+		JLabel title = new JLabel("Danh sách lịch sử vé");
 		title.setFont(new Font("Segoe UI", Font.BOLD, 18));
 		title.setForeground(Color.decode("#1F3F72"));
 		panel.add(title, BorderLayout.NORTH);
-
-		JPanel searchWrap = new JPanel(new BorderLayout());
-		searchWrap.setOpaque(false);
-		searchWrap.setBorder(new EmptyBorder(8, 0, 0, 0));
-
-		JTextField txtSearch = new JTextField();
-		txtSearch.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtSearch.setPreferredSize(new Dimension(380, 36));
-		txtSearch.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createLineBorder(MAU_VIEN),
-				new EmptyBorder(6, 10, 6, 10)));
-		txtSearch.setToolTipText("Tìm kiếm...");
-		searchWrap.add(txtSearch, BorderLayout.WEST);
-
-		panel.add(searchWrap, BorderLayout.NORTH);
 
 		JTable table = new JTable(model) {
 			private static final long serialVersionUID = 1L;

@@ -10,6 +10,7 @@ import view.KhachHangOption;
 import view.KhuyenMaiOption;
 import view.ToaOption;
 import view.BanVeUtils;
+import view.DichVuOption;
 
 public class BanVeService {
     private final HoaDonController hoaDonController = new HoaDonController();
@@ -19,15 +20,13 @@ public class BanVeService {
     private final ChuyenTauController chuyenTauController = new ChuyenTauController();
     private final ToaController toaController = new ToaController();
     private final TuyenTauController tuyenTauController = new TuyenTauController();
+    private final dao.VeTau_DAO veTauDAO = new dao.VeTau_DAO();
 
     /**
      * Tải dữ liệu ban đầu cho trang bán vé
      */
     public InitialData getInitialData() {
-        List<KhachHangOption> customers = new ArrayList<>();
-        for (KhachHang kh : khachHangController.layTatCaKhachHang()) {
-            customers.add(new KhachHangOption(kh.getMaKH(), kh.getTenKH(), kh.getSdt()));
-        }
+        List<KhachHangOption> customers = getCustomerOptions();
 
         List<KhuyenMaiOption> promos = new ArrayList<>();
         promos.add(new KhuyenMaiOption(null, "Không áp dụng", BigDecimal.ZERO));
@@ -35,14 +34,39 @@ public class BanVeService {
             promos.add(new KhuyenMaiOption(km.getMaKM(), km.getTenKM(), km.getTyLeKM()));
         }
 
-        Map<String, List<ToaOption>> coachesByTrain = new HashMap<>();
-        for (Toa toa : toaController.timKiemToa(null)) {
-            ToaOption opt = new ToaOption(toa.getMaToa(), toa.getLoaiToa(), toa.getSoGhe(),
-                    BanVeUtils.xacDinhGiaVeTheoLoaiToa(toa.getLoaiToa()));
-            coachesByTrain.computeIfAbsent(toa.getMaTau(), k -> new ArrayList<>()).add(opt);
+        List<DichVuOption> services = new ArrayList<>();
+        DichVuController dichVuController = new DichVuController();
+        for (DichVu dv : dichVuController.layDichVuHoatDong()) {
+            services.add(new DichVuOption(dv.getMaDV(), dv.getTenDV(), dv.getGiaDV()));
         }
 
-        return new InitialData(customers, promos, coachesByTrain);
+        Map<String, List<ToaOption>> coachesByTrip = new HashMap<>();
+        for (ChuyenTau trip : chuyenTauController.timKiemChuyenTau(null)) {
+            List<ToaOption> toas = new ArrayList<>();
+            for (Toa toa : toaController.layToaTheoChuyenTau(trip.getMaCT())) {
+                toas.add(new ToaOption(toa.getMaToa(), toa.getLoaiToa(), toa.getSoGhe(),
+                        BanVeUtils.xacDinhGiaVeTheoLoaiToa(toa.getLoaiToa())));
+            }
+            coachesByTrip.put(trip.getMaCT(), toas);
+        }
+
+        return new InitialData(customers, promos, coachesByTrip, services);
+    }
+
+    public List<KhachHangOption> getCustomerOptions() {
+        List<KhachHangOption> customers = new ArrayList<>();
+        for (KhachHang kh : khachHangController.layTatCaKhachHang()) {
+            customers.add(new KhachHangOption(kh.getMaKH(), kh.getTenKH(), kh.getSdt()));
+        }
+        return customers;
+    }
+
+    public KhachHangOption findCustomerByPhoneOrCccd(String tuKhoa) {
+        KhachHang kh = khachHangController.timKhachHangTheoSdtHoacCccd(tuKhoa);
+        if (kh == null) {
+            return null;
+        }
+        return new KhachHangOption(kh.getMaKH(), kh.getTenKH(), kh.getSdt());
     }
 
     /**
@@ -55,8 +79,8 @@ public class BanVeService {
     /**
      * Lấy danh sách toa cho một chuyến tàu
      */
-    public List<ToaOption> getToasForTrain(String maTau, Map<String, List<ToaOption>> toaTheoChuyen) {
-        return toaTheoChuyen.getOrDefault(maTau, Collections.emptyList());
+    public List<ToaOption> getToasForTrip(String maCT, Map<String, List<ToaOption>> toaTheoChuyen) {
+        return toaTheoChuyen.getOrDefault(maCT, Collections.emptyList());
     }
 
     /**
@@ -85,11 +109,17 @@ public class BanVeService {
      * Tính toán chi tiết giá
      */
     public PriceSummary calculatePrice(BigDecimal unitPrice, int seatCount, String maKM) {
-        BigDecimal base = unitPrice.multiply(BigDecimal.valueOf(seatCount));
-        BigDecimal vat = hoaDonController.tinhThueVAT(base);
-        BigDecimal discount = hoaDonController.tinhChietKhau(base, maKM);
-        BigDecimal total = hoaDonController.tinhTongThanhToan(base, vat, discount);
-        return new PriceSummary(unitPrice, vat, discount, total);
+        return calculatePrice(unitPrice, seatCount, BigDecimal.ZERO, maKM);
+    }
+
+    public PriceSummary calculatePrice(BigDecimal unitPrice, int seatCount, BigDecimal serviceTotal, String maKM) {
+        BigDecimal ticketTotal = unitPrice.multiply(BigDecimal.valueOf(seatCount));
+        BigDecimal extraServiceTotal = serviceTotal == null ? BigDecimal.ZERO : serviceTotal;
+        BigDecimal subtotal = ticketTotal.add(extraServiceTotal);
+        BigDecimal vat = hoaDonController.tinhThueVAT(subtotal);
+        BigDecimal discount = hoaDonController.tinhChietKhau(subtotal, maKM);
+        BigDecimal total = hoaDonController.tinhTongThanhToan(subtotal, vat, discount);
+        return new PriceSummary(unitPrice, ticketTotal, extraServiceTotal, vat, discount, total);
     }
 
     /**
@@ -97,11 +127,41 @@ public class BanVeService {
      */
     public KetQuaLapHoaDon confirmSale(String maNV, String maKH, String maKM, String maCT, String maToa,
             List<String> seats, BigDecimal unitPrice, Set<String> ignoredSeats) {
+        return confirmSale(maNV, maKH, maKM, maCT, maToa, seats, unitPrice, ignoredSeats, null);
+    }
+
+    public KetQuaLapHoaDon confirmSale(String maNV, String maKH, String maKM, String maCT, String maToa,
+            List<String> seats, BigDecimal unitPrice, Set<String> ignoredSeats, List<ChiTietHoaDonItem> dichVuItems) {
         if (ignoredSeats == null || ignoredSeats.isEmpty()) {
-            return hoaDonController.lapHoaDonBanVe(maNV, maKH, maKM, maCT, maToa, seats, unitPrice);
+            return hoaDonController.lapHoaDonBanVe(maNV, maKH, maKM, maCT, maToa, seats, unitPrice, null, dichVuItems);
         } else {
-            return hoaDonController.lapHoaDonBanVe(maNV, maKH, maKM, maCT, maToa, seats, unitPrice, ignoredSeats);
+            return hoaDonController.lapHoaDonBanVe(maNV, maKH, maKM, maCT, maToa, seats, unitPrice, ignoredSeats, dichVuItems);
         }
+    }
+
+    /**
+     * Cập nhật trạng thái thanh toán của hóa đơn
+     */
+    public boolean updatePaymentStatus(String maHD, boolean paid) {
+        return hoaDonController.updateTrangThaiThanhToan(maHD, paid);
+    }
+
+    /**
+     * Lấy danh sách các vé tàu thuộc một hóa đơn
+     */
+    public List<VeTau> getTicketsForInvoice(String maHD) {
+        List<VeTau> dsVe = new ArrayList<>();
+        if (maHD == null || maHD.isBlank()) return dsVe;
+        List<entity.ChiTietHoaDonItem> ctList = hoaDonController.layChiTietHoaDon(maHD);
+        for (entity.ChiTietHoaDonItem ct : ctList) {
+            if (ct.getMaVeTau() != null && !ct.getMaVeTau().isBlank()) {
+                VeTau ve = veTauDAO.timTheoMaVe(ct.getMaVeTau());
+                if (ve != null) {
+                    dsVe.add(ve);
+                }
+            }
+        }
+        return dsVe;
     }
 
     /**
@@ -174,12 +234,15 @@ public class BanVeService {
     public static class InitialData {
         public final List<KhachHangOption> customers;
         public final List<KhuyenMaiOption> promotions;
-        public final Map<String, List<ToaOption>> coachesByTrain;
+        public final Map<String, List<ToaOption>> coachesByTrip;
+        public final List<DichVuOption> services;
 
-        public InitialData(List<KhachHangOption> customers, List<KhuyenMaiOption> promotions, Map<String, List<ToaOption>> coachesByTrain) {
+        public InitialData(List<KhachHangOption> customers, List<KhuyenMaiOption> promotions,
+                Map<String, List<ToaOption>> coachesByTrip, List<DichVuOption> services) {
             this.customers = customers;
             this.promotions = promotions;
-            this.coachesByTrain = coachesByTrain;
+            this.coachesByTrip = coachesByTrip;
+            this.services = services;
         }
     }
 
@@ -192,9 +255,15 @@ public class BanVeService {
     }
 
     public static class PriceSummary {
-        public final BigDecimal unitPrice, vat, discount, total;
-        public PriceSummary(BigDecimal unitPrice, BigDecimal vat, BigDecimal discount, BigDecimal total) {
-            this.unitPrice = unitPrice; this.vat = vat; this.discount = discount; this.total = total;
+        public final BigDecimal unitPrice, ticketTotal, serviceTotal, vat, discount, total;
+        public PriceSummary(BigDecimal unitPrice, BigDecimal ticketTotal, BigDecimal serviceTotal,
+                BigDecimal vat, BigDecimal discount, BigDecimal total) {
+            this.unitPrice = unitPrice;
+            this.ticketTotal = ticketTotal;
+            this.serviceTotal = serviceTotal;
+            this.vat = vat;
+            this.discount = discount;
+            this.total = total;
         }
     }
 

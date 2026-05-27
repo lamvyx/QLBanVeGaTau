@@ -2,6 +2,7 @@ package view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -136,15 +137,19 @@ public class BanVeSuccessPanel extends JPanel {
         b.setForeground(Color.WHITE);
         b.setFocusPainted(false);
         b.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        b.setBorder(new EmptyBorder(8, 16, 8, 16));
+        b.setBorder(BorderFactory.createLineBorder(MAU_CHINH, 1));
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(145, 40));
     }
 
     private void styleSecondary(JButton b) {
         b.setBackground(Color.WHITE);
         b.setForeground(MAU_TEXT);
         b.setFocusPainted(false);
-        b.setFont(new Font("Segoe UI", Font.PLAIN, 13));
-        b.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
+        b.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        b.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5"), 1));
+        b.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        b.setPreferredSize(new Dimension(145, 40));
     }
 
     public void setData(String maVe, String tongTien, String kh, String tuyen, String khoiHanh, String toaGhe) {

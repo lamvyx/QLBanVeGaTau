@@ -3,9 +3,12 @@ package dao;
 import connectDB.DatabaseConnection;
 import entity.Toa;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Time;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -141,4 +144,106 @@ public class Toa_DAO {
 		}
 		return ds;
 	}
+
+	public List<Toa> layToaTheoTau(String maTau) {
+		List<Toa> danhSach = new ArrayList<>();
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null || maTau == null || maTau.isBlank()) {
+				return danhSach;
+			}
+			String sql = "SELECT maToa, loaiToa, soGhe, viTriToa, trangThai, maTau "
+					+ "FROM Toa WHERE maTau = ? ORDER BY TRY_CAST(viTriToa AS INT), maToa";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maTau.trim());
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						danhSach.add(new Toa(
+								rs.getString("maToa"),
+								rs.getString("loaiToa"),
+								rs.getInt("soGhe"),
+								rs.getString("viTriToa"),
+								rs.getBoolean("trangThai"),
+								rs.getString("maTau")));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("[Toa_DAO] Lỗi lấy toa theo tàu: " + e.getMessage());
+		}
+		return danhSach;
+	}
+
+	public List<Toa> layToaTheoChuyenTau(String maCT) {
+		List<Toa> danhSach = new ArrayList<>();
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null || maCT == null || maCT.isBlank()) {
+				return danhSach;
+			}
+			String sql = "SELECT t.maToa, t.loaiToa, t.soGhe, t.viTriToa, t.trangThai, t.maTau "
+					+ "FROM ChiTietChuyenTau_Toa cttoa "
+					+ "JOIN Toa t ON t.maToa = cttoa.maToa "
+					+ "WHERE cttoa.maCT = ? "
+					+ "ORDER BY cttoa.thuTuToa, TRY_CAST(t.viTriToa AS INT), t.maToa";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maCT.trim());
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						danhSach.add(new Toa(
+								rs.getString("maToa"),
+								rs.getString("loaiToa"),
+								rs.getInt("soGhe"),
+								rs.getString("viTriToa"),
+								rs.getBoolean("trangThai"),
+								rs.getString("maTau")));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("[Toa_DAO] Lỗi lấy toa theo chuyến tàu: " + e.getMessage());
+		}
+		return danhSach;
+	}
+
+	public List<Toa> layToaRanhTheoThoiDiem(LocalDateTime thoiDiem, String maCTBoQua) {
+		List<Toa> danhSach = new ArrayList<>();
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null) {
+				return danhSach;
+			}
+			StringBuilder sql = new StringBuilder(
+					"SELECT t.maToa, t.loaiToa, t.soGhe, t.viTriToa, t.trangThai, t.maTau "
+					+ "FROM Toa t "
+					+ "WHERE t.trangThai = 1 AND NOT EXISTS ("
+					+ "SELECT 1 FROM ChiTietChuyenTau_Toa ctt "
+					+ "JOIN ChuyenTau ct ON ct.maCT = ctt.maCT "
+					+ "WHERE ctt.maToa = t.maToa AND ct.trangThai IN ('DA_LEN_LICH', 'DANG_CHAY')");
+			if (maCTBoQua != null && !maCTBoQua.isBlank()) {
+				sql.append(" AND ct.maCT <> ?");
+			}
+			sql.append(") ORDER BY TRY_CAST(t.viTriToa AS INT), t.maToa");
+			try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+				if (maCTBoQua != null && !maCTBoQua.isBlank()) {
+					ps.setString(1, maCTBoQua.trim());
+				}
+				try (ResultSet rs = ps.executeQuery()) {
+					while (rs.next()) {
+						danhSach.add(new Toa(
+								rs.getString("maToa"),
+								rs.getString("loaiToa"),
+								rs.getInt("soGhe"),
+								rs.getString("viTriToa"),
+								rs.getBoolean("trangThai"),
+								rs.getString("maTau")));
+					}
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("[Toa_DAO] Lỗi lấy toa rảnh theo thời điểm: " + e.getMessage());
+		}
+		return danhSach;
+	}
+
 }

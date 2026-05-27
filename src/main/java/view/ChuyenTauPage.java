@@ -95,7 +95,7 @@ public class ChuyenTauPage extends JPanel {
 			String ngayKhoiHanh = ct.getNgayKhoiHanh() != null ? ct.getNgayKhoiHanh().toLocalDate().format(DATE_FMT) : "";
 			String gioKhoiHanh = ct.getNgayKhoiHanh() != null ? ct.getNgayKhoiHanh().toLocalTime().format(TIME_FMT) : "";
 			model.addRow(new Object[] { ct.getMaCT(), ct.getMaTau(), ct.getMaTuyenTau(), ngayKhoiHanh, gioKhoiHanh,
-					ct.isTrangThai() ? "1" : "0" });
+					ct.getTrangThaiHienThi() });
 		}
 	}
 }

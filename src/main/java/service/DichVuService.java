@@ -29,6 +29,10 @@ public class DichVuService {
 		return filtered;
 	}
 
+	public List<DichVu> layDichVuHoatDong() {
+		return dichVuDAO.layDichVuHoatDong();
+	}
+
 	public KetQuaXuLy themDichVu(String maDV, String tenDV, BigDecimal giaDV, boolean trangThai) {
 		KetQuaXuLy ketQua = new KetQuaXuLy();
 		if (maDV == null || maDV.isBlank()) {

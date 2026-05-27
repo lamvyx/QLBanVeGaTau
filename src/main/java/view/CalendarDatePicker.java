@@ -8,29 +8,37 @@ import java.util.function.Consumer;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 
-public class CalendarDatePicker extends JPopupMenu {
+public class CalendarDatePicker extends JDialog {
     private static final Color MAU_CHINH = Color.decode("#4682A9");
     private LocalDate selectedDate;
     private LocalDate currentViewDate;
     private final Consumer<LocalDate> onDateSelected;
     private JPanel daysPanel;
-    private JLabel lblMonthYear;
+    private JComboBox<String> cbMonth;
+    private JComboBox<Integer> cbYear;
+    private boolean isUpdatingCombos = false;
 
     public CalendarDatePicker(LocalDate initialDate, Consumer<LocalDate> onDateSelected) {
+        super((Frame) null, false);
+        setUndecorated(true);
+        setAlwaysOnTop(true);
+
         this.selectedDate = initialDate != null ? initialDate : LocalDate.now();
         this.currentViewDate = selectedDate;
         this.onDateSelected = onDateSelected;
 
         setLayout(new BorderLayout());
         setBackground(Color.WHITE);
-        setBorder(BorderFactory.createLineBorder(Color.decode("#DCE3EC")));
+        getRootPane().setBorder(BorderFactory.createLineBorder(Color.decode("#DCE3EC"), 1));
 
         add(taoHeader(), BorderLayout.NORTH);
         add(taoCalendarGrid(), BorderLayout.CENTER);
+        
+        pack();
     }
 
     private JPanel taoHeader() {
-        JPanel header = new JPanel(new BorderLayout());
+        JPanel header = new JPanel(new BorderLayout(5, 0));
         header.setBackground(MAU_CHINH);
         header.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -40,13 +48,45 @@ public class CalendarDatePicker extends JPopupMenu {
         JButton btnNext = createNavButton(">");
         btnNext.addActionListener(e -> changeMonth(1));
 
-        lblMonthYear = new JLabel("", SwingConstants.CENTER);
-        lblMonthYear.setForeground(Color.WHITE);
-        lblMonthYear.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0));
+        centerPanel.setOpaque(false);
+
+        cbMonth = new JComboBox<>(new String[]{
+            "T1", "T2", "T3", "T4", "T5", "T6",
+            "T7", "T8", "T9", "T10", "T11", "T12"
+        });
+        cbMonth.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        cbMonth.setPreferredSize(new Dimension(55, 25));
+
+        Integer[] years = new Integer[150];
+        int currentYear = LocalDate.now().getYear();
+        int startYear = currentYear - 100;
+        for (int i = 0; i < 150; i++) {
+            years[i] = startYear + i;
+        }
+        cbYear = new JComboBox<>(years);
+        cbYear.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        cbYear.setPreferredSize(new Dimension(75, 25));
+
+        ActionListener comboListener = e -> {
+            if (isUpdatingCombos) return;
+            int m = cbMonth.getSelectedIndex() + 1;
+            Integer selectedYear = (Integer) cbYear.getSelectedItem();
+            if (selectedYear != null) {
+                currentViewDate = LocalDate.of(selectedYear, m, 1);
+                updateDaysGrid();
+            }
+        };
+        cbMonth.addActionListener(comboListener);
+        cbYear.addActionListener(comboListener);
+
         updateHeaderLabel();
 
+        centerPanel.add(cbMonth);
+        centerPanel.add(cbYear);
+
         header.add(btnPrev, BorderLayout.WEST);
-        header.add(lblMonthYear, BorderLayout.CENTER);
+        header.add(centerPanel, BorderLayout.CENTER);
         header.add(btnNext, BorderLayout.EAST);
 
         return header;
@@ -120,7 +160,7 @@ public class CalendarDatePicker extends JPopupMenu {
             btn.addActionListener(e -> {
                 selectedDate = date;
                 onDateSelected.accept(selectedDate);
-                setVisible(false);
+                dispose();
             });
 
             // Hover effect
@@ -153,10 +193,35 @@ public class CalendarDatePicker extends JPopupMenu {
     }
 
     private void updateHeaderLabel() {
-        lblMonthYear.setText("Tháng " + currentViewDate.getMonthValue() + ", " + currentViewDate.getYear());
+        isUpdatingCombos = true;
+        if (cbMonth != null) {
+            cbMonth.setSelectedIndex(currentViewDate.getMonthValue() - 1);
+        }
+        if (cbYear != null) {
+            cbYear.setSelectedItem(currentViewDate.getYear());
+        }
+        isUpdatingCombos = false;
     }
 
     public void showPopup(Component invoker, int x, int y) {
-        show(invoker, x, y);
+        Point p = invoker.getLocationOnScreen();
+        setLocation(p.x + x, p.y + y);
+        
+        addWindowFocusListener(new WindowFocusListener() {
+            @Override
+            public void windowGainedFocus(WindowEvent e) {}
+
+            @Override
+            public void windowLostFocus(WindowEvent e) {
+                SwingUtilities.invokeLater(() -> {
+                    Window activeWindow = KeyboardFocusManager.getCurrentKeyboardFocusManager().getActiveWindow();
+                    if (activeWindow != CalendarDatePicker.this && (activeWindow == null || activeWindow.getOwner() != CalendarDatePicker.this)) {
+                        dispose();
+                    }
+                });
+            }
+        });
+        
+        setVisible(true);
     }
 }

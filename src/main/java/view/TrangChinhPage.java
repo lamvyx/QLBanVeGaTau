@@ -285,8 +285,7 @@ public class TrangChinhPage extends JFrame {
 				new MenuAction("Đổi vé", DoiVePage::new),
 				new MenuAction("Trả vé", TraVePage::new),
 				new MenuAction("Lịch sử vé", LichSuVePage::new),
-				new MenuAction("Lịch sử đổi/trả", () -> new DonDoiTraTraCuuPage()),
-				new MenuAction("In vé", InVePage::new)));
+				new MenuAction("Lịch sử đổi/trả", () -> new DonDoiTraTraCuuPage())));
 	}
 
 	private MenuGroup taoMenuHoaDon() {

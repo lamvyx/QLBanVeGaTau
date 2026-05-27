@@ -6,12 +6,15 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Color;
+import java.awt.Image;
 import java.awt.Insets;
 import java.time.LocalDate;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -118,7 +121,7 @@ public class NhanVienThemPage extends JPanel {
 		addField(formContainer, gbc, 1, 0, "Tên tài khoản *", txtUsername = new JTextField());
 		addField(formContainer, gbc, 0, 1, "Số điện thoại", txtSdt = new JTextField());
 		addComboField(formContainer, gbc, 1, 1, "Chức vụ", cbChucVu = new JComboBox<>(
-			new String[]{"Quản lý", "Bán vé", "Hỗ trợ", "Kỹ thuật"}));
+			new String[]{"Quản lý", "Bán vé"}));
 		
 		addField(formContainer, gbc, 0, 2, "Email *", txtEmail = new JTextField());
 		addField(formContainer, gbc, 1, 2, "Mật khẩu *", txtPassword = new JTextField());
@@ -132,17 +135,26 @@ public class NhanVienThemPage extends JPanel {
 		gbc.weightx = 0.26;
 		formContainer.add(lblNgaySinh, gbc);
 		
+		JPanel pnlNgaySinh = new JPanel(new BorderLayout(5, 0));
+		pnlNgaySinh.setOpaque(false);
 		txtNgaySinh = new JTextField();
 		txtNgaySinh.setText(LocalDate.now().toString());
 		txtNgaySinh.setFont(AppTheme.font(Font.PLAIN, 13));
 		txtNgaySinh.setPreferredSize(new Dimension(0, 38));
+		txtNgaySinh.setEditable(false);
+		txtNgaySinh.setBackground(Color.WHITE);
 		txtNgaySinh.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(AppTheme.BORDER),
 			new EmptyBorder(8, 8, 8, 8)
 		));
+		pnlNgaySinh.add(txtNgaySinh, BorderLayout.CENTER);
+		
+		JButton btnLichSinh = taoNutLich(date -> txtNgaySinh.setText(date.toString()));
+		pnlNgaySinh.add(btnLichSinh, BorderLayout.EAST);
+		
 		gbc.gridx = 1;
 		gbc.weightx = 0.74;
-		formContainer.add(txtNgaySinh, gbc);
+		formContainer.add(pnlNgaySinh, gbc);
 		
 		// Ngày vào làm
 		JLabel lblNgayVaoLam = new JLabel("Ngày vào làm");
@@ -153,17 +165,26 @@ public class NhanVienThemPage extends JPanel {
 		gbc.weightx = 0.26;
 		formContainer.add(lblNgayVaoLam, gbc);
 		
+		JPanel pnlNgayVaoLam = new JPanel(new BorderLayout(5, 0));
+		pnlNgayVaoLam.setOpaque(false);
 		txtNgayVaoLam = new JTextField();
 		txtNgayVaoLam.setText(LocalDate.now().toString());
 		txtNgayVaoLam.setFont(AppTheme.font(Font.PLAIN, 13));
 		txtNgayVaoLam.setPreferredSize(new Dimension(0, 38));
+		txtNgayVaoLam.setEditable(false);
+		txtNgayVaoLam.setBackground(Color.WHITE);
 		txtNgayVaoLam.setBorder(BorderFactory.createCompoundBorder(
 			BorderFactory.createLineBorder(AppTheme.BORDER),
 			new EmptyBorder(8, 8, 8, 8)
 		));
+		pnlNgayVaoLam.add(txtNgayVaoLam, BorderLayout.CENTER);
+		
+		JButton btnLichVaoLam = taoNutLich(date -> txtNgayVaoLam.setText(date.toString()));
+		pnlNgayVaoLam.add(btnLichVaoLam, BorderLayout.EAST);
+		
 		gbc.gridx = 1;
 		gbc.weightx = 0.74;
-		formContainer.add(txtNgayVaoLam, gbc);
+		formContainer.add(pnlNgayVaoLam, gbc);
 		
 		// Giới tính
 		JLabel lblGioiTinh = new JLabel("Giới tính");
@@ -267,5 +288,32 @@ public class NhanVienThemPage extends JPanel {
 		cbGioiTinh.setSelected(true);
 		txtNgaySinh.setText(LocalDate.now().toString());
 		txtNgayVaoLam.setText(LocalDate.now().toString());
+	}
+
+	private JButton taoNutLich(java.util.function.Consumer<LocalDate> target) {
+		JButton btn = new JButton();
+		try {
+			java.net.URL url = getClass().getResource("/Image/icon_lich.png");
+			if (url != null) {
+				ImageIcon icon = new ImageIcon(url);
+				Image img = icon.getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH);
+				btn.setIcon(new ImageIcon(img));
+			} else {
+				btn.setText("📅");
+			}
+		} catch (Exception e) {
+			btn.setText("📅");
+		}
+		btn.setPreferredSize(new Dimension(35, 35));
+		btn.setBackground(Color.WHITE);
+		btn.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
+		btn.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btn.setFocusPainted(false);
+		
+		btn.addActionListener(e -> {
+			CalendarDatePicker picker = new CalendarDatePicker(LocalDate.now(), target);
+			picker.showPopup(btn, 0, btn.getHeight());
+		});
+		return btn;
 	}
 }

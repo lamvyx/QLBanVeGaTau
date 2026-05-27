@@ -3,6 +3,7 @@ package dao;
 import connectDB.DatabaseConnection;
 import entity.ChiTietHoaDonItem;
 import entity.HoaDon;
+import entity.HoaDonTongKetDTO;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
@@ -75,8 +76,9 @@ public class HoaDon_DAO {
 				ps.setString(3, hoaDon.getMaKH());
 				ps.setString(4, hoaDon.getMaKM());
 				ps.setString(5, "T001");
-				LocalDate date = hoaDon.getThoiGian() != null ? hoaDon.getThoiGian().toLocalDate() : LocalDate.now();
-				ps.setDate(6, Date.valueOf(date));
+				LocalDateTime thoiGian = hoaDon.getThoiGian() != null ? hoaDon.getThoiGian() : LocalDateTime.now();
+				LocalDate date = thoiGian.toLocalDate();
+				ps.setTimestamp(6, Timestamp.valueOf(thoiGian));
 				ps.setString(7, "TIEN_MAT");
 				ps.setDate(8, Date.valueOf(date));
 				ps.setBoolean(9, true);
@@ -132,6 +134,12 @@ public class HoaDon_DAO {
 
 	public boolean taoHoaDonBanVe(HoaDon hoaDon, String maCT, String maToa, List<String> viTriGheList,
 			BigDecimal giaVe, String tenHanhKhach, String cccd, LocalDate ngaySinh) {
+		return taoHoaDonBanVe(hoaDon, maCT, maToa, viTriGheList, giaVe, tenHanhKhach, cccd, ngaySinh, null);
+	}
+
+	public boolean taoHoaDonBanVe(HoaDon hoaDon, String maCT, String maToa, List<String> viTriGheList,
+			BigDecimal giaVe, String tenHanhKhach, String cccd, LocalDate ngaySinh,
+			List<ChiTietHoaDonItem> dichVuItems) {
 		Connection conn = null;
 		try {
 			conn = DatabaseConnection.getConnection();
@@ -156,8 +164,9 @@ public class HoaDon_DAO {
 				ps.setString(3, maKH);
 				ps.setString(4, hoaDon.getMaKM());
 				ps.setString(5, "T001");
-				LocalDate date = hoaDon.getThoiGian() != null ? hoaDon.getThoiGian().toLocalDate() : LocalDate.now();
-				ps.setDate(6, Date.valueOf(date));
+				LocalDateTime thoiGian = hoaDon.getThoiGian() != null ? hoaDon.getThoiGian() : LocalDateTime.now();
+				LocalDate date = thoiGian.toLocalDate();
+				ps.setTimestamp(6, Timestamp.valueOf(thoiGian));
 				ps.setString(7, "TIEN_MAT");
 				ps.setDate(8, Date.valueOf(date));
 				ps.setBoolean(9, true);
@@ -198,6 +207,25 @@ public class HoaDon_DAO {
 
 				psVeTau.executeBatch();
 				psCTVe.executeBatch();
+			}
+
+			if (dichVuItems != null && !dichVuItems.isEmpty()) {
+				String sqlCTDV = "INSERT INTO ChiTietHoaDon_DichVu(maHD, maDV, soLuong, donGia) VALUES(?,?,?,?)";
+				try (PreparedStatement psCTDV = conn.prepareStatement(sqlCTDV)) {
+					for (ChiTietHoaDonItem item : dichVuItems) {
+						if (item == null || item.getMaDV() == null || item.getMaDV().isBlank()
+								|| item.getSoLuong() <= 0 || item.getDonGia() == null) {
+							conn.rollback();
+							return false;
+						}
+						psCTDV.setString(1, hoaDon.getMaHD());
+						psCTDV.setString(2, item.getMaDV());
+						psCTDV.setInt(3, item.getSoLuong());
+						psCTDV.setDouble(4, item.getDonGia().doubleValue());
+						psCTDV.addBatch();
+					}
+					psCTDV.executeBatch();
+				}
 			}
 
 			conn.commit();
@@ -257,18 +285,30 @@ public class HoaDon_DAO {
 				return danhSach;
 			}
 			String keyword = tuKhoa == null ? "" : tuKhoa.trim();
-			String sql = "SELECT maHD, maNV, maKH, maKM, thoiGian, trangThaiThanhToan, ngayThanhToan FROM HoaDon WHERE maHD LIKE ? OR maKH LIKE ? OR maNV LIKE ? ORDER BY thoiGian DESC";
+			String sql = "SELECT hd.maHD, hd.maNV, hd.maKH, nv.tenNV, kh.tenKH, hd.maKM, hd.maThue, hd.thoiGian, hd.trangThaiThanhToan, hd.ngayThanhToan, "
+					+ "ISNULL(tt.tongThanhToan, 0) AS tongThanhToan "
+					+ "FROM HoaDon hd "
+					+ "LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV "
+					+ "LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH "
+					+ "LEFT JOIN v_TongTienHoaDon tt ON hd.maHD = tt.maHD "
+					+ "WHERE hd.maHD LIKE ? OR hd.maKH LIKE ? OR hd.maNV LIKE ? OR ISNULL(kh.tenKH, '') LIKE ? OR ISNULL(nv.tenNV, '') LIKE ? "
+					+ "ORDER BY hd.thoiGian DESC";
 			try (PreparedStatement ps = conn.prepareStatement(sql)) {
 				String pattern = "%" + keyword + "%";
 				ps.setString(1, pattern);
 				ps.setString(2, pattern);
 				ps.setString(3, pattern);
+				ps.setString(4, pattern);
+				ps.setString(5, pattern);
 				try (ResultSet rs = ps.executeQuery()) {
 					while (rs.next()) {
 						Timestamp ts = rs.getTimestamp("thoiGian");
 						LocalDateTime thoiGian = ts != null ? ts.toLocalDateTime() : rs.getDate("thoiGian").toLocalDate().atStartOfDay();
 						HoaDon hd = new HoaDon(rs.getString("maHD"), rs.getString("maNV"), rs.getString("maKH"),
-								thoiGian, BigDecimal.ZERO, BigDecimal.ZERO, rs.getString("maKM"));
+								thoiGian, BigDecimal.ZERO, rs.getBigDecimal("tongThanhToan"), rs.getString("maKM"));
+						hd.setTenNV(rs.getString("tenNV"));
+						hd.setTenKH(rs.getString("tenKH"));
+						hd.setMaThue(rs.getString("maThue"));
 						hd.setTrangThaiThanhToan(rs.getBoolean("trangThaiThanhToan"));
 						Date ntt = rs.getDate("ngayThanhToan");
 						if (ntt != null) hd.setNgayThanhToan(ntt.toLocalDate());
@@ -301,6 +341,74 @@ public class HoaDon_DAO {
 			System.err.println("[HoaDon_DAO] Lỗi lấy tổng thanh toán hóa đơn: " + e.getMessage());
 		}
 		return BigDecimal.ZERO;
+	}
+
+	public HoaDon timHoaDonTheoMa(String maHD) {
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null || maHD == null || maHD.isBlank()) {
+				return null;
+			}
+			String sql = "SELECT hd.maHD, hd.maNV, hd.maKH, nv.tenNV, kh.tenKH, hd.maKM, hd.maThue, hd.thoiGian, hd.trangThaiThanhToan, hd.ngayThanhToan, "
+					+ "ISNULL(tt.tongThanhToan, 0) AS tongThanhToan "
+					+ "FROM HoaDon hd "
+					+ "LEFT JOIN NhanVien nv ON hd.maNV = nv.maNV "
+					+ "LEFT JOIN KhachHang kh ON hd.maKH = kh.maKH "
+					+ "LEFT JOIN v_TongTienHoaDon tt ON hd.maHD = tt.maHD "
+					+ "WHERE hd.maHD = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maHD.trim());
+				try (ResultSet rs = ps.executeQuery()) {
+					if (rs.next()) {
+						Timestamp ts = rs.getTimestamp("thoiGian");
+						LocalDateTime thoiGian = ts != null
+								? ts.toLocalDateTime()
+								: rs.getDate("thoiGian").toLocalDate().atStartOfDay();
+						HoaDon hd = new HoaDon(rs.getString("maHD"), rs.getString("maNV"), rs.getString("maKH"),
+								thoiGian, BigDecimal.ZERO, rs.getBigDecimal("tongThanhToan"), rs.getString("maKM"));
+						hd.setTenNV(rs.getString("tenNV"));
+						hd.setTenKH(rs.getString("tenKH"));
+						hd.setMaThue(rs.getString("maThue"));
+						hd.setTrangThaiThanhToan(rs.getBoolean("trangThaiThanhToan"));
+						Date ntt = rs.getDate("ngayThanhToan");
+						if (ntt != null) {
+							hd.setNgayThanhToan(ntt.toLocalDate());
+						}
+						return hd;
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[HoaDon_DAO] Lỗi tìm hóa đơn theo mã: " + e.getMessage());
+		}
+		return null;
+	}
+
+	public HoaDonTongKetDTO layTongKetHoaDon(String maHD) {
+		HoaDonTongKetDTO dto = new HoaDonTongKetDTO();
+		try {
+			Connection conn = DatabaseConnection.getConnection();
+			if (conn == null || maHD == null || maHD.isBlank()) {
+				return dto;
+			}
+			String sql = "SELECT ISNULL(tongTruocThue, 0) AS tongTruocThue, ISNULL(tongSauThue, 0) AS tongSauThue, "
+					+ "ISNULL(tyLeKhuyenMai, 0) AS tyLeKhuyenMai, ISNULL(tongThanhToan, 0) AS tongThanhToan "
+					+ "FROM v_TongTienHoaDon WHERE maHD = ?";
+			try (PreparedStatement ps = conn.prepareStatement(sql)) {
+				ps.setString(1, maHD.trim());
+				try (ResultSet rs = ps.executeQuery()) {
+					if (rs.next()) {
+						dto.setTongTruocThue(rs.getBigDecimal("tongTruocThue"));
+						dto.setTongSauThue(rs.getBigDecimal("tongSauThue"));
+						dto.setTyLeKhuyenMai(rs.getBigDecimal("tyLeKhuyenMai"));
+						dto.setTongThanhToan(rs.getBigDecimal("tongThanhToan"));
+					}
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("[HoaDon_DAO] Lỗi lấy tổng kết hóa đơn: " + e.getMessage());
+		}
+		return dto;
 	}
 
 	public BigDecimal layTongDoanhThu() {

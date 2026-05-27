@@ -2,6 +2,7 @@ package service;
 
 import dao.Toa_DAO;
 import entity.Toa;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,14 +21,31 @@ public class ToaService {
 		return new ArrayList<>(toaDAO.layDanhSachMaTau());
 	}
 
+	public List<Toa> layToaTheoTau(String maTau) {
+		if (maTau == null || maTau.isBlank()) {
+			return new ArrayList<>();
+		}
+		return toaDAO.layToaTheoTau(maTau.trim());
+	}
+
+	public List<Toa> layToaTheoChuyenTau(String maCT) {
+		if (maCT == null || maCT.isBlank()) {
+			return new ArrayList<>();
+		}
+		return toaDAO.layToaTheoChuyenTau(maCT.trim());
+	}
+
+	public List<Toa> layToaRanhTheoThoiDiem(LocalDateTime thoiDiem, String maCTBoQua) {
+		if (thoiDiem == null) {
+			return new ArrayList<>();
+		}
+		return toaDAO.layToaRanhTheoThoiDiem(thoiDiem, maCTBoQua == null ? null : maCTBoQua.trim());
+	}
+
 	public KetQuaXuLy themToa(String maToa, String maTau, String loaiToa, int soGhe, String viTriToa, boolean trangThai) {
 		KetQuaXuLy ketQua = new KetQuaXuLy();
 		if (maToa == null || maToa.isBlank()) {
 			ketQua.thongBao = "Mã toa không được để trống";
-			return ketQua;
-		}
-		if (maTau == null || maTau.isBlank()) {
-			ketQua.thongBao = "Mã tàu không được để trống";
 			return ketQua;
 		}
 		if (loaiToa == null || loaiToa.isBlank()) {
@@ -44,7 +62,8 @@ public class ToaService {
 			return ketQua;
 		}
 
-		Toa toa = new Toa(maToa.trim(), loaiToa.trim(), soGhe, viTriToa == null ? null : viTriToa.trim(), trangThai, maTau.trim());
+		Toa toa = new Toa(maToa.trim(), loaiToa.trim(), soGhe, viTriToa == null ? null : viTriToa.trim(), trangThai,
+				maTau == null || maTau.isBlank() ? null : maTau.trim());
 		boolean ok = toaDAO.themToa(toa);
 		ketQua.thanhCong = ok;
 		ketQua.maThamChieu = maToa.trim();
@@ -56,10 +75,6 @@ public class ToaService {
 		KetQuaXuLy ketQua = new KetQuaXuLy();
 		if (maToa == null || maToa.isBlank()) {
 			ketQua.thongBao = "Mã toa không hợp lệ";
-			return ketQua;
-		}
-		if (maTau == null || maTau.isBlank()) {
-			ketQua.thongBao = "Mã tàu không được để trống";
 			return ketQua;
 		}
 		if (loaiToa == null || loaiToa.isBlank()) {
@@ -77,7 +92,7 @@ public class ToaService {
 			return ketQua;
 		}
 
-		current.setMaTau(maTau.trim());
+		current.setMaTau(maTau == null || maTau.isBlank() ? null : maTau.trim());
 		current.setLoaiToa(loaiToa.trim());
 		current.setSoGhe(soGhe);
 		current.setViTriToa(viTriToa == null ? null : viTriToa.trim());

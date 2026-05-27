@@ -69,16 +69,6 @@ public class ThongKePage extends JPanel {
 		cboNam.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboNam.setPreferredSize(new Dimension(72, 28));
 		right.add(cboNam);
-
-		JButton btnExcel = new JButton("Xuất Excel");
-		btnExcel.setBackground(MAU_CHINH);
-		btnExcel.setForeground(Color.WHITE);
-		btnExcel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnExcel.setFocusPainted(false);
-		btnExcel.setBorder(new EmptyBorder(6, 12, 6, 12));
-		btnExcel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnExcel.addActionListener(e -> hienThiThongBaoXuatExcel());
-		right.add(btnExcel);
 		header.add(right, BorderLayout.EAST);
 
 		return header;
@@ -139,12 +129,6 @@ public class ThongKePage extends JPanel {
 		cardLayout.show(cardPanel, name);
 	}
 
-	private void hienThiThongBaoXuatExcel() {
-		JOptionPane.showMessageDialog(this,
-				"Đã ghi nhận yêu cầu xuất Excel cho báo cáo đang hiển thị.",
-				"Xuất Excel",
-				JOptionPane.INFORMATION_MESSAGE);
-	}
 
 	private JPanel taoDoanhThuPanel() {
 		BigDecimal doanhThuNam = thongKeController.getRevenueByPeriod("year");

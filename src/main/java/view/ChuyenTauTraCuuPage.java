@@ -116,13 +116,14 @@ public class ChuyenTauTraCuuPage extends JPanel {
 
 		tableChuyenTau = new JTable(model);
 		tableChuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		tableChuyenTau.setRowHeight(28);
+		tableChuyenTau.setRowHeight(32);
 		tableChuyenTau.setShowGrid(true);
 		tableChuyenTau.setGridColor(new Color(220, 220, 220));
 		tableChuyenTau.setBackground(Color.WHITE);
 		tableChuyenTau.getTableHeader().setBackground(MAU_CHINH);
 		tableChuyenTau.getTableHeader().setForeground(Color.WHITE);
 		tableChuyenTau.getTableHeader().setFont(new Font("Segoe UI", Font.BOLD, 12));
+		tableChuyenTau.getColumnModel().getColumn(7).setCellRenderer(new ChuyenTauBadgeRenderer());
 
 		JScrollPane scrollPane = new JScrollPane(tableChuyenTau);
 		scrollPane.setPreferredSize(new Dimension(1000, 400));
@@ -173,6 +174,36 @@ public class ChuyenTauTraCuuPage extends JPanel {
 			} catch (Exception ignore) {
 			}
 			model.addRow(new Object[] { stt++, ct.getMaCT(), ct.getMaTau(), gaDi, gaDen, ngayGio, "", ct.isTrangThai() ? "Hoạt động" : "Ngừng" });
+		}
+	}
+
+	private static class ChuyenTauBadgeRenderer extends javax.swing.table.DefaultTableCellRenderer {
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public java.awt.Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus,
+				int row, int column) {
+			javax.swing.JLabel label = new javax.swing.JLabel(String.valueOf(value), javax.swing.JLabel.CENTER);
+			label.setOpaque(true);
+			label.setFont(new Font("Segoe UI", Font.BOLD, 12));
+			label.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 6, 2, 6));
+
+			String val = String.valueOf(value);
+			if ("Hoạt động".equals(val)) {
+				label.setBackground(Color.decode("#D1FAE5")); // Light green
+				label.setForeground(Color.decode("#047857")); // Dark green
+			} else if ("Ngừng".equals(val)) {
+				label.setBackground(Color.decode("#FEE2E2")); // Light red
+				label.setForeground(Color.decode("#991B1B")); // Dark red
+			} else {
+				label.setBackground(Color.WHITE);
+				label.setForeground(Color.decode("#1E2D3D"));
+			}
+
+			if (isSelected) {
+				label.setBackground(label.getBackground().darker());
+			}
+			return label;
 		}
 	}
 }

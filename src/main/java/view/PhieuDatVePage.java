@@ -67,7 +67,7 @@ public class PhieuDatVePage extends JPanel {
 	private final TuyenTauController tuyenTauController = new TuyenTauController();
 
 	private final List<KhachHangOption> dsKhachHang = new ArrayList<>();
-	private final Map<String, List<ToaOption>> toaTheoTau = new HashMap<>();
+	private final Map<String, List<ToaOption>> toaTheoChuyen = new HashMap<>();
 
 	private String selectedMaKH;
 	private String selectedMaCT;
@@ -286,13 +286,13 @@ public class PhieuDatVePage extends JPanel {
 			selectedTuyen = trip.getMaTuyenTau();
 		}
 		selectedKhoiHanh = trip.getNgayKhoiHanh().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-		taiToaChoTau(trip.getMaTau());
+		taiToaTheoChuyen(trip.getMaCT());
 		refreshSummary();
 	}
 
-	private void taiToaChoTau(String maTau) {
+	private void taiToaTheoChuyen(String maCT) {
 		cboToaTau.removeAllItems();
-		List<ToaOption> ds = toaTheoTau.getOrDefault(maTau, Collections.emptyList());
+		List<ToaOption> ds = toaTheoChuyen.getOrDefault(maCT, Collections.emptyList());
 		for (ToaOption t : ds) cboToaTau.addItem(t);
 		if (cboToaTau.getItemCount() > 0) cboToaTau.setSelectedIndex(0);
 		else {
@@ -458,10 +458,14 @@ public class PhieuDatVePage extends JPanel {
 		cboKhachHang.removeAllItems();
 		for (KhachHangOption o : dsKhachHang) cboKhachHang.addItem(o);
 
-		toaTheoTau.clear();
-		for (Toa toa : toaController.timKiemToa(null)) {
-			ToaOption opt = new ToaOption(toa.getMaToa(), toa.getLoaiToa(), toa.getSoGhe(), BanVeUtils.xacDinhGiaVeTheoLoaiToa(toa.getLoaiToa()));
-			toaTheoTau.computeIfAbsent(toa.getMaTau(), k -> new ArrayList<>()).add(opt);
+		toaTheoChuyen.clear();
+		for (ChuyenTau trip : chuyenTauController.timKiemChuyenTau(null)) {
+			List<ToaOption> dsToa = new ArrayList<>();
+			for (Toa toa : toaController.layToaTheoChuyenTau(trip.getMaCT())) {
+				dsToa.add(new ToaOption(toa.getMaToa(), toa.getLoaiToa(), toa.getSoGhe(),
+						BanVeUtils.xacDinhGiaVeTheoLoaiToa(toa.getLoaiToa())));
+			}
+			toaTheoChuyen.put(trip.getMaCT(), dsToa);
 		}
 	}
 

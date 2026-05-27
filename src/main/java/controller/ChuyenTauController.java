@@ -21,10 +21,25 @@ public class ChuyenTauController {
 		return chuyenTauService.themChuyenTau(chuanHoa(maTau), chuanHoa(maTuyenTau), ngayGioKhoiHanh);
 	}
 
+	public KetQuaXuLy themChuyenTau(String maTau, String maTuyenTau, LocalDateTime ngayGioKhoiHanh,
+			List<String> maToaList) {
+		return chuyenTauService.themChuyenTau(chuanHoa(maTau), chuanHoa(maTuyenTau), ngayGioKhoiHanh, maToaList);
+	}
+
 	public KetQuaXuLy capNhatChuyenTau(String maCT, String maTau, String maTuyenTau, LocalDateTime ngayGioKhoiHanh,
 			boolean trangThai) {
 		return chuyenTauService.capNhatChuyenTau(chuanHoa(maCT), chuanHoaRongThanhNull(maTau),
 				chuanHoaRongThanhNull(maTuyenTau), ngayGioKhoiHanh, trangThai);
+	}
+
+	public KetQuaXuLy capNhatChuyenTau(String maCT, String maTau, String maTuyenTau, LocalDateTime ngayGioKhoiHanh,
+			String trangThai, List<String> maToaList) {
+		return chuyenTauService.capNhatChuyenTau(chuanHoa(maCT), chuanHoaRongThanhNull(maTau),
+				chuanHoaRongThanhNull(maTuyenTau), ngayGioKhoiHanh, chuanHoaRongThanhNull(trangThai), maToaList);
+	}
+
+	public List<String> layDanhSachMaToaTheoChuyen(String maCT) {
+		return chuyenTauService.layDanhSachMaToaTheoChuyen(chuanHoaRongThanhNull(maCT));
 	}
 
 	public KetQuaXuLy xoaChuyenTau(String maCT) {

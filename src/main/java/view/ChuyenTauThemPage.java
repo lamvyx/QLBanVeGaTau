@@ -1,8 +1,10 @@
 package view;
 
 import controller.ChuyenTauController;
+import controller.TauController;
 import controller.ToaController;
 import dao.TuyenTau_DAO;
+import entity.ChuyenTau;
 import entity.Tau;
 import entity.Toa;
 import entity.TuyenTau;
@@ -12,21 +14,21 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Insets;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Calendar;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
@@ -35,16 +37,22 @@ import service.ChuyenTauService.KetQuaXuLy;
 
 public class ChuyenTauThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#4682A9");
-	private static final ImageIcon ICON_LICH = taiAnhIcon("/Image/icon_lich.png", 16, 16);
+	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private static final Dimension BUTTON_SIZE = new Dimension(150, 40);
 
-	private JTextField txtMaChuyenTau, txtGiaCoban, txtTongSoCho;
-	private JSpinner spnGioKhoiHanh, spnGioDenNoi;
+	private final ChuyenTauController chuyenTauController = new ChuyenTauController();
+	private final TauController tauController = new TauController();
+	private final ToaController toaController = new ToaController();
+	private final TuyenTau_DAO tuyenTauDAO = new TuyenTau_DAO();
+
 	private JComboBox<TauOption> cbTau;
 	private JComboBox<TuyenOption> cbTuyenTau;
-	private JComboBox<String> cbTrangThai;
-	private final ChuyenTauController chuyenTauController = new ChuyenTauController();
-	private final ToaController toaController = new ToaController();
+	private JSpinner spnKhoiHanh;
+	private JTextField txtTrangThai;
+	private JTextField txtGioiHanKeo;
+	private JTextField txtSoToaDaChon;
+	private JTextField txtTongGheDuKien;
+	private ToaChonPanel toaChonPanel;
 
 	public ChuyenTauThemPage() {
 		setLayout(new BorderLayout());
@@ -52,10 +60,11 @@ public class ChuyenTauThemPage extends JPanel {
 		setBorder(new EmptyBorder(14, 14, 14, 14));
 
 		add(taoHeader(), BorderLayout.NORTH);
-		add(taoForm(), BorderLayout.CENTER);
+		add(taoNoiDung(), BorderLayout.CENTER);
+
 		taiDanhSachTau();
 		taiDanhSachTuyen();
-		capNhatThongTinTuChon();
+		capNhatDanhSachToa();
 	}
 
 	private JPanel taoHeader() {
@@ -65,352 +74,272 @@ public class ChuyenTauThemPage extends JPanel {
 				BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
 				new EmptyBorder(12, 14, 12, 14)));
 
-		JLabel title = new JLabel("Thêm chuyến tàu mới");
+		JLabel title = new JLabel("Thêm chuyến tàu");
 		title.setFont(new Font("Segoe UI", Font.BOLD, 24));
 		title.setForeground(MAU_CHINH);
 		header.add(title, BorderLayout.WEST);
 
+		JLabel sub = new JLabel("Chọn đầu tàu, tuyến chạy và các toa đang rảnh cho chuyến mới.");
+		sub.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		sub.setForeground(Color.decode("#6B7A90"));
+		header.add(sub, BorderLayout.SOUTH);
 		return header;
 	}
 
-	private JPanel taoForm() {
+	private JPanel taoNoiDung() {
+		JPanel content = new JPanel(new BorderLayout(0, 14));
+		content.setOpaque(false);
+		content.add(taoFormThongTin(), BorderLayout.NORTH);
+		content.add(taoPanelToa(), BorderLayout.CENTER);
+		return content;
+	}
+
+	private JPanel taoFormThongTin() {
+		JPanel panel = new JPanel(new GridBagLayout());
+		panel.setBackground(Color.WHITE);
+		panel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
+				new EmptyBorder(18, 18, 18, 18)));
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.insets = new Insets(8, 8, 8, 8);
+		gbc.fill = GridBagConstraints.HORIZONTAL;
+
+		gbc.gridx = 0;
+		gbc.gridy = 0;
+		panel.add(taoLabel("Đầu tàu *"), gbc);
+		gbc.gridx = 1;
+		cbTau = new JComboBox<>();
+		cbTau.setPreferredSize(new Dimension(290, 36));
+		cbTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		cbTau.addActionListener(e -> capNhatDanhSachToa());
+		panel.add(cbTau, gbc);
+
+		gbc.gridx = 2;
+		panel.add(taoLabel("Tuyến tàu *"), gbc);
+		gbc.gridx = 3;
+		cbTuyenTau = new JComboBox<>();
+		cbTuyenTau.setPreferredSize(new Dimension(290, 36));
+		cbTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		panel.add(cbTuyenTau, gbc);
+
+		gbc.gridx = 0;
+		gbc.gridy = 1;
+		panel.add(taoLabel("Khởi hành *"), gbc);
+		gbc.gridx = 1;
+		spnKhoiHanh = taoDateTimeSpinner();
+		spnKhoiHanh.addChangeListener(e -> capNhatDanhSachToa());
+		panel.add(spnKhoiHanh, gbc);
+
+		gbc.gridx = 2;
+		panel.add(taoLabel("Trạng thái"), gbc);
+		gbc.gridx = 3;
+		txtTrangThai = taoFieldKhoa(ChuyenTau.HIEN_THI_DA_LEN_LICH);
+		panel.add(txtTrangThai, gbc);
+
+		gbc.gridx = 0;
+		gbc.gridy = 2;
+		panel.add(taoLabel("Giới hạn kéo toa"), gbc);
+		gbc.gridx = 1;
+		txtGioiHanKeo = taoFieldKhoa("0 toa");
+		panel.add(txtGioiHanKeo, gbc);
+
+		gbc.gridx = 2;
+		panel.add(taoLabel("Số toa đã chọn"), gbc);
+		gbc.gridx = 3;
+		txtSoToaDaChon = taoFieldKhoa("0 toa");
+		panel.add(txtSoToaDaChon, gbc);
+
+		gbc.gridx = 0;
+		gbc.gridy = 3;
+		panel.add(taoLabel("Tổng ghế dự kiến"), gbc);
+		gbc.gridx = 1;
+		txtTongGheDuKien = taoFieldKhoa("0 ghế");
+		panel.add(txtTongGheDuKien, gbc);
+
+		gbc.gridx = 0;
+		gbc.gridy = 4;
+		gbc.gridwidth = 4;
+		JLabel note = new JLabel("Màu xanh: toa rảnh có thể gán. Màu đỏ: toa đã được lên lịch hoặc đang chạy.");
+		note.setFont(new Font("Segoe UI", Font.ITALIC, 13));
+		note.setForeground(Color.decode("#6B7A90"));
+		panel.add(note, gbc);
+
+		gbc.gridy = 5;
+		JPanel buttons = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 0));
+		buttons.setOpaque(false);
+		buttons.add(taoNutChinh("Tạo chuyến", e -> xuLyThemChuyenTau()));
+		buttons.add(taoNutPhu("Làm mới", e -> lamMoiForm()));
+		panel.add(buttons, gbc);
+
+		return panel;
+	}
+
+	private JScrollPane taoPanelToa() {
+		toaChonPanel = new ToaChonPanel();
+		toaChonPanel.setTieuDe("Chọn toa cho chuyến tàu");
+		toaChonPanel.setSelectionListener(ignored -> capNhatThongTinTongHop());
 		JPanel wrapper = new JPanel(new BorderLayout());
 		wrapper.setBackground(Color.WHITE);
 		wrapper.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(Color.decode("#DCE3EC")),
-				new EmptyBorder(20, 20, 20, 20)));
+				new EmptyBorder(18, 18, 18, 18)));
+		wrapper.add(toaChonPanel, BorderLayout.NORTH);
 
-		JPanel formContainer = new JPanel(new GridBagLayout());
-		formContainer.setBackground(Color.WHITE);
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(10, 10, 10, 10);
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-
-		// Row 0: Mã chuyến
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.weightx = 0.3;
-		JLabel lbl = new JLabel("Mã chuyến *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		txtMaChuyenTau = new JTextField();
-		txtMaChuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtMaChuyenTau.setPreferredSize(new Dimension(250, 35));
-		txtMaChuyenTau.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-				new EmptyBorder(8, 8, 8, 8)));
-		formContainer.add(txtMaChuyenTau, gbc);
-
-		// Row 1: Tàu
-		gbc.gridx = 0;
-		gbc.gridy = 1;
-		lbl = new JLabel("Tàu *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		cbTau = new JComboBox<>();
-		cbTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		cbTau.setPreferredSize(new Dimension(250, 35));
-		cbTau.addActionListener(e -> capNhatThongTinTuChon());
-		formContainer.add(cbTau, gbc);
-
-		// Row 2: Tuyến tàu
-		gbc.gridx = 0;
-		gbc.gridy = 2;
-		lbl = new JLabel("Tuyến tàu *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		cbTuyenTau = new JComboBox<>();
-		cbTuyenTau.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		cbTuyenTau.setPreferredSize(new Dimension(250, 35));
-		cbTuyenTau.addActionListener(e -> capNhatThongTinTuChon());
-		formContainer.add(cbTuyenTau, gbc);
-
-		// Row 3: Giờ khởi hành
-		gbc.gridx = 0;
-		gbc.gridy = 3;
-		lbl = new JLabel("Giờ khởi hành *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		spnGioKhoiHanh = taoDateTimePicker();
-		formContainer.add(taoPanelChonNgayNhanh(spnGioKhoiHanh), gbc);
-
-		// Row 4: Giờ đến nơi
-		gbc.gridx = 0;
-		gbc.gridy = 4;
-		lbl = new JLabel("Giờ đến nơi");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		spnGioDenNoi = taoDateTimePicker();
-		formContainer.add(taoPanelChonNgayNhanh(spnGioDenNoi), gbc);
-
-		// Row 5: Giá cơ bản
-		gbc.gridx = 0;
-		gbc.gridy = 5;
-		lbl = new JLabel("Giá cơ bản (VND) *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		txtGiaCoban = new JTextField();
-		txtGiaCoban.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtGiaCoban.setPreferredSize(new Dimension(250, 35));
-		txtGiaCoban.setEditable(false);
-		txtGiaCoban.setBackground(new Color(245, 247, 250));
-		txtGiaCoban.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-				new EmptyBorder(8, 8, 8, 8)));
-		formContainer.add(txtGiaCoban, gbc);
-
-		// Row 6: Tổng số chỗ
-		gbc.gridx = 0;
-		gbc.gridy = 6;
-		lbl = new JLabel("Tổng số chỗ *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		txtTongSoCho = new JTextField();
-		txtTongSoCho.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtTongSoCho.setPreferredSize(new Dimension(250, 35));
-		txtTongSoCho.setEditable(false);
-		txtTongSoCho.setBackground(new Color(245, 247, 250));
-		txtTongSoCho.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-				new EmptyBorder(8, 8, 8, 8)));
-		formContainer.add(txtTongSoCho, gbc);
-
-		// Row 7: Trạng thái
-		gbc.gridx = 0;
-		gbc.gridy = 7;
-		lbl = new JLabel("Trạng thái");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		cbTrangThai = new JComboBox<>();
-		cbTrangThai.addItem("Lên lịch");
-		cbTrangThai.addItem("Đang chạy");
-		cbTrangThai.addItem("Hoàn thành");
-		cbTrangThai.addItem("Hủy");
-		cbTrangThai.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		cbTrangThai.setPreferredSize(new Dimension(250, 35));
-		formContainer.add(cbTrangThai, gbc);
-
-		// Row 8: Buttons
-		gbc.gridx = 0;
-		gbc.gridy = 8;
-		gbc.gridwidth = 2;
-		gbc.insets = new Insets(15, 10, 10, 10);
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.setBackground(Color.WHITE);
-		buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 0));
-
-		JButton btnThem = new JButton("Thêm chuyến");
-		btnThem.setBackground(MAU_CHINH);
-		btnThem.setForeground(Color.WHITE);
-		btnThem.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		btnThem.setFocusPainted(false);
-		btnThem.setBorder(new EmptyBorder(8, 24, 8, 24));
-		btnThem.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnThem.addActionListener(e -> xuLyThemChuyenTau());
-		buttonPanel.add(btnThem);
-
-		JButton btnLamMoi = new JButton("Làm mới");
-		btnLamMoi.setBackground(Color.WHITE);
-		btnLamMoi.setForeground(Color.decode("#2B4B74"));
-		btnLamMoi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		btnLamMoi.setFocusPainted(false);
-		btnLamMoi.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
-		btnLamMoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnLamMoi.addActionListener(e -> lamMoiForm());
-		buttonPanel.add(btnLamMoi);
-
-		formContainer.add(buttonPanel, gbc);
-
-		JPanel scrollWrapper = new JPanel(new BorderLayout());
-		scrollWrapper.setBackground(Color.WHITE);
-		scrollWrapper.add(formContainer, BorderLayout.NORTH);
-
-		wrapper.add(scrollWrapper, BorderLayout.CENTER);
-		return wrapper;
+		JScrollPane scrollPane = new JScrollPane(wrapper);
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		scrollPane.getVerticalScrollBar().setUnitIncrement(16);
+		return scrollPane;
 	}
 
-	private JSpinner taoDateTimePicker() {
+	private JLabel taoLabel(String text) {
+		JLabel label = new JLabel(text);
+		label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		label.setForeground(Color.decode("#2B4B74"));
+		return label;
+	}
+
+	private JTextField taoFieldKhoa(String text) {
+		JTextField field = new JTextField(text);
+		field.setEditable(false);
+		field.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		field.setBackground(Color.decode("#F6F8FB"));
+		field.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(8, 8, 8, 8)));
+		return field;
+	}
+
+	private JSpinner taoDateTimeSpinner() {
 		JSpinner spinner = new JSpinner(new SpinnerDateModel());
+		spinner.setValue(new Date());
 		JSpinner.DateEditor editor = new JSpinner.DateEditor(spinner, "dd/MM/yyyy HH:mm");
 		spinner.setEditor(editor);
 		spinner.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		spinner.setPreferredSize(new Dimension(250, 35));
-		spinner.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-				new EmptyBorder(2, 2, 2, 2)));
+		spinner.setPreferredSize(new Dimension(290, 36));
 		return spinner;
 	}
 
-	private JPanel taoPanelChonNgayNhanh(JSpinner spn) {
-		JPanel wrap = new JPanel(new BorderLayout(5, 0));
-		wrap.setBackground(Color.WHITE);
-		wrap.add(spn, BorderLayout.CENTER);
-
-		JPanel buttons = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 2, 0));
-		buttons.setBackground(Color.WHITE);
-
-		JButton btnCalendar = new JButton(ICON_LICH);
-		btnCalendar.setToolTipText("Chọn từ lịch");
-		btnCalendar.setFocusPainted(false);
-		btnCalendar.setPreferredSize(new Dimension(30, 35));
-		btnCalendar.addActionListener(e -> {
-			LocalDate current = layLocalDateTimeTuSpinner(spn).toLocalDate();
-			CalendarDatePicker picker = new CalendarDatePicker(current, date -> {
-				LocalDateTime time = layLocalDateTimeTuSpinner(spn);
-				spn.setValue(Date.from(date.atTime(time.toLocalTime()).atZone(ZoneId.systemDefault()).toInstant()));
-			});
-			picker.showPopup(btnCalendar, 0, btnCalendar.getHeight());
-		});
-		buttons.add(btnCalendar);
-
-		JButton btnNow = new JButton("Nay");
-		btnNow.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-		btnNow.setMargin(new Insets(2, 5, 2, 5));
-		btnNow.addActionListener(e -> spn.setValue(new Date()));
-
-		JButton btnTomorrow = new JButton("Mai");
-		btnTomorrow.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-		btnTomorrow.setMargin(new Insets(2, 5, 2, 5));
-		btnTomorrow.addActionListener(e -> {
-			Calendar cal = Calendar.getInstance();
-			cal.add(Calendar.DAY_OF_YEAR, 1);
-			spn.setValue(cal.getTime());
-		});
-
-		JButton btnPlus1h = new JButton("+1h");
-		btnPlus1h.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-		btnPlus1h.setMargin(new Insets(2, 5, 2, 5));
-		btnPlus1h.addActionListener(e -> {
-			Calendar cal = Calendar.getInstance();
-			cal.setTime((Date) spn.getValue());
-			cal.add(Calendar.HOUR_OF_DAY, 1);
-			spn.setValue(cal.getTime());
-		});
-
-		JButton btnPlus3h = new JButton("+3h");
-		btnPlus3h.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-		btnPlus3h.setMargin(new Insets(2, 5, 2, 5));
-		btnPlus3h.addActionListener(e -> {
-			Calendar cal = Calendar.getInstance();
-			cal.setTime((Date) spn.getValue());
-			cal.add(Calendar.HOUR_OF_DAY, 3);
-			spn.setValue(cal.getTime());
-		});
-
-		buttons.add(btnNow);
-		buttons.add(btnTomorrow);
-		buttons.add(btnPlus1h);
-		buttons.add(btnPlus3h);
-		wrap.add(buttons, BorderLayout.EAST);
-		return wrap;
+	private JButton taoNutChinh(String text, java.awt.event.ActionListener action) {
+		JButton button = new JButton(text);
+		button.setBackground(MAU_CHINH);
+		button.setForeground(Color.WHITE);
+		button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		button.setFocusPainted(false);
+		button.setBorder(new EmptyBorder(9, 22, 9, 22));
+		button.setPreferredSize(BUTTON_SIZE);
+		button.addActionListener(action);
+		return button;
 	}
 
-	private static ImageIcon taiAnhIcon(String path, int w, int h) {
-		try {
-			java.net.URL url = ChuyenTauThemPage.class.getResource(path);
-			if (url != null) {
-				Image img = new ImageIcon(url).getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
-				return new ImageIcon(img);
-			}
-		} catch (Exception e) {
-		}
-		return null;
-	}
-
-	private LocalDateTime layLocalDateTimeTuSpinner(JSpinner spn) {
-		Date date = (Date) spn.getValue();
-		return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-	}
-
-	private void xuLyThemChuyenTau() {
-		try {
-			TauOption tauOpt = (TauOption) cbTau.getSelectedItem();
-			TuyenOption tuyenOpt = (TuyenOption) cbTuyenTau.getSelectedItem();
-			if (tauOpt == null || tauOpt.maTau == null || tuyenOpt == null || tuyenOpt.maTT == null) {
-				JOptionPane.showMessageDialog(this, "Vui lòng chọn tàu và tuyến tàu.");
-				return;
-			}
-			String maTau = tauOpt.maTau;
-			String maTuyen = tuyenOpt.maTT;
-			LocalDateTime thoiGian = layLocalDateTimeTuSpinner(spnGioKhoiHanh);
-			KetQuaXuLy ketQua = chuyenTauController.themChuyenTau(maTau, maTuyen, thoiGian);
-			JOptionPane.showMessageDialog(this,
-					ketQua.thongBao + (ketQua.thanhCong ? " (" + ketQua.maThamChieu + ")" : ""));
-			if (ketQua.thanhCong) {
-				lamMoiForm();
-			}
-		} catch (NumberFormatException | ClassCastException ex) {
-			JOptionPane.showMessageDialog(this, "Lỗi khi thêm chuyến tàu: " + ex.getMessage());
-		}
+	private JButton taoNutPhu(String text, java.awt.event.ActionListener action) {
+		JButton button = new JButton(text);
+		button.setBackground(Color.WHITE);
+		button.setForeground(Color.decode("#2B4B74"));
+		button.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		button.setFocusPainted(false);
+		button.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+				new EmptyBorder(9, 22, 9, 22)));
+		button.setPreferredSize(BUTTON_SIZE);
+		button.addActionListener(action);
+		return button;
 	}
 
 	private void taiDanhSachTau() {
 		cbTau.removeAllItems();
-		cbTau.addItem(new TauOption(null, "-- Chọn tàu --", 0));
-		for (Tau tau : new controller.TauController().timKiemTau(null, null)) {
+		cbTau.addItem(new TauOption(null, "-- Chọn đầu tàu --", 0));
+		for (Tau tau : tauController.timKiemTau(null, null)) {
 			cbTau.addItem(new TauOption(tau.getMaTau(), tau.getTenTau(), tau.getSoLuongToa()));
 		}
 	}
 
 	private void taiDanhSachTuyen() {
 		cbTuyenTau.removeAllItems();
-		cbTuyenTau.addItem(new TuyenOption(null, "-- Chọn tuyến --", null, 0));
-		for (TuyenTau tt : new TuyenTau_DAO().layTatCaTuyenTau()) {
-			cbTuyenTau.addItem(new TuyenOption(tt.getMaTT(), tt.getMaGaDi(), tt.getMaGaDen(), tt.getKhoangCach()));
+		cbTuyenTau.addItem(new TuyenOption(null, "-- Chọn ga đi --", "-- Chọn ga đến --", 0));
+		for (TuyenTau tuyenTau : tuyenTauDAO.layTatCaTuyenTau()) {
+			cbTuyenTau.addItem(new TuyenOption(tuyenTau.getMaTT(), tuyenTau.getMaGaDi(), tuyenTau.getMaGaDen(),
+					tuyenTau.getKhoangCach()));
 		}
 	}
 
-	private void capNhatThongTinTuChon() {
-		TauOption tauOpt = cbTau == null ? null : (TauOption) cbTau.getSelectedItem();
-		TuyenOption tuyenOpt = cbTuyenTau == null ? null : (TuyenOption) cbTuyenTau.getSelectedItem();
-		if (tauOpt == null || tauOpt.maTau == null || tuyenOpt == null || tuyenOpt.maTT == null) {
-			txtGiaCoban.setText("0 đ");
-			txtTongSoCho.setText("0");
+	private void capNhatDanhSachToa() {
+		TauOption tau = (TauOption) cbTau.getSelectedItem();
+		int gioiHan = tau == null ? 0 : tau.soLuongToa;
+		txtGioiHanKeo.setText(gioiHan + " toa");
+		toaChonPanel.setGioiHanChon(gioiHan);
+
+		LocalDateTime thoiGian = layThoiGianKhoiHanh();
+		Set<String> availableIds = new LinkedHashSet<>();
+		for (Toa toa : toaController.layToaRanhTheoThoiDiem(thoiGian, null)) {
+			availableIds.add(toa.getMaToa());
+		}
+
+		List<ToaChonPanel.CoachCardData> cardData = new ArrayList<>();
+		for (Toa toa : toaController.timKiemToa(null)) {
+			boolean available = availableIds.contains(toa.getMaToa());
+			String moTa = available ? "Sẵn sàng" : "Đã xếp chuyến";
+			cardData.add(new ToaChonPanel.CoachCardData(toa.getMaToa(), toa.getLoaiToa(), toa.getSoGhe(), moTa, available));
+		}
+		toaChonPanel.setDanhSachToa(cardData);
+		capNhatThongTinTongHop();
+	}
+
+	private void capNhatThongTinTongHop() {
+		Set<String> daChon = toaChonPanel.getSelectedToa();
+		txtSoToaDaChon.setText(daChon.size() + " toa");
+		int tongGhe = 0;
+		for (String maToa : daChon) {
+			Toa toa = toaController.timKiemToa(maToa).stream().findFirst().orElse(null);
+			if (toa != null) {
+				tongGhe += toa.getSoGhe();
+			}
+		}
+		txtTongGheDuKien.setText(tongGhe + " ghế");
+	}
+
+	private LocalDateTime layThoiGianKhoiHanh() {
+		Date date = (Date) spnKhoiHanh.getValue();
+		return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+	}
+
+	private void xuLyThemChuyenTau() {
+		TauOption tau = (TauOption) cbTau.getSelectedItem();
+		TuyenOption tuyen = (TuyenOption) cbTuyenTau.getSelectedItem();
+		if (tau == null || tau.maTau == null) {
+			JOptionPane.showMessageDialog(this, "Vui lòng chọn đầu tàu.");
+			return;
+		}
+		if (tuyen == null || tuyen.maTT == null) {
+			JOptionPane.showMessageDialog(this, "Vui lòng chọn tuyến tàu.");
 			return;
 		}
 
-		BigDecimal gia = BigDecimal.valueOf(tuyenOpt.khoangCach).multiply(BigDecimal.valueOf(1000)).setScale(0, java.math.RoundingMode.HALF_UP);
-		int tongSoCho = 0;
-		for (Toa toa : toaController.timKiemToa(null)) {
-			if (tauOpt.maTau.equals(toa.getMaTau())) {
-				tongSoCho += toa.getSoGhe();
-			}
+		List<String> maToaList = new ArrayList<>(toaChonPanel.getSelectedToa());
+		if (maToaList.isEmpty()) {
+			JOptionPane.showMessageDialog(this, "Vui lòng chọn ít nhất một toa rảnh cho chuyến.");
+			return;
 		}
-		txtGiaCoban.setText(BanVeUtils.formatMoney(gia));
-		txtTongSoCho.setText(String.valueOf(tongSoCho));
+
+		KetQuaXuLy ketQua = chuyenTauController.themChuyenTau(tau.maTau, tuyen.maTT, layThoiGianKhoiHanh(), maToaList);
+		JOptionPane.showMessageDialog(this,
+				ketQua.thongBao + (ketQua.thanhCong ? " (" + ketQua.maThamChieu + ")" : ""),
+				ketQua.thanhCong ? "Thành công" : "Lỗi",
+				ketQua.thanhCong ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.ERROR_MESSAGE);
+		if (ketQua.thanhCong) {
+			lamMoiForm();
+		}
 	}
 
 	private void lamMoiForm() {
-		txtMaChuyenTau.setText("");
-		if (cbTau.getItemCount() > 0) cbTau.setSelectedIndex(0);
-		if (cbTuyenTau.getItemCount() > 0) cbTuyenTau.setSelectedIndex(0);
-		spnGioKhoiHanh.setValue(new Date());
-		spnGioDenNoi.setValue(new Date());
-		capNhatThongTinTuChon();
-		cbTrangThai.setSelectedIndex(0);
+		if (cbTau.getItemCount() > 0) {
+			cbTau.setSelectedIndex(0);
+		}
+		if (cbTuyenTau.getItemCount() > 0) {
+			cbTuyenTau.setSelectedIndex(0);
+		}
+		spnKhoiHanh.setValue(new Date());
+		txtTrangThai.setText(ChuyenTau.HIEN_THI_DA_LEN_LICH);
+		capNhatDanhSachToa();
 	}
 }

@@ -12,6 +12,10 @@ public class TauController {
 		return tauService.timKiemTau(chuanHoaRongThanhNull(maTau), chuanHoaRongThanhNull(tenTau));
 	}
 
+	public String layMaTauTiepTheo() {
+		return tauService.layMaTauTiepTheo();
+	}
+
 	public KetQuaXuLy themTau(String tenTau, int soLuongToa) {
 		return tauService.themTau(chuanHoa(tenTau), soLuongToa);
 	}

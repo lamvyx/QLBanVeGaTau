@@ -188,7 +188,8 @@ public class DoiVePage extends JPanel {
 		lblTitle.setFont(AppTheme.font(Font.BOLD, 17));
 		lblTitle.setForeground(AppTheme.PRIMARY);
 
-		JPanel selectionPanel = new JPanel(new GridLayout(0, 1, 0, 8));
+		JPanel selectionPanel = new JPanel();
+		selectionPanel.setLayout(new javax.swing.BoxLayout(selectionPanel, javax.swing.BoxLayout.Y_AXIS));
 		selectionPanel.setOpaque(false);
 
 		JPanel routePanel = new JPanel(new GridLayout(1, 3, 8, 0));
@@ -202,6 +203,7 @@ public class DoiVePage extends JPanel {
 		routePanel.add(cboGaDenMoi);
 		routePanel.add(btnTimChuyenMoi);
 		selectionPanel.add(routePanel);
+		selectionPanel.add(javax.swing.Box.createVerticalStrut(8));
 
 		// Chọn chuyến
 		JPanel row1 = new JPanel(new BorderLayout(8, 0));
@@ -210,6 +212,7 @@ public class DoiVePage extends JPanel {
 		cboChuyenMoi.addActionListener(e -> taiToaMoi());
 		row1.add(cboChuyenMoi, BorderLayout.CENTER);
 		selectionPanel.add(row1);
+		selectionPanel.add(javax.swing.Box.createVerticalStrut(8));
 
 		// Chọn toa
 		JPanel row2 = new JPanel(new BorderLayout(8, 0));
@@ -218,22 +221,46 @@ public class DoiVePage extends JPanel {
 		cboToaMoi.addActionListener(e -> taiGheMoi());
 		row2.add(cboToaMoi, BorderLayout.CENTER);
 		selectionPanel.add(row2);
+		selectionPanel.add(javax.swing.Box.createVerticalStrut(8));
 
-		// Chọn ghế (sử dụng seat map chính)
+		// Chọn ghế (sử dụng seat map hoặc combo box)
 		JPanel row3 = new JPanel(new BorderLayout(8, 0));
 		row3.setOpaque(false);
 		row3.add(new JLabel("Chỗ mới:      "), BorderLayout.WEST);
-		lblSelectedSeatSmall.setFont(AppTheme.font(Font.BOLD, 14));
-		lblSelectedSeatSmall.setForeground(AppTheme.PRIMARY);
-		row3.add(lblSelectedSeatSmall, BorderLayout.CENTER);
+		cboGheMoi.addActionListener(e -> {
+			String seat = (String) cboGheMoi.getSelectedItem();
+			if (seat != null && !seat.startsWith("Chọn")) {
+				selectedSeat = seat;
+				lblSelectedSeatSmall.setText(seat);
+				for (java.awt.Component comp : seatMapPanel.getComponents()) {
+					if (comp instanceof JButton btn) {
+						if (seat.equals(btn.getText())) {
+							btn.setBackground(Color.decode("#BEE3FF"));
+						} else if (btn.isEnabled()) {
+							btn.setBackground(Color.decode("#E6F4FF"));
+						}
+					}
+				}
+				xuLyChonVeMoi();
+			}
+		});
+		row3.add(cboGheMoi, BorderLayout.CENTER);
 		selectionPanel.add(row3);
+		selectionPanel.add(javax.swing.Box.createVerticalStrut(8));
 
-		// Seat map (clickable preview) - primary selector
+		// Seat map (clickable preview) - primary selector wrapped in JScrollPane
 		seatMapPanel.setOpaque(false);
-		seatMapPanel.setBorder(BorderFactory.createEmptyBorder(8, 0, 0, 0));
-		java.awt.Dimension seatPref = new java.awt.Dimension(0, 160);
-		seatMapPanel.setPreferredSize(seatPref);
-		selectionPanel.add(seatMapPanel);
+		seatMapPanel.setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
+		
+		javax.swing.JScrollPane seatScrollPane = new javax.swing.JScrollPane(seatMapPanel);
+		seatScrollPane.setOpaque(false);
+		seatScrollPane.getViewport().setOpaque(false);
+		seatScrollPane.setBorder(BorderFactory.createLineBorder(Color.decode("#DDE5F2"), 1));
+		seatScrollPane.setPreferredSize(new java.awt.Dimension(0, 240));
+		seatScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+		
+		selectionPanel.add(seatScrollPane);
+		selectionPanel.add(javax.swing.Box.createVerticalStrut(8));
 
 		// Legend
 		JPanel legend = new JPanel(new GridLayout(1, 6, 8, 0));

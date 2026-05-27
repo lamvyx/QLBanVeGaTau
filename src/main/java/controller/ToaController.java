@@ -1,6 +1,7 @@
 package controller;
 
 import entity.Toa;
+import java.time.LocalDateTime;
 import java.util.List;
 import service.ToaService;
 import service.ToaService.KetQuaXuLy;
@@ -14,6 +15,18 @@ public class ToaController {
 
 	public List<String> layDanhSachMaTau() {
 		return toaService.layDanhSachMaTau();
+	}
+
+	public List<Toa> layToaTheoTau(String maTau) {
+		return toaService.layToaTheoTau(chuanHoaRongThanhNull(maTau));
+	}
+
+	public List<Toa> layToaTheoChuyenTau(String maCT) {
+		return toaService.layToaTheoChuyenTau(chuanHoaRongThanhNull(maCT));
+	}
+
+	public List<Toa> layToaRanhTheoThoiDiem(LocalDateTime thoiDiem, String maCTBoQua) {
+		return toaService.layToaRanhTheoThoiDiem(thoiDiem, chuanHoaRongThanhNull(maCTBoQua));
 	}
 
 	public KetQuaXuLy themToa(String maToa, String maTau, String loaiToa, int soGhe, String viTriToa, boolean trangThai) {

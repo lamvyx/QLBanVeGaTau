@@ -7,6 +7,7 @@ public class LichSuVeDTO {
     private String gaDi;
     private String gaDen;
     private LocalDateTime ngayKhoiHanh;
+    private LocalDateTime ngayMua;
     private String maToa;
     private double giaVe;
     private String trangThai;
@@ -24,6 +25,9 @@ public class LichSuVeDTO {
 
     public LocalDateTime getNgayKhoiHanh() { return ngayKhoiHanh; }
     public void setNgayKhoiHanh(LocalDateTime ngayKhoiHanh) { this.ngayKhoiHanh = ngayKhoiHanh; }
+
+    public LocalDateTime getNgayMua() { return ngayMua; }
+    public void setNgayMua(LocalDateTime ngayMua) { this.ngayMua = ngayMua; }
 
     public String getMaToa() { return maToa; }
     public void setMaToa(String maToa) { this.maToa = maToa; }

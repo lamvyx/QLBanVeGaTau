@@ -10,4 +10,8 @@ public class VeTauService {
     public List<LichSuVeDTO> layLichSuVe(String maKH) {
         return veTauDAO.layLichSuVe(maKH);
     }
+
+    public List<LichSuVeDTO> layLichSuVeTheoBoLoc(String query) {
+        return veTauDAO.layLichSuVeTheoBoLoc(query);
+    }
 }

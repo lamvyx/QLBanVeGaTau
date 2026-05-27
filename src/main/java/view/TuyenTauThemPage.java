@@ -28,6 +28,7 @@ import service.TuyenTauService.KetQuaXuLy;
 public class TuyenTauThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
 	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final Dimension BUTTON_SIZE = new Dimension(150, 40);
 	
 	private JTextField txtMaTT, txtKhoangCach;
 	private JComboBox<String> cboMaGaDi, cboMaGaDen;
@@ -70,13 +71,14 @@ public class TuyenTauThemPage extends JPanel {
 		JPanel formContainer = new JPanel(new GridBagLayout());
 		formContainer.setBackground(Color.WHITE);
 		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.insets = new Insets(10, 10, 10, 10);
+		gbc.insets = new Insets(10, 12, 10, 12);
 		gbc.fill = GridBagConstraints.HORIZONTAL;
+		gbc.anchor = GridBagConstraints.NORTHWEST;
+		gbc.weightx = 1;
 
-		// Row 0: Mã tuyến
+		// Row 0: Mã tuyến / Khoảng cách
 		gbc.gridx = 0;
 		gbc.gridy = 0;
-		gbc.weightx = 0.3;
 		JLabel lbl = new JLabel("Mã tuyến *");
 		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		lbl.setForeground(Color.decode("#2B4B74"));
@@ -92,7 +94,25 @@ public class TuyenTauThemPage extends JPanel {
 		));
 		formContainer.add(txtMaTT, gbc);
 
-		// Row 1: Mã ga đi
+		gbc.gridx = 2;
+		gbc.gridy = 0;
+		lbl = new JLabel("Khoảng cách (km) *");
+		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
+		lbl.setForeground(Color.decode("#2B4B74"));
+		formContainer.add(lbl, gbc);
+
+		gbc.gridx = 3;
+		txtKhoangCach = new JTextField();
+		txtKhoangCach.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+		txtKhoangCach.setPreferredSize(new Dimension(260, 36));
+		txtKhoangCach.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(8, 8, 8, 8)
+		));
+		txtKhoangCach.setText("0");
+		formContainer.add(txtKhoangCach, gbc);
+
+		// Row 1: Ga đi / Ga đến
 		gbc.gridx = 0;
 		gbc.gridy = 1;
 		lbl = new JLabel("Mã ga đi *");
@@ -106,43 +126,23 @@ public class TuyenTauThemPage extends JPanel {
 		cboMaGaDi.setPreferredSize(new Dimension(250, 35));
 		formContainer.add(cboMaGaDi, gbc);
 
-		// Row 2: Mã ga đến
-		gbc.gridx = 0;
-		gbc.gridy = 2;
+		gbc.gridx = 2;
+		gbc.gridy = 1;
 		lbl = new JLabel("Mã ga đến *");
 		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		lbl.setForeground(Color.decode("#2B4B74"));
 		formContainer.add(lbl, gbc);
 
-		gbc.gridx = 1;
+		gbc.gridx = 3;
 		cboMaGaDen = new JComboBox<>();
 		cboMaGaDen.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		cboMaGaDen.setPreferredSize(new Dimension(250, 35));
+		cboMaGaDen.setPreferredSize(new Dimension(260, 36));
 		formContainer.add(cboMaGaDen, gbc);
 
-		// Row 3: Khoảng cách
+		// Row 2: Buttons
 		gbc.gridx = 0;
-		gbc.gridy = 3;
-		lbl = new JLabel("Khoảng cách (km) *");
-		lbl.setFont(new Font("Segoe UI", Font.BOLD, 14));
-		lbl.setForeground(Color.decode("#2B4B74"));
-		formContainer.add(lbl, gbc);
-
-		gbc.gridx = 1;
-		txtKhoangCach = new JTextField();
-		txtKhoangCach.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-		txtKhoangCach.setPreferredSize(new Dimension(250, 35));
-		txtKhoangCach.setBorder(BorderFactory.createCompoundBorder(
-			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
-			new EmptyBorder(8, 8, 8, 8)
-		));
-		txtKhoangCach.setText("0");
-		formContainer.add(txtKhoangCach, gbc);
-
-		// Row 4: Buttons
-		gbc.gridx = 0;
-		gbc.gridy = 4;
-		gbc.gridwidth = 2;
+		gbc.gridy = 2;
+		gbc.gridwidth = 4;
 		gbc.insets = new Insets(15, 10, 10, 10);
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setBackground(Color.WHITE);
@@ -155,6 +155,7 @@ public class TuyenTauThemPage extends JPanel {
 		btnThem.setFocusPainted(false);
 		btnThem.setBorder(new EmptyBorder(8, 24, 8, 24));
 		btnThem.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnThem.setPreferredSize(BUTTON_SIZE);
 		btnThem.addActionListener(e -> xuLyThemTuyenTau());
 		buttonPanel.add(btnThem);
 
@@ -165,6 +166,7 @@ public class TuyenTauThemPage extends JPanel {
 		btnLamMoi.setFocusPainted(false);
 		btnLamMoi.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
 		btnLamMoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnLamMoi.setPreferredSize(BUTTON_SIZE);
 		btnLamMoi.addActionListener(e -> lamMoiForm());
 		buttonPanel.add(btnLamMoi);
 

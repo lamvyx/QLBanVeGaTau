@@ -21,7 +21,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class KhuyenMaiPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
 	private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 	private final KhuyenMaiController khuyenMaiController = new KhuyenMaiController();
 	private DefaultTableModel model;

@@ -122,6 +122,20 @@ public class KhachHangService {
 		return khachHangDAO.layTatCaKhachHang();
 	}
 
+	public KhachHang timKhachHangTheoSdtHoacCccd(String tuKhoa) {
+		if (tuKhoa == null || tuKhoa.trim().isEmpty()) {
+			return null;
+		}
+
+		String giaTri = tuKhoa.trim();
+		KhachHang kh = khachHangDAO.timKhachHangTheoSDT(giaTri);
+		if (kh != null) {
+			return kh;
+		}
+
+		return khachHangDAO.timKhachHangTheoCCCD(giaTri);
+	}
+
 	public List<KhachHang> layTatCaKhachHang() {
 		return khachHangDAO.layTatCaKhachHang();
 	}

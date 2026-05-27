@@ -5,6 +5,7 @@ import dao.KhachHang_DAO;
 import dao.VeTau_DAO;
 import entity.ChiTietHoaDonItem;
 import entity.HoaDon;
+import entity.HoaDonTongKetDTO;
 import entity.KhachHang;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -67,17 +68,33 @@ public class HoaDonService {
 		return hoaDonDAO.timKiemHoaDon(tuKhoa == null ? "" : tuKhoa.trim());
 	}
 
+	public HoaDon timHoaDonTheoMa(String maHD) {
+		if (maHD == null || maHD.isBlank()) return null;
+		return hoaDonDAO.timHoaDonTheoMa(maHD.trim());
+	}
+
+	public HoaDonTongKetDTO layTongKetHoaDon(String maHD) {
+		if (maHD == null || maHD.isBlank()) return new HoaDonTongKetDTO();
+		return hoaDonDAO.layTongKetHoaDon(maHD.trim());
+	}
+
 	public Set<String> layGheDaDat(String maCT, String maToa) {
 		return veTauDAO.layGheDaDat(maCT, maToa);
 	}
 
 	public KetQuaLapHoaDon lapHoaDonBanVe(String maNV, String maKH, String maKM, String maCT, String maToa,
 			List<String> viTriGheList, BigDecimal giaVe) {
-		return lapHoaDonBanVe(maNV, maKH, maKM, maCT, maToa, viTriGheList, giaVe, null);
+		return lapHoaDonBanVe(maNV, maKH, maKM, maCT, maToa, viTriGheList, giaVe, null, null);
 	}
 
 	public KetQuaLapHoaDon lapHoaDonBanVe(String maNV, String maKH, String maKM, String maCT, String maToa,
 			List<String> viTriGheList, BigDecimal giaVe, Set<String> gheBoQuaKiemTra) {
+		return lapHoaDonBanVe(maNV, maKH, maKM, maCT, maToa, viTriGheList, giaVe, gheBoQuaKiemTra, null);
+	}
+
+	public KetQuaLapHoaDon lapHoaDonBanVe(String maNV, String maKH, String maKM, String maCT, String maToa,
+			List<String> viTriGheList, BigDecimal giaVe, Set<String> gheBoQuaKiemTra,
+			List<ChiTietHoaDonItem> dichVuItems) {
 		KetQuaLapHoaDon ketQua = new KetQuaLapHoaDon();
 		if (maNV == null || maNV.isBlank()) {
 			ketQua.thongBao = "Mã nhân viên không được để trống";
@@ -144,12 +161,29 @@ public class HoaDonService {
 		LocalDate ngaySinh = khachHang.getNgaySinh() == null ? LocalDate.of(1990, 1, 1) : khachHang.getNgaySinh();
 
 		String maHD = hoaDonDAO.layMaHoaDonTiepTheo();
+		BigDecimal tongTienVe = giaVe.multiply(BigDecimal.valueOf(gheHopLe.size()));
+		BigDecimal tongTienDichVu = BigDecimal.ZERO;
+		List<ChiTietHoaDonItem> dichVuHopLe = new ArrayList<>();
+		if (dichVuItems != null) {
+			for (ChiTietHoaDonItem item : dichVuItems) {
+				if (item == null || item.getMaDV() == null || item.getMaDV().isBlank()
+						|| item.getDonGia() == null || item.getDonGia().compareTo(BigDecimal.ZERO) < 0
+						|| item.getSoLuong() <= 0) {
+					ketQua.thongBao = "Danh sách dịch vụ đi kèm không hợp lệ";
+					return ketQua;
+				}
+				dichVuHopLe.add(new ChiTietHoaDonItem(null, maHD, null, item.getMaDV().trim(), item.getSoLuong(),
+						item.getDonGia()));
+				tongTienDichVu = tongTienDichVu.add(item.getDonGia().multiply(BigDecimal.valueOf(item.getSoLuong())));
+			}
+		}
+
 		HoaDon hoaDon = new HoaDon(maHD, maNV.trim(), maKH.trim(), LocalDateTime.now(), BigDecimal.ZERO,
-				giaVe.multiply(BigDecimal.valueOf(gheHopLe.size())),
+				tongTienVe.add(tongTienDichVu),
 				maKM == null || maKM.isBlank() ? null : maKM.trim());
 
 		boolean thanhCong = hoaDonDAO.taoHoaDonBanVe(hoaDon, maCT.trim(), maToa.trim(), new ArrayList<>(gheHopLe),
-				giaVe, tenHanhKhach, cccd, ngaySinh);
+				giaVe, tenHanhKhach, cccd, ngaySinh, dichVuHopLe);
 
 		ketQua.thanhCong = thanhCong;
 		ketQua.maHoaDon = maHD;
