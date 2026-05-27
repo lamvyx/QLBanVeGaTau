@@ -1,5 +1,6 @@
 package view;
 
+import controller.DichVuController;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -7,18 +8,22 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.math.BigDecimal;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import service.DichVuService.KetQuaXuLy;
 
 public class DichVuThemPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
 	
 	private JTextField txtMaDV, txtTenDV, txtGiaDV;
+	private final DichVuController dichVuController = new DichVuController();
 
 	public DichVuThemPage() {
 		setLayout(new BorderLayout());
@@ -26,7 +31,7 @@ public class DichVuThemPage extends JPanel {
 		setBorder(new EmptyBorder(14, 14, 14, 14));
 
 		add(taoHeader(), BorderLayout.NORTH);
-		add(AppTheme.topAlignedFormPage(taoForm()), BorderLayout.CENTER);
+		add(taoForm(), BorderLayout.CENTER);
 	}
 
 	private JPanel taoHeader() {
@@ -119,36 +124,71 @@ public class DichVuThemPage extends JPanel {
 		gbc.gridx = 0;
 		gbc.gridy = 3;
 		gbc.gridwidth = 2;
-		gbc.insets = new Insets(15, 10, 10, 10);
+		gbc.insets = new Insets(20, 10, 10, 10);
 		JPanel buttonPanel = new JPanel();
 		buttonPanel.setBackground(Color.WHITE);
-		buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 0));
+		buttonPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 15, 0));
 
 		JButton btnThem = new JButton("Thêm dịch vụ");
 		btnThem.setBackground(MAU_CHINH);
 		btnThem.setForeground(Color.WHITE);
 		btnThem.setFont(new Font("Segoe UI", Font.BOLD, 14));
 		btnThem.setFocusPainted(false);
-		btnThem.setBorder(new EmptyBorder(8, 24, 8, 24));
+		btnThem.setBorder(new EmptyBorder(8, 20, 8, 20));
+		btnThem.setPreferredSize(new Dimension(160, 40));
 		btnThem.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnThem.addActionListener(e -> xuLyThemDichVu());
 		buttonPanel.add(btnThem);
-
+ 
 		JButton btnLamMoi = new JButton("Làm mới");
 		btnLamMoi.setBackground(Color.WHITE);
 		btnLamMoi.setForeground(Color.decode("#2B4B74"));
 		btnLamMoi.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 		btnLamMoi.setFocusPainted(false);
-		btnLamMoi.setBorder(BorderFactory.createLineBorder(Color.decode("#C8D6E5")));
+		btnLamMoi.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createLineBorder(Color.decode("#C8D6E5")),
+			new EmptyBorder(8, 20, 8, 20)
+		));
+		btnLamMoi.setPreferredSize(new Dimension(160, 40));
 		btnLamMoi.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+		btnLamMoi.addActionListener(e -> lamMoiForm());
 		buttonPanel.add(btnLamMoi);
-
+ 
 		formContainer.add(buttonPanel, gbc);
-
-		JPanel scrollWrapper = new JPanel(new BorderLayout());
+ 
+		JPanel scrollWrapper = new JPanel(new GridBagLayout());
 		scrollWrapper.setBackground(Color.WHITE);
-		scrollWrapper.add(formContainer, BorderLayout.NORTH);
-
+		GridBagConstraints gbcCentering = new GridBagConstraints();
+		gbcCentering.gridx = 0;
+		gbcCentering.gridy = 0;
+		gbcCentering.insets = new Insets(20, 20, 20, 20);
+		scrollWrapper.add(formContainer, gbcCentering);
+ 
 		wrapper.add(scrollWrapper, BorderLayout.CENTER);
 		return wrapper;
+	}
+
+	private void xuLyThemDichVu() {
+		try {
+			String maDV = txtMaDV.getText().trim();
+			String tenDV = txtTenDV.getText().trim();
+			BigDecimal giaDV = new BigDecimal(txtGiaDV.getText().trim());
+			
+			KetQuaXuLy ketQua = dichVuController.themDichVu(maDV, tenDV, giaDV, true);
+			JOptionPane.showMessageDialog(this, ketQua.thongBao);
+			if (ketQua.thanhCong) {
+				lamMoiForm();
+			}
+		} catch (NumberFormatException ex) {
+			JOptionPane.showMessageDialog(this, "Giá dịch vụ phải là số tiền hợp lệ");
+		} catch (Exception ex) {
+			JOptionPane.showMessageDialog(this, "Lỗi: " + ex.getMessage());
+		}
+	}
+
+	private void lamMoiForm() {
+		txtMaDV.setText("");
+		txtTenDV.setText("");
+		txtGiaDV.setText("0");
 	}
 }

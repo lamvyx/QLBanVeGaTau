@@ -1,19 +1,15 @@
 package view;
 
-import java.awt.BorderLayout;
+import java.awt.AWTEvent;
 import java.awt.Color;
-import java.awt.Component;
+import java.awt.Toolkit;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.UIManager;
+import java.awt.event.MouseEvent;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.JTableHeader;
@@ -25,6 +21,9 @@ public final class AppTheme {
 	public static final Color TEXT_PRIMARY = Color.decode("#1F2E43");
 	public static final Color TEXT_MUTED = Color.decode("#64748B");
 	public static final Color BORDER = Color.decode("#DCE5F2");
+	private static final String HOVER_BG_KEY = "appTheme.hover.originalBg";
+	private static final String HOVER_FG_KEY = "appTheme.hover.originalFg";
+	private static boolean hoverInstalled;
 
 	private AppTheme() {
 	}
@@ -40,6 +39,7 @@ public final class AppTheme {
 		UIManager.put("TableHeader.font", font(Font.BOLD, 13));
 		UIManager.put("OptionPane.messageFont", font(Font.PLAIN, 13));
 		UIManager.put("OptionPane.buttonFont", font(Font.BOLD, 12));
+		installGlobalButtonHover();
 	}
 
 	public static Font font(int style, int size) {
@@ -89,41 +89,68 @@ public final class AppTheme {
 		tableHeader.setBorder(BorderFactory.createLineBorder(BORDER));
 	}
 
-	public static JScrollPane centeredFormPage(Component content, int preferredWidth) {
-		Dimension current = content.getPreferredSize();
-		int height = current != null && current.height > 0 ? current.height : 420;
-		content.setPreferredSize(new Dimension(preferredWidth, height));
+	private static void installGlobalButtonHover() {
+		if (hoverInstalled) {
+			return;
+		}
+		hoverInstalled = true;
+		Toolkit.getDefaultToolkit().addAWTEventListener(event -> {
+			if (!(event instanceof MouseEvent mouseEvent)) {
+				return;
+			}
+			if (!(mouseEvent.getSource() instanceof JButton button)) {
+				return;
+			}
+			if (!button.isEnabled() || !button.isShowing()) {
+				return;
+			}
 
-		JPanel holder = new JPanel(new GridBagLayout());
-		holder.setOpaque(false);
-
-		GridBagConstraints gbc = new GridBagConstraints();
-		gbc.gridx = 0;
-		gbc.gridy = 0;
-		gbc.weightx = 1;
-		gbc.weighty = 1;
-		gbc.anchor = GridBagConstraints.CENTER;
-		gbc.fill = GridBagConstraints.NONE;
-		holder.add(content, gbc);
-
-		JScrollPane scrollPane = new JScrollPane(holder);
-		scrollPane.setBorder(BorderFactory.createEmptyBorder());
-		scrollPane.getViewport().setOpaque(false);
-		scrollPane.setOpaque(false);
-		scrollPane.getVerticalScrollBar().setUnitIncrement(18);
-		return scrollPane;
+			if (mouseEvent.getID() == MouseEvent.MOUSE_ENTERED) {
+				applyHover(button);
+			} else if (mouseEvent.getID() == MouseEvent.MOUSE_EXITED) {
+				restoreHover(button);
+			}
+		}, AWTEvent.MOUSE_EVENT_MASK);
 	}
 
-	public static JScrollPane topAlignedFormPage(Component content) {
-		JPanel wrapper = new JPanel(new BorderLayout());
-		wrapper.setOpaque(false);
-		wrapper.add(content, BorderLayout.NORTH);
+	private static void applyHover(JButton button) {
+		Color background = button.getBackground();
+		Color foreground = button.getForeground();
+		if (background == null || foreground == null) {
+			return;
+		}
 
-		JScrollPane scrollPane = new JScrollPane(wrapper);
-		scrollPane.setBorder(BorderFactory.createEmptyBorder());
-		scrollPane.getViewport().setOpaque(false);
-		scrollPane.setOpaque(false);
-		scrollPane.getVerticalScrollBar().setUnitIncrement(18);
-		return scrollPane;
+		if (button.getClientProperty(HOVER_BG_KEY) == null) {
+			button.putClientProperty(HOVER_BG_KEY, background);
+		}
+		if (button.getClientProperty(HOVER_FG_KEY) == null) {
+			button.putClientProperty(HOVER_FG_KEY, foreground);
+		}
+
+		button.setBackground(adjustHoverColor((Color) button.getClientProperty(HOVER_BG_KEY)));
+	}
+
+	private static void restoreHover(JButton button) {
+		Object originalBg = button.getClientProperty(HOVER_BG_KEY);
+		Object originalFg = button.getClientProperty(HOVER_FG_KEY);
+		if (originalBg instanceof Color bg) {
+			button.setBackground(bg);
+		}
+		if (originalFg instanceof Color fg) {
+			button.setForeground(fg);
+		}
+	}
+
+	private static Color adjustHoverColor(Color color) {
+		double luminance = (0.2126 * color.getRed() + 0.7152 * color.getGreen() + 0.0722 * color.getBlue()) / 255d;
+		return luminance < 0.55 ? mix(color, Color.WHITE, 0.18) : mix(color, Color.BLACK, 0.08);
+	}
+
+	private static Color mix(Color base, Color target, double ratio) {
+		double inverse = 1d - ratio;
+		int red = (int) Math.round(base.getRed() * inverse + target.getRed() * ratio);
+		int green = (int) Math.round(base.getGreen() * inverse + target.getGreen() * ratio);
+		int blue = (int) Math.round(base.getBlue() * inverse + target.getBlue() * ratio);
+		return new Color(red, green, blue, base.getAlpha());
 	}
 }

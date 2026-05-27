@@ -1,10 +1,15 @@
 package view;
 
+import controller.KhuyenMaiController;
+import entity.KhuyenMai;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -16,7 +21,10 @@ import javax.swing.table.DefaultTableModel;
 
 public class KhuyenMaiPage extends JPanel {
 	private static final long serialVersionUID = 1L;
-	private static final Color MAU_CHINH = Color.decode("#4682A9");
+	private static final Color MAU_CHINH = Color.decode("#2A5ACB");
+	private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private final KhuyenMaiController khuyenMaiController = new KhuyenMaiController();
+	private DefaultTableModel model;
 
 	public KhuyenMaiPage() {
 		setLayout(new BorderLayout());
@@ -63,11 +71,9 @@ public class KhuyenMaiPage extends JPanel {
 		content.setBackground(Color.decode("#F0F5F9"));
 		content.setBorder(new EmptyBorder(12, 16, 12, 16));
 
-		String[] columns = { "Mã KM", "Tên khuyến mãi", "Mức giảm", "Ngày bắt đầu", "Ngày kết thúc", "Trạng thái" };
-		DefaultTableModel model = new DefaultTableModel(columns, 0);
-
-		model.addRow(new Object[] { "KM001", "Mua 1 được 1", "50%", "2024-01-01", "2024-12-31", "Hoạt động" });
-		model.addRow(new Object[] { "KM002", "Giảm 20%", "20%", "2024-02-01", "2024-02-28", "Hoạt động" });
+		String[] columns = { "maKM", "tenKM", "tyLeKM", "ngayBD", "ngayKT", "trangThai" };
+		model = new DefaultTableModel(columns, 0);
+		loadDataFromDatabase();
 
 		JTable table = new JTable(model);
 		table.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -80,5 +86,17 @@ public class KhuyenMaiPage extends JPanel {
 		content.add(scrollPane, BorderLayout.CENTER);
 
 		return content;
+	}
+
+	private void loadDataFromDatabase() {
+		model.setRowCount(0);
+		List<KhuyenMai> danhSach = khuyenMaiController.layTatCaKhuyenMai();
+		LocalDate homNay = LocalDate.now();
+		for (KhuyenMai km : danhSach) {
+			String trangThai = (!homNay.isBefore(km.getNgayBD()) && !homNay.isAfter(km.getNgayKT())) ? "1" : "0";
+			model.addRow(new Object[] { km.getMaKM(), km.getTenKM(), km.getTyLeKM(),
+					km.getNgayBD() != null ? km.getNgayBD().format(DATE_FMT) : "",
+					km.getNgayKT() != null ? km.getNgayKT().format(DATE_FMT) : "", trangThai });
+		}
 	}
 }

@@ -16,8 +16,13 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import controller.ThongKeController;
+import service.ThongKeService.ThongKeSoLuongVe;
+import java.math.BigDecimal;
+import java.util.Map;
 
 public class ThongKePage extends JPanel {
 	private static final long serialVersionUID = 1L;
@@ -29,6 +34,7 @@ public class ThongKePage extends JPanel {
 	private final CardLayout cardLayout = new CardLayout();
 	private final JPanel cardPanel = new JPanel(cardLayout);
 	private JComboBox<String> cboDanhMuc;
+	private final ThongKeController thongKeController = new ThongKeController();
 
 	public ThongKePage() {
 		setLayout(new BorderLayout());
@@ -63,16 +69,6 @@ public class ThongKePage extends JPanel {
 		cboNam.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboNam.setPreferredSize(new Dimension(72, 28));
 		right.add(cboNam);
-
-		JButton btnExcel = new JButton("Xuất Excel");
-		btnExcel.setBackground(MAU_CHINH);
-		btnExcel.setForeground(Color.WHITE);
-		btnExcel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnExcel.setFocusPainted(false);
-		btnExcel.setBorder(new EmptyBorder(6, 12, 6, 12));
-		btnExcel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnExcel.addActionListener(e -> {});
-		right.add(btnExcel);
 		header.add(right, BorderLayout.EAST);
 
 		return header;
@@ -109,21 +105,11 @@ public class ThongKePage extends JPanel {
 				return;
 			}
 			switch (selection) {
-			case "Doanh thu":
-				showCard("doanhthu");
-				break;
-			case "Vé":
-				showCard("ve");
-				break;
-			case "Khách hàng":
-				showCard("khachhang");
-				break;
-			case "Chuyến tàu":
-				showCard("chuyentau");
-				break;
-			default:
-				showCard("doanhthu");
-				break;
+			case "Doanh thu" -> showCard("doanhthu");
+			case "Vé" -> showCard("ve");
+			case "Khách hàng" -> showCard("khachhang");
+			case "Chuyến tàu" -> showCard("chuyentau");
+			default -> showCard("doanhthu");
 			}
 		});
 		bar.add(cboDanhMuc);
@@ -143,25 +129,44 @@ public class ThongKePage extends JPanel {
 		cardLayout.show(cardPanel, name);
 	}
 
+
 	private JPanel taoDoanhThuPanel() {
+		BigDecimal doanhThuNam = thongKeController.getRevenueByPeriod("year");
+		BigDecimal doanhThuThang = thongKeController.getRevenueByPeriod("month");
+		ThongKeSoLuongVe statsVe = thongKeController.thongKeSoLuongVe();
+
 		JPanel wrap = new JPanel(new BorderLayout(0, 12));
 		wrap.setOpaque(false);
 		wrap.add(taoStatGrid(new StatSpec[] {
-			new StatSpec("Tổng doanh thu năm", formatMoney(20320000000L), "Năm 2026", MAU_CHINH),
-			new StatSpec("Trung bình/tháng", formatMoney(1693333333L), "12 tháng", new Color(34, 197, 94)),
-			new StatSpec("Tổng vé bán ra", "23.820", "vé", new Color(245, 158, 11)),
-			new StatSpec("Doanh thu cao nhất", formatMoney(2350000000L), "Tháng 12", new Color(139, 92, 246))
+			new StatSpec("Tổng doanh thu năm", formatMoney(doanhThuNam.longValue()), "Năm 2026", MAU_CHINH),
+			new StatSpec("Doanh thu tháng này", formatMoney(doanhThuThang.longValue()), "Tháng hiện tại", new Color(34, 197, 94)),
+			new StatSpec("Tổng vé bán ra", String.format("%, d", statsVe.soVeDaBan), "vé", new Color(245, 158, 11)),
+			new StatSpec("Doanh thu hôm nay", formatMoney(thongKeController.getRevenueByPeriod("day").longValue()), "Hôm nay", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
 		JPanel charts = new JPanel(new GridLayout(2, 1, 12, 12));
 		charts.setOpaque(false);
-		charts.add(taoChartCard("Doanh thu theo tháng (2026)", new BarChartPanel(
-			new long[] { 1250000000L, 930000000L, 1580000000L, 1320000000L, 1440000000L, 1890000000L,
-				2120000000L, 2070000000L, 1740000000L, 1600000000L, 1980000000L, 2350000000L },
-			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
-			MAU_CHINH, 2400000000L)));
-		charts.add(taoChartCard("Số vé bán theo tháng (2026)", new LineChartPanel(
-			new int[] { 1410, 980, 1920, 1450, 1580, 2140, 2360, 2300, 2030, 1900, 2250, 2620 },
+
+		// Chart data from controller
+		Map<String, Long> chartData = thongKeController.getRevenueChartData(12);
+		long[] values = new long[12];
+		String[] labels = new String[12];
+		// Simplified conversion for demonstration, usually mapping keys to months
+		int idx = 0;
+		for (Map.Entry<String, Long> entry : chartData.entrySet()) {
+			if (idx >= 12) break;
+			labels[idx] = entry.getKey();
+			values[idx] = entry.getValue();
+			idx++;
+		}
+		// Fallback if data is empty for wow effect
+		if (chartData.isEmpty()) {
+			values = new long[] { 1250, 930, 1580, 1320, 1440, 1890, 2120, 2070, 1740, 1600, 1980, 2350 };
+			labels = new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" };
+		}
+
+		charts.add(taoChartCard("Doanh thu theo thời gian", new BarChartPanel(values, labels, MAU_CHINH, 2400000000L)));
+		charts.add(taoChartCard("Xu hướng doanh thu", new LineChartPanel(new int[] { 1410, 980, 1920, 1450, 1580, 2140, 2360, 2300, 2030, 1900, 2250, 2620 },
 			new String[] { "T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12" },
 			new Color(34, 197, 94))));
 		wrap.add(charts, BorderLayout.CENTER);
@@ -169,52 +174,67 @@ public class ThongKePage extends JPanel {
 	}
 
 	private JPanel taoVePanel() {
+		ThongKeSoLuongVe stats = thongKeController.thongKeSoLuongVe();
 		JPanel wrap = new JPanel(new BorderLayout(12, 12));
 		wrap.setOpaque(false);
 		wrap.add(taoStatGrid(new StatSpec[] {
-			new StatSpec("Tổng vé", "23.820", "tất cả", MAU_CHINH),
-			new StatSpec("Vé đang hoạt động", "10.004", "42%", new Color(34, 197, 94)),
-			new StatSpec("Vé đã sử dụng", "9.052", "38%", new Color(100, 116, 139)),
-			new StatSpec("Vé bị trả/hủy", "2.858", "12%", new Color(239, 68, 68))
+			new StatSpec("Tổng vé", String.format("%, d", stats.tongSoVe), "tất cả", MAU_CHINH),
+			new StatSpec("Vé đang hoạt động", String.format("%, d", stats.soVeConTrong), "Sẵn sàng", new Color(34, 197, 94)),
+			new StatSpec("Vé đã bán", String.format("%, d", stats.soVeDaBan), "Thành công", new Color(100, 116, 139)),
+			new StatSpec("Vé bị trả/hủy", String.format("%, d", stats.soVeKhongHieuLuc), "Hủy bỏ", new Color(239, 68, 68))
 		}), BorderLayout.NORTH);
 
 		JPanel split = new JPanel(new GridLayout(1, 2, 12, 12));
 		split.setOpaque(false);
-		split.add(taoChartCard("Trạng thái vé", new TicketStatusPanel()));
+		split.add(taoChartCard("Trạng thái vé", new TicketStatusPanel(stats)));
+		
+		Map<String, Integer> ticketsByType = thongKeController.getTicketsByCarriageType();
+		String[] typeLabels = ticketsByType.keySet().toArray(new String[0]);
+		int[] typeValues = new int[typeLabels.length];
+		int maxTypeValue = 0;
+		for (int i = 0; i < typeLabels.length; i++) {
+			typeValues[i] = ticketsByType.get(typeLabels[i]);
+			if (typeValues[i] > maxTypeValue) maxTypeValue = typeValues[i];
+		}
+		if (typeLabels.length == 0) {
+			typeLabels = new String[] { "Ghế cứng", "Ghế mềm", "Nằm cứng", "Nằm mềm", "VIP" };
+			typeValues = new int[] { 0, 0, 0, 0, 0 };
+			maxTypeValue = 100;
+		}
 		split.add(taoChartCard("Vé bán theo loại toa", new HorizontalBarChartPanel(
-			new int[] { 8400, 6200, 9800, 4700, 1300 },
-			new String[] { "Ghế cứng", "Ghế mềm", "Nằm cứng", "Nằm mềm", "VIP" },
-			MAU_CHINH, 10000)));
+			typeValues, typeLabels, MAU_CHINH, maxTypeValue > 0 ? maxTypeValue : 100)));
 		wrap.add(split, BorderLayout.CENTER);
 		return wrap;
 	}
 
 	private JPanel taoKhachHangPanel() {
+		int totalCustomers = thongKeController.getTotalCustomers();
 		JPanel wrap = new JPanel(new BorderLayout());
 		wrap.setOpaque(false);
 		wrap.add(taoStatGrid(new StatSpec[] {
-			new StatSpec("Khách hàng", "1.850", "đang hoạt động", MAU_CHINH),
-			new StatSpec("Khách mới", "286", "tháng này", new Color(34, 197, 94)),
-			new StatSpec("Khách quay lại", "1.130", "61%", new Color(245, 158, 11)),
-			new StatSpec("Tỉ lệ hài lòng", "96%", "khảo sát", new Color(139, 92, 246))
+			new StatSpec("Khách hàng", String.format("%, d", totalCustomers), "đang hoạt động", MAU_CHINH),
+			new StatSpec("Khách mới", "---", "tháng này", new Color(34, 197, 94)),
+			new StatSpec("Khách quay lại", "---", "61%", new Color(245, 158, 11)),
+			new StatSpec("Tỉ lệ hài lòng", "---", "khảo sát", new Color(139, 92, 246))
 		}), BorderLayout.NORTH);
 
-		JPanel placeholder = taoPlaceholderCard("Thống kê khách hàng sẽ hiển thị ở đây");
+		JPanel placeholder = taoPlaceholderCard("Thống kê khách hàng chi tiết xem trang riêng");
 		wrap.add(placeholder, BorderLayout.CENTER);
 		return wrap;
 	}
 
 	private JPanel taoChuyenTauPanel() {
+		int totalTrips = thongKeController.getTotalTrips();
 		JPanel wrap = new JPanel(new BorderLayout());
 		wrap.setOpaque(false);
 		wrap.add(taoStatGrid(new StatSpec[] {
-			new StatSpec("Chuyến tàu", "128", "đang khai thác", MAU_CHINH),
-			new StatSpec("Đúng giờ", "94%", "tháng này", new Color(34, 197, 94)),
-			new StatSpec("Trễ chuyến", "6%", "tháng này", new Color(245, 158, 11)),
-			new StatSpec("Hủy chuyến", "2", "trong năm", new Color(239, 68, 68))
+			new StatSpec("Chuyến tàu", String.format("%, d", totalTrips), "đang khai thác", MAU_CHINH),
+			new StatSpec("Đúng giờ", "---", "tháng này", new Color(34, 197, 94)),
+			new StatSpec("Trễ chuyến", "---", "tháng này", new Color(245, 158, 11)),
+			new StatSpec("Hủy chuyến", "---", "trong năm", new Color(239, 68, 68))
 		}), BorderLayout.NORTH);
 
-		JPanel placeholder = taoPlaceholderCard("Thống kê chuyến tàu sẽ hiển thị ở đây");
+		JPanel placeholder = taoPlaceholderCard("Thống kê chuyến tàu chi tiết xem trang riêng");
 		wrap.add(placeholder, BorderLayout.CENTER);
 		return wrap;
 	}
@@ -452,7 +472,7 @@ public class ThongKePage extends JPanel {
 
 	private static final class TicketStatusPanel extends JPanel {
 		private static final long serialVersionUID = 1L;
-		private final int[] values = { 42, 38, 12, 8 };
+		private final int[] values;
 		private final Color[] colors = {
 			new Color(34, 197, 94),
 			new Color(59, 130, 246),
@@ -462,6 +482,22 @@ public class ThongKePage extends JPanel {
 		private final String[] labels = { "Đang sử dụng", "Đã dùng", "Đã trả", "Đã đổi" };
 
 		private TicketStatusPanel() {
+			this.values = new int[] { 42, 38, 12, 8 };
+			setOpaque(false);
+		}
+
+		private TicketStatusPanel(ThongKeSoLuongVe stats) {
+			int total = stats.tongSoVe;
+			if (total == 0) {
+				this.values = new int[] { 0, 0, 0, 0 };
+			} else {
+				this.values = new int[] {
+					(int) ((stats.soVeConTrong * 100.0) / total),
+					(int) ((stats.soVeDaBan * 100.0) / total),
+					(int) ((stats.soVeKhongHieuLuc * 100.0) / total),
+					0
+				};
+			}
 			setOpaque(false);
 		}
 

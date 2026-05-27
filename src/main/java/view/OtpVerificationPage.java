@@ -8,7 +8,6 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.security.SecureRandom;
 import java.util.function.Consumer;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -31,7 +30,7 @@ public class OtpVerificationPage extends JDialog {
 	private final JTextField txtEmail = new JTextField(22);
 	private final JTextField[] otpFields = new JTextField[6];
 	private final Consumer<Boolean> onClose;
-	private String currentOtp;
+	private final service.OtpService otpService = new service.OtpService();
 
 	public OtpVerificationPage(JFrame parent, String expectedEmail, Consumer<Boolean> onClose) {
 		super(parent, "Quên mật khẩu", true);
@@ -159,38 +158,30 @@ public class OtpVerificationPage extends JDialog {
 
 	private void sendOtp() {
 		String inputEmail = txtEmail.getText().trim();
-		if (inputEmail.isEmpty()) {
-			JOptionPane.showMessageDialog(this, "Vui lòng nhập email.");
-			return;
+		try {
+			otpService.sendOtpWithValidation(inputEmail, expectedEmail);
+			JOptionPane.showMessageDialog(this, "Mã OTP đã được gửi đến email " + inputEmail + ". Vui lòng kiểm tra hộp thư (cả thư rác).", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
 		}
-		if (!inputEmail.equalsIgnoreCase(expectedEmail)) {
-			JOptionPane.showMessageDialog(this, "Email không trùng với tài khoản.");
-			return;
-		}
-
-		currentOtp = String.valueOf(100000 + new SecureRandom().nextInt(900000));
-		JOptionPane.showMessageDialog(this, "OTP đã gửi. (Demo: " + currentOtp + ")");
 	}
 
 	private void confirmOtp() {
-		if (currentOtp == null) {
-			JOptionPane.showMessageDialog(this, "Hãy gửi OTP trước.");
-			return;
-		}
-
+		String inputEmail = txtEmail.getText().trim();
 		StringBuilder otpInput = new StringBuilder();
 		for (JTextField field : otpFields) {
 			otpInput.append(field.getText().trim());
 		}
 
-		if (!currentOtp.equals(otpInput.toString())) {
-			JOptionPane.showMessageDialog(this, "OTP không đúng.");
-			return;
-		}
-
-		dispose();
-		if (onClose != null) {
-			onClose.accept(true);
+		try {
+			if (otpService.verifyOtp(inputEmail, otpInput.toString())) {
+				dispose();
+				if (onClose != null) {
+					onClose.accept(true);
+				}
+			}
+		} catch (Exception e) {
+			JOptionPane.showMessageDialog(this, e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 }

@@ -1,0 +1,247 @@
+package service;
+
+import dao.HoaDon_DAO;
+import dao.KhachHang_DAO;
+import dao.VeTau_DAO;
+import entity.ChiTietHoaDonItem;
+import entity.HoaDon;
+import entity.HoaDonTongKetDTO;
+import entity.KhachHang;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+public class HoaDonService {
+	public static final BigDecimal VAT_RATE = new BigDecimal("0.08");
+	public static final BigDecimal DISCOUNT_RATE = new BigDecimal("0.05");
+	private final HoaDon_DAO hoaDonDAO = new HoaDon_DAO();
+	private final VeTau_DAO veTauDAO = new VeTau_DAO();
+	private final KhachHang_DAO khachHangDAO = new KhachHang_DAO();
+
+	public KetQuaLapHoaDon lapHoaDon(String maNV, String maKH, String maKM, List<ChiTietHoaDonItem> items) {
+		KetQuaLapHoaDon ketQua = new KetQuaLapHoaDon();
+		if (maNV == null || maNV.trim().isEmpty()) {
+			ketQua.thongBao = "Mã nhân viên không được để trống";
+			return ketQua;
+		}
+		if (maKH == null || maKH.trim().isEmpty()) {
+			ketQua.thongBao = "Mã khách hàng không được để trống";
+			return ketQua;
+		}
+		if (items == null || items.isEmpty()) {
+			ketQua.thongBao = "Hóa đơn cần ít nhất 1 dòng chi tiết";
+			return ketQua;
+		}
+
+		String maHD = hoaDonDAO.layMaHoaDonTiepTheo();
+		BigDecimal tongTien = BigDecimal.ZERO;
+		List<ChiTietHoaDonItem> preparedItems = new ArrayList<>();
+		for (ChiTietHoaDonItem item : items) {
+			if (item == null || item.getDonGia() == null || item.getSoLuong() <= 0) {
+				ketQua.thongBao = "Chi tiết hóa đơn không hợp lệ";
+				return ketQua;
+			}
+			String maCT = hoaDonDAO.layMaChiTietTiepTheo();
+			ChiTietHoaDonItem clone = new ChiTietHoaDonItem(maCT, maHD, item.getMaVeTau(), item.getMaDV(),
+					item.getSoLuong(), item.getDonGia());
+			preparedItems.add(clone);
+			tongTien = tongTien.add(item.getDonGia().multiply(BigDecimal.valueOf(item.getSoLuong())));
+		}
+
+		HoaDon hoaDon = new HoaDon(maHD, maNV.trim(), maKH.trim(), LocalDateTime.now(), BigDecimal.ZERO, tongTien,
+				maKM == null || maKM.trim().isEmpty() ? null : maKM.trim());
+		boolean thanhCong = hoaDonDAO.taoHoaDon(hoaDon, preparedItems);
+
+		ketQua.thanhCong = thanhCong;
+		ketQua.maHoaDon = maHD;
+		ketQua.tongTien = thanhCong ? hoaDonDAO.layTongThanhToanHoaDon(maHD) : BigDecimal.ZERO;
+		ketQua.thongBao = thanhCong ? "Lập hóa đơn thành công" : "Không thể lập hóa đơn";
+		return ketQua;
+	}
+
+	public List<HoaDon> timKiemHoaDon(String tuKhoa) {
+		return hoaDonDAO.timKiemHoaDon(tuKhoa == null ? "" : tuKhoa.trim());
+	}
+
+	public HoaDon timHoaDonTheoMa(String maHD) {
+		if (maHD == null || maHD.isBlank()) return null;
+		return hoaDonDAO.timHoaDonTheoMa(maHD.trim());
+	}
+
+	public HoaDonTongKetDTO layTongKetHoaDon(String maHD) {
+		if (maHD == null || maHD.isBlank()) return new HoaDonTongKetDTO();
+		return hoaDonDAO.layTongKetHoaDon(maHD.trim());
+	}
+
+	public Set<String> layGheDaDat(String maCT, String maToa) {
+		return veTauDAO.layGheDaDat(maCT, maToa);
+	}
+
+	public KetQuaLapHoaDon lapHoaDonBanVe(String maNV, String maKH, String maKM, String maCT, String maToa,
+			List<String> viTriGheList, BigDecimal giaVe) {
+		return lapHoaDonBanVe(maNV, maKH, maKM, maCT, maToa, viTriGheList, giaVe, null, null);
+	}
+
+	public KetQuaLapHoaDon lapHoaDonBanVe(String maNV, String maKH, String maKM, String maCT, String maToa,
+			List<String> viTriGheList, BigDecimal giaVe, Set<String> gheBoQuaKiemTra) {
+		return lapHoaDonBanVe(maNV, maKH, maKM, maCT, maToa, viTriGheList, giaVe, gheBoQuaKiemTra, null);
+	}
+
+	public KetQuaLapHoaDon lapHoaDonBanVe(String maNV, String maKH, String maKM, String maCT, String maToa,
+			List<String> viTriGheList, BigDecimal giaVe, Set<String> gheBoQuaKiemTra,
+			List<ChiTietHoaDonItem> dichVuItems) {
+		KetQuaLapHoaDon ketQua = new KetQuaLapHoaDon();
+		if (maNV == null || maNV.isBlank()) {
+			ketQua.thongBao = "Mã nhân viên không được để trống";
+			return ketQua;
+		}
+		if (maKH == null || maKH.isBlank()) {
+			ketQua.thongBao = "Mã khách hàng không được để trống";
+			return ketQua;
+		}
+		if (maCT == null || maCT.isBlank() || maToa == null || maToa.isBlank()) {
+			ketQua.thongBao = "Chuyến tàu/toa tàu không hợp lệ";
+			return ketQua;
+		}
+		if (viTriGheList == null || viTriGheList.isEmpty()) {
+			ketQua.thongBao = "Vui lòng chọn ít nhất 1 ghế";
+			return ketQua;
+		}
+		if (giaVe == null || giaVe.compareTo(BigDecimal.ZERO) < 0) {
+			ketQua.thongBao = "Giá vé không hợp lệ";
+			return ketQua;
+		}
+
+		LinkedHashSet<String> gheHopLe = new LinkedHashSet<>();
+		for (String viTri : viTriGheList) {
+			if (viTri != null && !viTri.isBlank()) {
+				gheHopLe.add(viTri.trim().toUpperCase());
+			}
+		}
+		if (gheHopLe.isEmpty()) {
+			ketQua.thongBao = "Danh sách ghế không hợp lệ";
+			return ketQua;
+		}
+
+		Set<String> daDat = veTauDAO.layGheDaDat(maCT, maToa);
+		if (gheBoQuaKiemTra != null && !gheBoQuaKiemTra.isEmpty()) {
+			for (String gheBoQua : gheBoQuaKiemTra) {
+				if (gheBoQua != null) {
+					daDat.remove(gheBoQua.trim().toUpperCase());
+				}
+			}
+		}
+		for (String ghe : gheHopLe) {
+			if (daDat.contains(ghe)) {
+				ketQua.thongBao = "Ghế " + ghe + " đã có người đặt. Vui lòng chọn ghế khác.";
+				return ketQua;
+			}
+		}
+
+		KhachHang khachHang = khachHangDAO.timKhachHangTheoMa(maKH.trim());
+		if (khachHang == null) {
+			ketQua.thongBao = "Không tìm thấy khách hàng";
+			return ketQua;
+		}
+
+		String tenHanhKhach = khachHang.getTenKH() == null || khachHang.getTenKH().isBlank()
+				? "Hành khách"
+				: khachHang.getTenKH().trim();
+		String cccd = khachHang.getCccd() == null || khachHang.getCccd().isBlank()
+				? "AUTO" + maKH.trim().replaceAll("\\s+", "")
+				: khachHang.getCccd().trim();
+		if (cccd.length() > 20) {
+			cccd = cccd.substring(0, 20);
+		}
+		LocalDate ngaySinh = khachHang.getNgaySinh() == null ? LocalDate.of(1990, 1, 1) : khachHang.getNgaySinh();
+
+		String maHD = hoaDonDAO.layMaHoaDonTiepTheo();
+		BigDecimal tongTienVe = giaVe.multiply(BigDecimal.valueOf(gheHopLe.size()));
+		BigDecimal tongTienDichVu = BigDecimal.ZERO;
+		List<ChiTietHoaDonItem> dichVuHopLe = new ArrayList<>();
+		if (dichVuItems != null) {
+			for (ChiTietHoaDonItem item : dichVuItems) {
+				if (item == null || item.getMaDV() == null || item.getMaDV().isBlank()
+						|| item.getDonGia() == null || item.getDonGia().compareTo(BigDecimal.ZERO) < 0
+						|| item.getSoLuong() <= 0) {
+					ketQua.thongBao = "Danh sách dịch vụ đi kèm không hợp lệ";
+					return ketQua;
+				}
+				dichVuHopLe.add(new ChiTietHoaDonItem(null, maHD, null, item.getMaDV().trim(), item.getSoLuong(),
+						item.getDonGia()));
+				tongTienDichVu = tongTienDichVu.add(item.getDonGia().multiply(BigDecimal.valueOf(item.getSoLuong())));
+			}
+		}
+
+		HoaDon hoaDon = new HoaDon(maHD, maNV.trim(), maKH.trim(), LocalDateTime.now(), BigDecimal.ZERO,
+				tongTienVe.add(tongTienDichVu),
+				maKM == null || maKM.isBlank() ? null : maKM.trim());
+
+		boolean thanhCong = hoaDonDAO.taoHoaDonBanVe(hoaDon, maCT.trim(), maToa.trim(), new ArrayList<>(gheHopLe),
+				giaVe, tenHanhKhach, cccd, ngaySinh, dichVuHopLe);
+
+		ketQua.thanhCong = thanhCong;
+		ketQua.maHoaDon = maHD;
+		ketQua.tongTien = thanhCong ? hoaDonDAO.layTongThanhToanHoaDon(maHD) : BigDecimal.ZERO;
+		ketQua.thongBao = thanhCong ? "Đặt vé và lập hóa đơn thành công" : "Không thể đặt vé/lập hóa đơn";
+		return ketQua;
+	}
+
+	public BigDecimal layTongDoanhThu() {
+		return hoaDonDAO.layTongDoanhThu();
+	}
+
+	public List<ChiTietHoaDonItem> layChiTietHoaDon(String maHD) {
+		if (maHD == null || maHD.isBlank()) return new ArrayList<>();
+		return hoaDonDAO.layChiTietHoaDon(maHD.trim());
+	}
+
+	public boolean updateTrangThaiThanhToan(String maHD, boolean daThanhToan) {
+		if (maHD == null || maHD.isBlank()) return false;
+		return hoaDonDAO.updateTrangThaiThanhToan(maHD.trim(), daThanhToan);
+	}
+
+	public boolean kiemTraThanhToan(String maHD) {
+		if (maHD == null || maHD.isBlank()) return false;
+		return hoaDonDAO.kiemTraThanhToan(maHD.trim());
+	}
+
+	public BigDecimal tinhThueVAT(BigDecimal tongTienTruocThue) {
+		if (tongTienTruocThue == null) return BigDecimal.ZERO;
+		return tongTienTruocThue.multiply(VAT_RATE).setScale(0, RoundingMode.HALF_UP);
+	}
+
+	public BigDecimal tinhChietKhau(BigDecimal tongTienTruocThue, String maKM) {
+		if (maKM == null || maKM.trim().isEmpty() || tongTienTruocThue == null) {
+			return BigDecimal.ZERO;
+		}
+		// Logic: Cứ có mã KM là giảm 5% (có thể mở rộng kiểm tra mã KM trong DB sau này)
+		return tongTienTruocThue.multiply(DISCOUNT_RATE).setScale(0, RoundingMode.HALF_UP);
+	}
+
+	public BigDecimal tinhTongThanhToan(BigDecimal giaChuaThue, BigDecimal thue, BigDecimal chietKhau) {
+		if (giaChuaThue == null) return BigDecimal.ZERO;
+		BigDecimal v = thue == null ? BigDecimal.ZERO : thue;
+		BigDecimal ck = chietKhau == null ? BigDecimal.ZERO : chietKhau;
+		return giaChuaThue.add(v).subtract(ck);
+	}
+
+	public static class KetQuaLapHoaDon {
+		public boolean thanhCong;
+		public String thongBao;
+		public String maHoaDon;
+		public BigDecimal tongTien;
+
+		public KetQuaLapHoaDon() {
+			this.thanhCong = false;
+			this.thongBao = "";
+			this.maHoaDon = "";
+			this.tongTien = BigDecimal.ZERO;
+		}
+	}
+}

@@ -13,10 +13,11 @@ import java.awt.GridLayout;
 import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
 public abstract class ThongKeBaoCaoBasePage extends JPanel {
@@ -28,20 +29,25 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 
 	private final CardLayout cardLayout = new CardLayout();
 	private final JPanel cardPanel = new JPanel(cardLayout);
+	private final JPanel bodyHost = new JPanel(new BorderLayout());
 	private final JComboBox<String> cboTongHop = new JComboBox<>(new String[] { "Ngày", "Tháng", "Quý", "Năm" });
 	private final JComboBox<String> cboNam = new JComboBox<>(new String[] { "2024", "2025", "2026" });
-	private final boolean chiThongKeTheoNgay;
 
 	protected ThongKeBaoCaoBasePage(String title) {
-		this(title, false);
-	}
-
-	protected ThongKeBaoCaoBasePage(String title, boolean chiThongKeTheoNgay) {
-		this.chiThongKeTheoNgay = chiThongKeTheoNgay;
 		setLayout(new BorderLayout());
 		setBackground(MAU_NEN);
 		add(taoHeaderPanel(title), BorderLayout.NORTH);
-		add(taoBodyPanel(), BorderLayout.CENTER);
+		bodyHost.setOpaque(false);
+		add(bodyHost, BorderLayout.CENTER);
+		SwingUtilities.invokeLater(this::khoiTaoNoiDungSau);
+	}
+
+	private void khoiTaoNoiDungSau() {
+		bodyHost.removeAll();
+		bodyHost.add(taoBodyPanel(), BorderLayout.CENTER);
+		bodyHost.revalidate();
+		bodyHost.repaint();
+		showPeriod((String) cboTongHop.getSelectedItem());
 	}
 
 	private JPanel taoHeaderPanel(String titleText) {
@@ -68,10 +74,6 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		cboTongHop.setSelectedItem("Tháng");
 		cboTongHop.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboTongHop.setPreferredSize(new Dimension(96, 28));
-		if (chiThongKeTheoNgay) {
-			cboTongHop.setModel(new DefaultComboBoxModel<>(new String[] { "Ngày" }));
-			cboTongHop.setSelectedItem("Ngày");
-		}
 		right.add(cboTongHop);
 
 		JLabel lblNam = new JLabel("Năm:");
@@ -82,21 +84,8 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		cboNam.setSelectedItem("2026");
 		cboNam.setFont(new Font("Segoe UI", Font.PLAIN, 13));
 		cboNam.setPreferredSize(new Dimension(72, 28));
-		cboNam.setEnabled(!chiThongKeTheoNgay);
 		right.add(cboNam);
 
-		JPanel exportWrap = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-		exportWrap.setOpaque(false);
-		javax.swing.JButton btnExcel = new javax.swing.JButton("Xuất Excel");
-		btnExcel.setBackground(MAU_CHINH);
-		btnExcel.setForeground(Color.WHITE);
-		btnExcel.setFont(new Font("Segoe UI", Font.BOLD, 12));
-		btnExcel.setFocusPainted(false);
-		btnExcel.setBorder(new EmptyBorder(6, 12, 6, 12));
-		btnExcel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-		btnExcel.addActionListener(e -> {});
-		exportWrap.add(btnExcel);
-		right.add(exportWrap);
 		header.add(right, BorderLayout.EAST);
 
 		cboTongHop.addActionListener(e -> showPeriod((String) cboTongHop.getSelectedItem()));
@@ -114,23 +103,9 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 	}
 
 	private JPanel taoFilterBar() {
-		JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+		JPanel bar = new JPanel();
 		bar.setOpaque(false);
-		bar.setBorder(new EmptyBorder(0, 0, 10, 0));
-
-		JLabel label = new JLabel("Xem nhanh:");
-		label.setFont(new Font("Segoe UI", Font.BOLD, 13));
-		label.setForeground(MAU_TEXT);
-		label.setBorder(new EmptyBorder(0, 0, 0, 8));
-		bar.add(label);
-
-		JLabel sub = new JLabel("Dùng bộ lọc Tổng hợp để chuyển giữa Ngày, Tháng, Quý, Năm");
-		sub.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		sub.setForeground(new Color(108, 122, 138));
-		if (chiThongKeTheoNgay) {
-			sub.setText("Nhân viên chỉ xem thống kê theo Ngày");
-		}
-		bar.add(sub);
+		bar.setPreferredSize(new Dimension(0, 5));
 		return bar;
 	}
 
@@ -147,10 +122,11 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 		cardLayout.show(cardPanel, period == null ? "Tháng" : period);
 	}
 
+
 	protected abstract JPanel createPeriodPanel(String periodKey);
 
 	protected JPanel createStatGrid(StatSpec[] specs) {
-		JPanel grid = new JPanel(new GridLayout(1, 4, 12, 12));
+		JPanel grid = new JPanel(new GridLayout(1, specs.length, 12, 12));
 		grid.setOpaque(false);
 		for (StatSpec spec : specs) {
 			grid.add(createStatCard(spec));
@@ -256,7 +232,17 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 			this.values = values;
 			this.labels = labels;
 			this.barColor = barColor;
-			this.maxValue = maxValue;
+			
+			// Dynamically adjust maxValue to fit actual data perfectly if it is 0 or smaller than actual data
+			long actualMax = 0;
+			for (long v : values) {
+				if (v > actualMax) actualMax = v;
+			}
+			if (actualMax == 0) {
+				this.maxValue = 10;
+			} else {
+				this.maxValue = Math.max(maxValue, actualMax);
+			}
 			setOpaque(false);
 		}
 
@@ -273,13 +259,24 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 			int bottom = 34;
 			int chartWidth = width - left - right;
 			int chartHeight = height - top - bottom;
-			g2.setColor(new Color(235, 240, 248));
+			
+			g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
 			for (int i = 0; i < 5; i++) {
 				int y = top + (chartHeight * i / 4);
+				g2.setColor(new Color(235, 240, 248));
 				g2.drawLine(left, y, width - right, y);
+				
+				long gridVal = maxValue - (maxValue * i / 4);
+				g2.setColor(new Color(126, 139, 155));
+				String valStr = String.valueOf(gridVal);
+				if (gridVal >= 1000000000L) valStr = (gridVal / 1000000000L) + "B";
+				else if (gridVal >= 1000000L) valStr = (gridVal / 1000000L) + "M";
+				else if (gridVal >= 1000L) valStr = (gridVal / 1000L) + "K";
+				g2.drawString(valStr, 6, y + 4);
 			}
-			int barWidth = Math.max(24, chartWidth / values.length - 10);
-			int slot = chartWidth / values.length;
+			
+			int barWidth = Math.max(16, (chartWidth / Math.max(1, values.length)) - 12);
+			int slot = chartWidth / Math.max(1, values.length);
 			for (int i = 0; i < values.length; i++) {
 				int barHeight = (int) ((values[i] * 1.0 / maxValue) * (chartHeight - 10));
 				int x = left + i * slot + (slot - barWidth) / 2;
@@ -314,24 +311,45 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 			int width = getWidth();
 			int height = getHeight();
-			int left = 40;
+			int left = 48;
 			int right = 16;
 			int top = 18;
 			int bottom = 34;
 			int chartWidth = width - left - right;
 			int chartHeight = height - top - bottom;
-			int max = 2800;
-			g2.setColor(new Color(235, 240, 248));
+			
+			// Dynamically calculate the max limit for line chart auto-scaling
+			int max = 0;
+			for (int v : values) {
+				if (v > max) max = v;
+			}
+			if (max == 0) {
+				max = 10;
+			} else {
+				if (max < 10) max = 10;
+				else if (max < 50) max = ((max + 9) / 10) * 10;
+				else if (max < 100) max = ((max + 19) / 20) * 20;
+				else max = (int) (max * 1.15);
+			}
+			
+			g2.setFont(new Font("Segoe UI", Font.PLAIN, 10));
 			for (int i = 0; i < 5; i++) {
 				int y = top + (chartHeight * i / 4);
+				g2.setColor(new Color(235, 240, 248));
 				g2.drawLine(left, y, width - right, y);
+				
+				int gridVal = max - (max * i / 4);
+				g2.setColor(new Color(126, 139, 155));
+				g2.drawString(String.valueOf(gridVal), 6, y + 4);
 			}
+			
 			int[] xs = new int[values.length];
 			int[] ys = new int[values.length];
 			for (int i = 0; i < values.length; i++) {
-				xs[i] = left + (chartWidth * i / (values.length - 1));
+				xs[i] = left + (chartWidth * i / Math.max(1, values.length - 1));
 				ys[i] = top + chartHeight - (int) ((values[i] * 1.0 / max) * (chartHeight - 10));
 			}
+			
 			g2.setColor(lineColor);
 			g2.setStroke(new BasicStroke(2.5f));
 			for (int i = 0; i < xs.length - 1; i++) {
@@ -359,7 +377,16 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 			this.values = values;
 			this.labels = labels;
 			this.barColor = barColor;
-			this.maxValue = maxValue;
+			
+			int actualMax = 0;
+			for (int v : values) {
+				if (v > actualMax) actualMax = v;
+			}
+			if (actualMax == 0) {
+				this.maxValue = 10;
+			} else {
+				this.maxValue = Math.max(maxValue, actualMax);
+			}
 			setOpaque(false);
 		}
 
@@ -371,22 +398,27 @@ public abstract class ThongKeBaoCaoBasePage extends JPanel {
 			int width = getWidth();
 			int height = getHeight();
 			int left = 90;
-			int right = 18;
+			int right = 36; // Increased right padding to prevent numeric labels from being cut off
 			int top = 20;
 			int bottom = 20;
 			int chartWidth = width - left - right;
 			int chartHeight = height - top - bottom;
-			int rowHeight = chartHeight / values.length;
+			int rowHeight = chartHeight / Math.max(1, values.length);
 			for (int i = 0; i < values.length; i++) {
 				int y = top + i * rowHeight + 8;
 				int barWidth = (int) ((values[i] * 1.0 / maxValue) * (chartWidth - 10));
 				g2.setColor(new Color(95, 108, 125));
 				g2.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-				g2.drawString(labels[i], 12, y + 16);
+				g2.drawString(labels[i], 12, y + 18);
 				g2.setColor(new Color(234, 240, 248));
-				g2.fillRoundRect(left, y, chartWidth - 10, 28, 6, 6);
+				g2.fillRoundRect(left, y, chartWidth - 10, 24, 6, 6);
 				g2.setColor(barColor);
-				g2.fillRoundRect(left, y, barWidth, 28, 6, 6);
+				g2.fillRoundRect(left, y, barWidth, 24, 6, 6);
+				
+				// Draw precise actual count value next to the horizontal bar
+				g2.setColor(MAU_TEXT);
+				g2.setFont(new Font("Segoe UI", Font.BOLD, 11));
+				g2.drawString(String.valueOf(values[i]), left + barWidth + 8, y + 16);
 			}
 			g2.dispose();
 		}

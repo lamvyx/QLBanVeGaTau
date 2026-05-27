@@ -175,23 +175,26 @@ public class InVePage extends JPanel {
 			return;
 		}
 
-		if (!"VE0008".equals(maVe) && !"VE0009".equals(maVe)) {
+		controller.DoiTraController doiTraController = new controller.DoiTraController();
+		entity.VeTau ve = doiTraController.timVeTheoMa(maVe);
+
+		if (ve == null) {
 			lblTrangThai.setForeground(Color.decode("#B42318"));
 			lblTrangThai.setText("Không tìm thấy vé " + maVe + ".");
 			resetForm();
 			return;
 		}
 
-		maVeDangXuLy = maVe;
-		lblMaVe.setText(maVe);
-		lblMaHoaDon.setText("HD03042608");
-		lblKhachHang.setText("Nguyễn Thị Lan");
-		lblChuyenTau.setText("SE1-030426");
-		lblTuyen.setText("Sài Gòn - Hà Nội");
-		lblKhoiHanh.setText("2026-04-03 19:00");
-		lblToaGhe.setText("Toa 2 (Ghế mềm) · E03");
-		lblGiaVe.setText("1.105.000 đ");
-		lblTrangThaiVe.setText("Đã lập hóa đơn");
+		maVeDangXuLy = ve.getMaVeTau();
+		lblMaVe.setText(ve.getMaVeTau());
+		lblMaHoaDon.setText("Đã xuất HĐ");
+		lblKhachHang.setText(ve.getMaKH());
+		lblChuyenTau.setText(ve.getMaChuyenTau());
+		lblTuyen.setText("Theo chuyến");
+		lblKhoiHanh.setText("Sắp khởi hành");
+		lblToaGhe.setText("Toa " + ve.getMaToa() + " - " + ve.getViTriGhe());
+		lblGiaVe.setText(java.text.NumberFormat.getCurrencyInstance(new java.util.Locale("vi", "VN")).format(ve.getGiaVe()));
+		lblTrangThaiVe.setText(ve.getViTriGhe() != null ? "Hợp lệ" : "Chưa xác định");
 		btnPrint.setEnabled(true);
 		lblTrangThai.setForeground(Color.decode("#027A48"));
 		lblTrangThai.setText("Đã tìm thấy vé. Có thể in vé ngay.");
